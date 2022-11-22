@@ -1,0 +1,32 @@
+{{- if .Values.vpa.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: machine-controller-manager-vpa
+  namespace: {{ .Release.Namespace }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: machine-controller-manager
+  updatePolicy:
+    updateMode: {{ .Values.vpa.updatePolicy.updateMode | quote }}
+  resourcePolicy:
+    containerPolicies:
+    - containerName: machine-controller-manager-provider-onmetal
+      minAllowed:
+        cpu: {{ .Values.resources.mcmProviderOnmetal.requests.cpu }}
+        memory: {{ .Values.resources.mcmProviderOnmetal.requests.memory }}
+      maxAllowed:
+        cpu: {{ .Values.vpa.resourcePolicy.mcmProviderOnmetal.maxAllowed.cpu }}
+        memory: {{ .Values.vpa.resourcePolicy.mcmProviderOnmetal.maxAllowed.memory }}
+      controlledValues: RequestsOnly
+    - containerName: onmetal-machine-controller-manager
+      minAllowed:
+        cpu: {{ .Values.resources.mcm.requests.cpu }}
+        memory: {{ .Values.resources.mcm.requests.memory }}
+      maxAllowed:
+        cpu: {{ .Values.vpa.resourcePolicy.mcm.maxAllowed.cpu }}
+        memory: {{ .Values.vpa.resourcePolicy.mcm.maxAllowed.memory }}
+      controlledValues: RequestsOnly
+{{- end }}

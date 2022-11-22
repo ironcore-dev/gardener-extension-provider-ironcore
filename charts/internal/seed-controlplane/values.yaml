@@ -1,0 +1,7 @@
+global:
+  genericTokenKubeconfigSecretName: generic-token-kubeconfig
+
+cloud-controller-manager:
+  enabled: true
+csi-driver-controller:
+  enabled: false

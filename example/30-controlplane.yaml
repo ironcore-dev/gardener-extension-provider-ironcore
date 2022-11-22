@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shoot--foobar--onmetal
+  labels:
+#    backup.gardener.cloud/provider: onmetal
+#    seed.gardener.cloud/provider: onmetal
+    shoot.gardener.cloud/provider: onmetal
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudprovider
+  namespace: shoot--foobar--onmetal
+type: Opaque
+data:
+  serviceaccount.json: eyJwcm9qZWN0X2lkIjoiYWJjIn0=
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: Cluster
+metadata:
+  name: shoot--foobar--onmetal
+spec:
+  cloudProfile:
+    apiVersion: core.gardener.cloud/v1beta1
+    kind: CloudProfile
+  seed:
+    apiVersion: core.gardener.cloud/v1beta1
+    kind: Seed
+  shoot:
+    apiVersion: core.gardener.cloud/v1beta1
+    kind: Shoot
+    spec:
+      networking:
+        pods: 10.250.0.0/19
+      kubernetes:
+        version: 1.24.3
+      hibernation:
+        enabled: false
+    status:
+      lastOperation:
+        state: Succeeded
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: ControlPlane
+metadata:
+  name: control-plane
+  namespace: shoot--foobar--onmetal
+spec:
+  type: onmetal
+  region: europe-west1
+  secretRef:
+    name: cloudprovider
+    namespace: shoot--foobar--onmetal
+  providerConfig:
+    apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+    kind: ControlPlaneConfig
+    zone: europe-west1a
+    cloudControllerManager:
+      featureGates:
+        CustomResourceValidation: true
+  infrastructureProviderStatus:
+    apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+    kind: InfrastructureStatus
+    networks:
+      vpc:
+        name: vpc-1234
+      subnets:
+      - purpose: internal
+        name: subnet-acbd1234

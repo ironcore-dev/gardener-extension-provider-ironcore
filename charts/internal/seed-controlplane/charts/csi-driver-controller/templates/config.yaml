@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: csi-driver-controller-config
+  namespace: {{ .Release.Namespace }}
+data:
+  cloudprovider.conf: |
+    namespace: "{ .Values.namespace }"
+    kubeconfig: "{ .Values.kubeconfig }"

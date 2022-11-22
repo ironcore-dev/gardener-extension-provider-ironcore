@@ -1,0 +1,25 @@
+replicas: 1
+clusterName: shoot-foo-bar
+kubernetesVersion: 1.23.9
+podNetwork: 192.168.0.0/16
+podAnnotations: {}
+podLabels: {}
+featureGates: {}
+  # CustomResourceValidation: true
+  # RotateKubeletServerCertificate: false
+images:
+  cloud-controller-manager: image-repository:image-tag
+resources:
+  requests:
+    cpu: 100m 
+    memory: 75Mi
+  limits:
+    memory: 400Mi
+tlsCipherSuites: []
+secrets:
+  server: cloud-controller-manager-server
+vpa:
+  resourcePolicy:
+    maxAllowed:
+      cpu: 4
+      memory: 10G

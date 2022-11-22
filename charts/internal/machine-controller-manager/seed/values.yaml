@@ -1,0 +1,46 @@
+images:
+  machine-controller-manager: image-repository:image-tag
+  machine-controller-manager-provider-onmetal: image-repository:image-tag
+
+replicas: 1
+
+podAnnotations: {}
+
+podLabels: {}
+
+providerName: provider-foo
+
+# injected by generic worker actuator
+genericTokenKubeconfigSecretName: generic-token-kubeconfig
+
+namespace:
+  uid: uuid-of-namespace
+
+metricsPort: 10258
+metricsPortOnmetal: 10259
+
+vpa:
+  enabled: true
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    mcm:
+      maxAllowed:
+        cpu: 2
+        memory: 5G
+    mcmProviderOnmetal:
+      maxAllowed:
+        cpu: 2
+        memory: 5G
+
+resources:
+  mcm:
+    requests:
+      cpu: 31m
+      memory: 72Mi
+    limits:
+      memory: 400Mi
+  mcmProviderOnmetal:
+    requests:
+      cpu: 30m
+      memory: 64Mi

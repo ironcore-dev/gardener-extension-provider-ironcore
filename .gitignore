@@ -1,0 +1,24 @@
+/.kube-secrets
+/tmp
+/dev
+/local
+**/dev
+/bin
+hack/tools/bin
+
+cover.out
+*.coverprofile
+*.html
+.vscode
+.idea
+.DS_Store
+*~
+
+TODO
+
+# Virtual go & fuse
+.virtualgo
+.fuse_hidden*
+
+# GitGuardian
+.cache_ggshield

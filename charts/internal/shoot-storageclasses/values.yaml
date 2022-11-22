@@ -1,0 +1,2 @@
+useLegacyProvisioner: true
+volumeClassName: fast
