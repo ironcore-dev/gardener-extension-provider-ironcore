@@ -16,6 +16,7 @@ package worker
 
 import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"k8s.io/utils/pointer"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
@@ -26,7 +27,9 @@ import (
 
 var (
 	// DefaultAddOptions are the default AddOptions for AddToManager.
-	DefaultAddOptions = AddOptions{}
+	DefaultAddOptions = AddOptions{
+		RecoverPanic: pointer.Bool(true),
+	}
 )
 
 // AddOptions are options to apply when adding the onmetal worker controller to the manager.
@@ -35,6 +38,7 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
+	RecoverPanic              *bool
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.

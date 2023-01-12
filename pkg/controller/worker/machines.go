@@ -165,6 +165,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 				}
 			}
 
+			// TODO: adjust according the MachineClassSpec of the Onmetal MCM
 			machineClassProviderSpec := map[string]interface{}{
 				"machineClassRefName": pool.MachineType,
 				"machinePoolRefName":  zone,

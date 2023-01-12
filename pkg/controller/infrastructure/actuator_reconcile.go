@@ -16,6 +16,7 @@ package infrastructure
 
 import (
 	"context"
+	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -35,4 +36,8 @@ func (a *actuator) reconcile(ctx context.Context, logger logr.Logger, infra *ext
 	}
 
 	return a.updateProviderStatus(ctx, infra, config)
+}
+
+func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, config *api.InfrastructureConfig) error {
+	return nil
 }

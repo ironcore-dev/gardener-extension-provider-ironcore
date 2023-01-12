@@ -16,9 +16,9 @@ package helper
 
 import (
 	"fmt"
-	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	"k8s.io/utils/pointer"
 )
 

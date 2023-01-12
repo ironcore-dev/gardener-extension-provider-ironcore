@@ -15,12 +15,8 @@
 package infrastructure
 
 import (
-	"context"
-
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
 
 type actuator struct {
@@ -33,8 +29,4 @@ func NewActuator(disableProjectedTokenMount bool) infrastructure.Actuator {
 	return &actuator{
 		disableProjectedTokenMount: disableProjectedTokenMount,
 	}
-}
-
-func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, config *api.InfrastructureConfig) error {
-	return nil
 }
