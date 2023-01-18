@@ -17,11 +17,17 @@ package infrastructure
 import (
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type actuator struct {
 	common.RESTConfigContext
 	disableProjectedTokenMount bool
+}
+
+func (a *actuator) getOnmetalClientAndNamespaceFromInfraConfig(infra *extensionsv1alpha1.Infrastructure) (client.Client, string, error) {
+	return nil, "", nil
 }
 
 // NewActuator creates a new infrastructure.Actuator.

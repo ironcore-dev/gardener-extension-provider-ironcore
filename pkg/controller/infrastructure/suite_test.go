@@ -16,6 +16,10 @@ package infrastructure
 
 import (
 	"context"
+	"path/filepath"
+	"testing"
+	"time"
+
 	gardenerextensionv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
 	"github.com/onmetal/controller-utils/buildutils"
@@ -32,14 +36,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"testing"
-	"time"
 )
 
 const (
@@ -48,16 +49,6 @@ const (
 	pollingInterval      = 250 * time.Millisecond
 	consistentlyDuration = 1 * time.Second
 	apiServiceTimeout    = 5 * time.Minute
-
-	volumePoolName        = "my-pool"
-	volumePoolProviderID  = "custom://pool"
-	volumePoolReplication = 3
-
-	defaultDevicePath     = "/dev/block"
-	defaultPopulatorImage = "populator-image"
-	defaultPrefix         = "my-prefix"
-
-	cephClientSecretValue = "test"
 )
 
 var (

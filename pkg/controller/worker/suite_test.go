@@ -129,22 +129,6 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
-
-	//apiSrv, err := apiserver.New(cfg, apiserver.Options{
-	//	MainPath:     "github.com/onmetal/onmetal-api/onmetal-apiserver/cmd/apiserver",
-	//	BuildOptions: []buildutils.BuildOption{buildutils.ModModeMod},
-	//	ETCDServers:  []string{testEnv.ControlPlane.Etcd.URL.String()},
-	//	Host:         testEnvExt.APIServiceInstallOptions.LocalServingHost,
-	//	Port:         testEnvExt.APIServiceInstallOptions.LocalServingPort,
-	//	CertDir:      testEnvExt.APIServiceInstallOptions.LocalServingCertDir,
-	//})
-	//Expect(err).NotTo(HaveOccurred())
-
-	//By("starting the onmetal-api aggregated api server")
-	//Expect(apiSrv.Start()).To(Succeed())
-	//DeferCleanup(apiSrv.Stop)
-
-	//Expect(envtestutils.WaitUntilAPIServicesReadyWithTimeout(apiServiceTimeout, testEnvExt, k8sClient, scheme.Scheme)).To(Succeed())
 })
 
 func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) {

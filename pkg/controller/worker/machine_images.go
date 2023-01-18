@@ -17,6 +17,7 @@ package worker
 import (
 	"context"
 	"fmt"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"

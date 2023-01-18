@@ -606,7 +606,7 @@ var _ = Describe("Ensurer", func() {
 
 		It("should modify existing elements of kubernetes general configuration", func() {
 			var (
-				modifiedData = pointer.StringPtr("# Default Socket Send Buffer\n" +
+				modifiedData = pointer.String("# Default Socket Send Buffer\n" +
 					"net.core.wmem_max = 16777216\n" +
 					"# GCE specific settings\n" +
 					"net.ipv4.ip_forward = 5\n" +
@@ -626,7 +626,7 @@ var _ = Describe("Ensurer", func() {
 		})
 		It("should add needed elements of kubernetes general configuration", func() {
 			var (
-				data   = pointer.StringPtr("# Default Socket Send Buffer\nnet.core.wmem_max = 16777216")
+				data   = pointer.String("# Default Socket Send Buffer\nnet.core.wmem_max = 16777216")
 				result = "# Default Socket Send Buffer\n" +
 					"net.core.wmem_max = 16777216\n" +
 					"# GCE specific settings\n" +
