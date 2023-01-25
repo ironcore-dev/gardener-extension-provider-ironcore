@@ -25,7 +25,7 @@ require (
 	k8s.io/apimachinery v0.26.0
 	k8s.io/autoscaler/vertical-pod-autoscaler v0.12.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/code-generator v0.26.0
+	k8s.io/code-generator v0.26.1
 	k8s.io/component-base v0.26.0
 	k8s.io/kubelet v0.25.0
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
