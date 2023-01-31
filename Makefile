@@ -16,7 +16,7 @@ EXTENSION_NAMESPACE	:=
 
 WEBHOOK_PARAM := --webhook-config-url=$(WEBHOOK_CONFIG_URL)
 ifeq ($(WEBHOOK_CONFIG_MODE), service)
-  WEBHOOK_PARAM := --webhook-config-namespace=$(EXTENSION_NAMESPACE)
+	WEBHOOK_PARAM := --webhook-config-namespace=$(EXTENSION_NAMESPACE)
 endif
 
 #########################################
@@ -24,8 +24,33 @@ endif
 #########################################
 
 TOOLS_DIR := hack/tools
-GOLANGCI_LINT_VERSION := v1.49.0
 #include vendor/github.com/gardener/gardener/hack/tools.mk
+
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+## Tool Binaries
+KUSTOMIZE ?= $(LOCALBIN)/kustomize
+CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
+ENVTEST ?= $(LOCALBIN)/setup-envtest
+INSTALL ?= $(LOCALBIN)/install
+CLEAN ?= $(LOCALBIN)/clean 
+FORMAT ?= $(LOCALBIN)/format
+TEST_COV ?= $(LOCALBIN)/test-cov
+TEST_CLEAN ?= $(LOCALBIN)/test-clean
+CHECK_GENERATE ?= $(LOCALBIN)/check-generate
+GOIMPORTS ?= $(LOCALBIN)/goimports
+GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
+CHECK ?= $(LOCALBIN)/check
+CHECK_CHARTS ?= $(LOCALBIN)/check-charts
+CHECK_DOCFORGE ?= $(LOCALBIN)/check-docforge
+
+## Tool Versions
+KUSTOMIZE_VERSION ?= v3.8.7
+CONTROLLER_TOOLS_VERSION ?= v0.9.2
+GOLANGCI_LINT_VERSION ?= v1.50.1
 
 #########################################
 # Rules for local development scenarios #
@@ -58,10 +83,14 @@ start-admission:
 # Rules related to binary build, Docker image build and release #
 #################################################################
 
+INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/install.sh"
+$(INSTALL): $(LOCALBIN)
+	curl -Ss $(INSTALL_SCRIPT_URL) -o $(INSTALL)
+	chmod +x $(INSTALL)
+
 .PHONY: install
-install:
-	@LD_FLAGS=$(LD_FLAGS) \
-	$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install.sh ./...
+install: $(INSTALL)
+	LD_FLAGS=$(LD_FLAGS) $(INSTALL) -mod=mod ./...
 
 .PHONY: docker-login
 docker-login:
@@ -76,23 +105,56 @@ docker-images:
 # Rules for verification, formatting, linting, testing and cleaning #
 #####################################################################
 
+CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/clean.sh"
+$(CLEAN): $(LOCALBIN)
+	curl -Ss $(CLEAN_SCRIPT_URL) -o $(CLEAN)
+	chmod +x $(CLEAN)
+
 .PHONY: clean
-clean:
+clean: $(CLEAN)
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/clean.sh ./cmd/... ./pkg/... ./test/...
+	$(CLEAN) ./cmd/... ./pkg/... ./test/...
+
+CHECK_GENERATE_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-generate.sh"
+$(CHECK_GENERATE): $(LOCALBIN)
+	curl -Ss $(CHECK_GENERATE_SCRIPT_URL) -o $(CHECK_GENERATE)
+	chmod +x $(CHECK_GENERATE)
 
 .PHONY: check-generate
-check-generate:
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-generate.sh $(REPO_ROOT)
+check-generate: $(CHECK_GENERATE)
+	@$(CHECK_GENERATE) $(REPO_ROOT)
+
+$(GOIMPORTS): go.mod
+	go build -o $(GOIMPORTS) golang.org/x/tools/cmd/goimports
+
+$(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERSION))
+	@# CGO_ENABLED has to be set to 1 in order for golangci-lint to be able to load plugins
+	@# see https://github.com/golangci/golangci-lint/issues/1276
+	GOBIN=$(abspath $(LOCALBIN)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+
+CHECK_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check.sh"
+$(CHECK): $(LOCALBIN)
+	curl -Ss $(CHECK_SCRIPT_URL) -o $(CHECK)
+	chmod +x $(CHECK)
+
+CHECK_CHARTS_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-charts.sh"
+$(CHECK_CHARTS): $(LOCALBIN)
+	curl -Ss $(CHECK_CHARTS_SCRIPT_URL) -o $(CHECK_CHARTS)
+	chmod +x $(CHECK_CHARTS)
 
 .PHONY: check
-check: $(GOIMPORTS) $(GOLANGCI_LINT)
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/... ./test/...
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-charts.sh ./charts
+check: $(GOIMPORTS) $(CHECK) $(CHECK_CHARTS)
+	@$(CHECK) --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/... ./test/...
+	@$(CHECK_CHARTS) ./charts
+
+CHECK_DOCFORGE_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-docforge.sh"
+$(CHECK_DOCFORGE): $(LOCALBIN)
+	curl -Ss $(CHECK_DOCFORGE_SCRIPT_URL) -o $(CHECK_DOCFORGE)
+	chmod +x $(CHECK_DOCFORGE)
 
 .PHONY: check-docforge
-check-docforge: $(DOCFORGE)
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-docforge.sh $(REPO_ROOT) $(REPO_ROOT)/.docforge/manifest.yaml ".docforge/;docs/" "gardener-extension-provider-onmetal" false
+check-docforge: $(CHECK_DOCFORGE)
+	$(CHECK_DOCFORGE) $(REPO_ROOT) $(REPO_ROOT)/.docforge/manifest.yaml ".docforge/;docs/" "gardener-extension-provider-onmetal" false
 
 .PHONY: generate
 generate:
@@ -102,9 +164,14 @@ generate:
 #generate: $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
 #	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate.sh ./charts/... ./cmd/... ./example/... ./pkg/...
 
+FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/format.sh"
+$(FORMAT): $(LOCALBIN)
+	curl -Ss $(FORMAT_SCRIPT_URL) -o $(FORMAT)
+	chmod +x $(FORMAT)
+
 .PHONY: format
-format: $(GOIMPORTS)
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/format.sh ./cmd ./pkg ./test
+format: $(FORMAT)
+	$(FORMAT) ./cmd ./pkg ./test
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -126,36 +193,29 @@ addlicense: ## Add license headers to all go files.
 checklicense: ## Check that every file has a license header present.
 	find . -name '*.go' -exec go run github.com/google/addlicense  -check -c 'OnMetal authors' {} +
 
+TEST_COV_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover.sh"
+$(TEST_COV): $(LOCALBIN)
+	curl -Ss $(TEST_COV_SCRIPT_URL) -o $(TEST_COV)
+	chmod +x $(TEST_COV)
 
 .PHONY: test-cov
-test-cov:
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/test-cover.sh ./cmd/... ./pkg/...
+test-cov: $(TEST_COV)
+	$(TEST_COV) -mod=mod ./cmd/... ./pkg/...
+
+TEST_CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover-clean.sh"
+$(TEST_CLEAN): $(LOCALBIN)
+	curl -Ss $(TEST_CLEAN_SCRIPT_URL) -o $(TEST_CLEAN)
+	chmod +x $(TEST_CLEAN)
 
 .PHONY: test-clean
-test-clean:
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/test-cover-clean.sh
+test-clean: $(TEST_CLEAN)
+	$(TEST_CLEAN)
 
 .PHONY: verify
 verify: check format test
 
 .PHONY: verify-extended
 verify-extended: check-generate check format test-cov test-clean
-
-##@ Build Dependencies
-
-## Location to install dependencies to
-LOCALBIN ?= $(shell pwd)/bin
-$(LOCALBIN):
-	mkdir -p $(LOCALBIN)
-
-## Tool Binaries
-KUSTOMIZE ?= $(LOCALBIN)/kustomize
-CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-ENVTEST ?= $(LOCALBIN)/setup-envtest
-
-## Tool Versions
-KUSTOMIZE_VERSION ?= v3.8.7
-CONTROLLER_TOOLS_VERSION ?= v0.9.2
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
