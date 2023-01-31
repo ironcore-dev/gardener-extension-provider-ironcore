@@ -19,19 +19,12 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/utils/flow"
 	"github.com/go-logr/logr"
 )
 
 // Delete implements infrastructure.Actuator.
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
-	var (
-		g = flow.NewGraph("onmetal infrastructure destruction")
-		f = g.Compile()
-	)
-
-	if err := f.Run(ctx, flow.Opts{}); err != nil {
-		return flow.Causes(err)
-	}
+	// The owner references on the infrastructure resources should trigger the garbage collection as soon
+	// as the extension.Infrastructure resource has been deleted.
 	return nil
 }

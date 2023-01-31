@@ -29,7 +29,7 @@ import (
 	"github.com/onmetal/controller-utils/modutils"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	"github.com/onmetal/onmetal-api/testutils/envtestutils"
+	envtestutils "github.com/onmetal/onmetal-api/utils/envtest"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap/zapcore"

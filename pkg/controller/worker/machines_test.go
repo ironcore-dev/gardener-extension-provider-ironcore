@@ -27,7 +27,7 @@ import (
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	"github.com/onmetal/onmetal-api/testutils"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -67,7 +67,7 @@ var _ = Describe("Machines", func() {
 				Kind:       "InfrastructureStatus",
 				APIVersion: "onmetal.provider.extensions.gardener.cloud/v1alpha1",
 			},
-			Network: commonv1alpha1.LocalUIDReference{
+			NetworkRef: commonv1alpha1.LocalUIDReference{
 				Name: "my-network",
 				UID:  "1234",
 			},

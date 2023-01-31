@@ -16,6 +16,7 @@ package onmetal
 
 import (
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,14 +27,8 @@ import (
 type InfrastructureConfig struct {
 	metav1.TypeMeta
 
-	// Network is the network configuration
-	Network NetworkConfig
-}
-
-// NetworkConfig holds information about the Kubernetes and infrastructure networks.
-type NetworkConfig struct {
-	// Name states the name of the infrastructure Network.
-	Name string
+	// NetworkRef references the network to use for the Shoot creation.
+	NetworkRef corev1.LocalObjectReference
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -42,6 +37,10 @@ type NetworkConfig struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta
 
-	// Network is the status of the networks of the infrastructure.
-	Network commonv1alpha1.LocalUIDReference
+	// NetworkRef is the reference to the networked used
+	NetworkRef commonv1alpha1.LocalUIDReference
+	// NATGatewayRef is the reference to the NAT gateway used
+	NATGatewayRef commonv1alpha1.LocalUIDReference
+	// PrefixRef is the reference to the Prefix used
+	PrefixRef commonv1alpha1.LocalUIDReference
 }
