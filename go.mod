@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
-	github.com/coreos/go-systemd/v22 v22.3.2
+	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid/api v0.6.0
 	github.com/gardener/gardener v1.63.1-0.20230131115839-8d53342ddcf0
 	github.com/gardener/machine-controller-manager v0.48.0
