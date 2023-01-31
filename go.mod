@@ -11,7 +11,7 @@ require (
 	github.com/gardener/machine-controller-manager v0.47.0
 	github.com/go-logr/logr v1.2.3
 	github.com/golang/mock v1.6.0
-	github.com/google/addlicense v1.1.0
+	github.com/google/addlicense v1.1.1
 	github.com/onmetal/controller-utils v0.6.7
 	github.com/onmetal/onmetal-api v0.0.13-0.20230128091502-833ec2223300
 	github.com/onmetal/vgopath v0.0.3
