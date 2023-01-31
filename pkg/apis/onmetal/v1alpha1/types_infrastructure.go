@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// TODO: remove and use defaults for network and nat creation
-
 package v1alpha1
 
 import (
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,15 +27,8 @@ import (
 type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
 
-	// Networks is the network configuration
-	Network NetworkConfig `json:"network"`
-}
-
-// NetworkConfig holds information about the Kubernetes and infrastructure networks.
-type NetworkConfig struct {
-	// Name indicates whether to use an existing Network or create a new one.
-	// +optional
-	Name string `json:"name,omitempty"`
+	// NetworkRef references the network to use for the Shoot creation.
+	NetworkRef corev1.LocalObjectReference `json:"networkRef,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -45,6 +37,10 @@ type NetworkConfig struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta `json:",inline"`
 
-	// Network is the status of the networks of the infrastructure.
-	Network commonv1alpha1.LocalUIDReference `json:"network"`
+	// NetworkRef is the reference to the networked used
+	NetworkRef commonv1alpha1.LocalUIDReference `json:"networkRef,omitempty"`
+	// NATGatewayRef is the reference to the NAT gateway used
+	NATGatewayRef commonv1alpha1.LocalUIDReference `json:"natGatewayRef,omitempty"`
+	// PrefixRef is the reference to the Prefix used
+	PrefixRef commonv1alpha1.LocalUIDReference `json:"prefixRef,omitempty"`
 }

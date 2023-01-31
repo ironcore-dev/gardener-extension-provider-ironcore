@@ -84,7 +84,7 @@ var _ = Describe("ValuesProvider", func() {
 				},
 				InfrastructureProviderStatus: &runtime.RawExtension{
 					Raw: encode(&apisonmetal.InfrastructureStatus{
-						Network: v1alpha1.LocalUIDReference{
+						NetworkRef: v1alpha1.LocalUIDReference{
 							Name: "my-network",
 							UID:  "1234",
 						},

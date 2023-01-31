@@ -21,8 +21,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -44,25 +42,6 @@ func NewConfigValidator(client client.Client, logger logr.Logger) infrastructure
 
 // Validate validates the provider config of the given infrastructure resource with the cloud provider.
 func (c *configValidator) Validate(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) field.ErrorList {
-	allErrs := field.ErrorList{}
-
-	logger := c.logger.WithValues("infrastructure", client.ObjectKeyFromObject(infra))
-
-	// Get provider config from the infrastructure resource
-	config, err := helper.InfrastructureConfigFromInfrastructure(infra)
-	if err != nil {
-		allErrs = append(allErrs, field.InternalError(nil, err))
-		return allErrs
-	}
-
-	// Validate infrastructure config
-	logger.Info("Validating infrastructure networks configuration")
-	allErrs = append(allErrs, c.validateNetworks(ctx, infra.Namespace, infra.Spec.Region, config.Network, field.NewPath("network"))...)
-
-	return allErrs
-}
-
-func (c *configValidator) validateNetworks(ctx context.Context, clusterName, region string, networks api.NetworkConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	return allErrs
