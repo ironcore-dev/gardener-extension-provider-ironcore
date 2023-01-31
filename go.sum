@@ -347,8 +347,8 @@ github.com/onmetal/controller-utils v0.6.7 h1:+wtyeZqEmEJqOT42epU1h23oSQDMM7IPr8
 github.com/onmetal/controller-utils v0.6.7/go.mod h1:9W12MbvhUMTIVassOCsbdBqZ0TyixKAhD5msoxM8kC4=
 github.com/onmetal/onmetal-api v0.0.13-0.20230128091502-833ec2223300 h1:104fDSdmCJREkgkOEe9YLDmnhNEIjl+s4JYcNxOm2ZY=
 github.com/onmetal/onmetal-api v0.0.13-0.20230128091502-833ec2223300/go.mod h1:5ZnJ16SSspiZr552pC209s6cl3nKNSh7ru0RKOPbV78=
-github.com/onmetal/vgopath v0.0.3 h1:suuqMJ7oOxPYJ+vFwsYEWLiDm3kDzqyRh1xJCVgLxLo=
-github.com/onmetal/vgopath v0.0.3/go.mod h1:zW2TPcSorvDsu66dXgMxSQA0Gf1npVBS97X+wMhrNmw=
+github.com/onmetal/vgopath v0.0.4 h1:BLHl0+Cbx7V88qH7K/tYlCCLhWHq9gl3Zl6Vyh0zVwI=
+github.com/onmetal/vgopath v0.0.4/go.mod h1:jahw9UCHL/8bZ2B2yXXBobyX1qpq0g/pCtURb//y73E=
 github.com/onsi/ginkgo v0.0.0-20170829012221-11459a886d9c/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.10.1/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
