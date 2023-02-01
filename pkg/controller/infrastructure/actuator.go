@@ -17,6 +17,8 @@ package infrastructure
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -33,7 +35,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sync"
 )
 
 var onmetalScheme = runtime.NewScheme()
@@ -47,8 +48,7 @@ func init() {
 
 type actuator struct {
 	common.RESTConfigContext
-	disableProjectedTokenMount bool
-	regionStubRegistry         RegionStubRegistry
+	regionStubRegistry RegionStubRegistry
 }
 
 type RegionStubRegistry interface {
