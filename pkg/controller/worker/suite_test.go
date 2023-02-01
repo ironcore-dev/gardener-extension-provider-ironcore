@@ -30,6 +30,7 @@ import (
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	envtestutils "github.com/onmetal/onmetal-api/utils/envtest"
+	utilsenvtest "github.com/onmetal/onmetal-api/utils/envtest"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap/zapcore"
@@ -44,21 +45,20 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 const (
-	slowSpecThreshold    = 20 * time.Second
-	eventuallyTimeout    = 20 * time.Second
-	pollingInterval      = 250 * time.Millisecond
+	pollingInterval      = 50 * time.Millisecond
+	eventuallyTimeout    = 10 * time.Second
 	consistentlyDuration = 1 * time.Second
-	apiServiceTimeout    = 5 * time.Minute
 )
 
 var (
 	testEnv    *envtest.Environment
-	testEnvExt *envtestutils.EnvironmentExtensions
+	testEnvExt *utilsenvtest.EnvironmentExtensions
 	cfg        *rest.Config
 	k8sClient  client.Client
 )
@@ -113,11 +113,10 @@ var _ = BeforeSuite(func() {
 		ErrorIfAPIServicePathIsMissing: true,
 	}
 
-	cfg, err = envtestutils.StartWithExtensions(testEnv, testEnvExt)
+	cfg, err = utilsenvtest.StartWithExtensions(testEnv, testEnvExt)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
-
-	DeferCleanup(envtestutils.StopWithExtensions, testEnv, testEnvExt)
+	DeferCleanup(utilsenvtest.StopWithExtensions, testEnv, testEnvExt)
 
 	Expect(networkingv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(apiextensionsscheme.AddToScheme(scheme.Scheme)).To(Succeed())
@@ -129,13 +128,16 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
+
+	komega.SetClient(k8sClient)
 })
 
 func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) {
-	ns := &corev1.Namespace{}
 	var (
 		chartApplier gardener.ChartApplier
 	)
+	ns := &corev1.Namespace{}
+
 	BeforeEach(func() {
 		var err error
 		*ns = corev1.Namespace{

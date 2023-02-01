@@ -84,10 +84,11 @@ var _ = BeforeSuite(func() {
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_infrastructures.yaml"),
 		},
 		ErrorIfCRDPathMissing: true,
-		//AttachControlPlaneOutput: true,
 	}
 	testEnvExt = &utilsenvtest.EnvironmentExtensions{
-		APIServiceDirectoryPaths:       []string{modutils.Dir("github.com/onmetal/onmetal-api", "config", "apiserver", "apiservice", "bases")},
+		APIServiceDirectoryPaths: []string{
+			modutils.Dir("github.com/onmetal/onmetal-api", "config", "apiserver", "apiservice", "bases"),
+		},
 		ErrorIfAPIServicePathIsMissing: true,
 	}
 
