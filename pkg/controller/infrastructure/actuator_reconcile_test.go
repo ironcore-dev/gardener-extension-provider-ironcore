@@ -148,5 +148,26 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			HaveField("Spec.IPFamily", corev1.IPv4Protocol),
 			HaveField("Spec.Prefix", v1alpha12.MustParseNewIPPrefix("10.0.0.0/24")),
 		))
+
+		By("ensuring that the infrastructure state contains the correct refs")
+		providerStatus := map[string]interface{}{
+			"networkRef": map[string]interface{}{
+				"name": network.Name,
+				"uid":  network.UID,
+			},
+			"natGatewayRef": map[string]interface{}{
+				"name": natGateway.Name,
+				"uid":  natGateway.UID,
+			},
+			"prefixRef": map[string]interface{}{
+				"name": prefix.Name,
+				"uid":  prefix.UID,
+			},
+		}
+		providerStatusJSON, err := json.Marshal(providerStatus)
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(Object(infra)).Should(SatisfyAll(
+			HaveField("Status.ProviderStatus", &runtime.RawExtension{Raw: providerStatusJSON}),
+		))
 	})
 })
