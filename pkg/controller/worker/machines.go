@@ -29,7 +29,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -125,23 +124,23 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 		if err != nil {
 			return nil, nil, err
 		}
-		arch := pointer.StringDeref(pool.Architecture, v1beta1constants.ArchitectureAMD64)
+		//arch := pointer.StringDeref(pool.Architecture, v1beta1constants.ArchitectureAMD64)
 
-		machineImage, err := w.findMachineImage(pool.MachineImage.Name, pool.MachineImage.Version, &arch)
-		if err != nil {
-			return nil, nil, err
-		}
+		//machineImage, err := w.findMachineImage(pool.MachineImage.Name, pool.MachineImage.Version, &arch)
+		//if err != nil {
+		//	return nil, nil, err
+		//}
 
-		disks := make([]map[string]interface{}, 0)
-		// root volume
-		if pool.Volume != nil {
-			disk, err := createDiskSpecForVolume(*pool.Volume, w.worker.Name, machineImage, true)
-			if err != nil {
-				return nil, nil, err
-			}
-
-			disks = append(disks, disk)
-		}
+		//disks := make([]map[string]interface{}, 0)
+		//// root volume
+		//if pool.Volume != nil {
+		//	disk, err := createDiskSpecForVolume(*pool.Volume, w.worker.Name, machineImage, true)
+		//	if err != nil {
+		//		return nil, nil, err
+		//	}
+		//
+		//	disks = append(disks, disk)
+		//}
 
 		for zoneIndex, zone := range pool.Zones {
 			var (
@@ -228,32 +227,32 @@ func (w *workerDelegate) generateHashForWorkerPool(pool v1alpha1.WorkerPool) (st
 	return workerPoolHash, err
 }
 
-func createDiskSpecForVolume(volume v1alpha1.Volume, workerName string, machineImage string, boot bool) (map[string]interface{}, error) {
-	return createDiskSpec(volume.Size, workerName, boot, &machineImage, volume.Type)
-}
+//func createDiskSpecForVolume(volume v1alpha1.Volume, workerName string, machineImage string, boot bool) (map[string]interface{}, error) {
+//	return createDiskSpec(volume.Size, workerName, boot, &machineImage, volume.Type)
+//}
 
-func createDiskSpec(size, workerName string, boot bool, machineImage, volumeType *string) (map[string]interface{}, error) {
-	volumeSize, err := worker.DiskSize(size)
-	if err != nil {
-		return nil, err
-	}
-
-	disk := map[string]interface{}{
-		"autoDelete": true,
-		"boot":       boot,
-		"sizeGb":     volumeSize,
-		"labels": map[string]interface{}{
-			"name": workerName,
-		},
-	}
-
-	if machineImage != nil {
-		disk["image"] = *machineImage
-	}
-
-	if volumeType != nil {
-		disk["type"] = *volumeType
-	}
-
-	return disk, nil
-}
+//func createDiskSpec(size, workerName string, boot bool, machineImage, volumeType *string) (map[string]interface{}, error) {
+//	volumeSize, err := worker.DiskSize(size)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	disk := map[string]interface{}{
+//		"autoDelete": true,
+//		"boot":       boot,
+//		"sizeGb":     volumeSize,
+//		"labels": map[string]interface{}{
+//			"name": workerName,
+//		},
+//	}
+//
+//	if machineImage != nil {
+//		disk["image"] = *machineImage
+//	}
+//
+//	if volumeType != nil {
+//		disk["type"] = *volumeType
+//	}
+//
+//	return disk, nil
+//}
