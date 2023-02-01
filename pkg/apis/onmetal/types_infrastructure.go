@@ -28,7 +28,7 @@ type InfrastructureConfig struct {
 	metav1.TypeMeta
 
 	// NetworkRef references the network to use for the Shoot creation.
-	NetworkRef corev1.LocalObjectReference
+	NetworkRef *corev1.LocalObjectReference
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
