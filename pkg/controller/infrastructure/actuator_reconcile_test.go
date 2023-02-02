@@ -20,12 +20,6 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	v1alpha12 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -34,6 +28,13 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	v1alpha12 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Infrastructure Reconcile", func() {
@@ -129,7 +130,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			}),
 		))
 
-		By("expecting a nat gateway being created")
+		By("expecting a prefix being created")
 		prefix := &ipamv1alpha1.Prefix{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
