@@ -24,6 +24,7 @@ import (
 	unsafe "unsafe"
 
 	onmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	v1 "k8s.io/api/core/v1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -189,7 +190,7 @@ func Convert_onmetal_ControlPlaneConfig_To_v1alpha1_ControlPlaneConfig(in *onmet
 }
 
 func autoConvert_v1alpha1_InfrastructureConfig_To_onmetal_InfrastructureConfig(in *InfrastructureConfig, out *onmetal.InfrastructureConfig, s conversion.Scope) error {
-	out.NetworkRef = in.NetworkRef
+	out.NetworkRef = (*v1.LocalObjectReference)(unsafe.Pointer(in.NetworkRef))
 	return nil
 }
 
@@ -199,7 +200,7 @@ func Convert_v1alpha1_InfrastructureConfig_To_onmetal_InfrastructureConfig(in *I
 }
 
 func autoConvert_onmetal_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *onmetal.InfrastructureConfig, out *InfrastructureConfig, s conversion.Scope) error {
-	out.NetworkRef = in.NetworkRef
+	out.NetworkRef = (*v1.LocalObjectReference)(unsafe.Pointer(in.NetworkRef))
 	return nil
 }
 
