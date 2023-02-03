@@ -153,17 +153,23 @@ var _ = Describe("Machines", func() {
 			}
 
 			machineClassProviderSpec1 := map[string]interface{}{
-				"machineClassRef":   pool.MachineType,
-				"machinePoolRef":    "zone1",
-				"image":             pool.MachineImage,
+				"machineClassRef": map[string]string{
+					"name": pool.MachineType,
+				},
+				"machinePoolRef": map[string]string{
+					"name": "zone1",
+				},
 				"networkInterfaces": networkInterfaces,
 				"volumes":           volumes,
 			}
 
 			machineClassProviderSpec2 := map[string]interface{}{
-				"machineClassRef":   pool.MachineType,
-				"machinePoolRef":    "zone2",
-				"image":             pool.MachineImage,
+				"machineClassRef": map[string]string{
+					"name": pool.MachineType,
+				},
+				"machinePoolRef": map[string]string{
+					"name": "zone2",
+				},
 				"networkInterfaces": networkInterfaces,
 				"volumes":           volumes,
 			}

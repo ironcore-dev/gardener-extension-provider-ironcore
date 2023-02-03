@@ -135,9 +135,18 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 			return nil, nil, err
 		}
 
-		volumes := make([]map[string]interface{}, 0)
+		machineClassProviderSpec := map[string]interface{}{
+			"machineClassRef": map[string]string{
+				"name": pool.MachineType,
+			},
+		}
+
 		if pool.Volume != nil {
+			volumes := make([]map[string]interface{}, 0)
 			volumes = append(volumes, createSpecForVolume(*pool.Volume, machineImage))
+			machineClassProviderSpec["volumes"] = volumes
+		} else {
+			machineClassProviderSpec["image"] = machineImage
 		}
 
 		for zoneIndex, zone := range pool.Zones {
@@ -166,14 +175,9 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 			if infrastructureStatus.NetworkRef.Name != "" && infrastructureStatus.PrefixRef.Name != "" {
 				networkInterfaces = append(networkInterfaces, createSpecForNetworkInterface(className, infrastructureStatus.NetworkRef.Name, infrastructureStatus.PrefixRef.Name))
 			}
+			machineClassProviderSpec["networkInterfaces"] = networkInterfaces
+			machineClassProviderSpec["machinePoolRef"] = map[string]string{"name": zone}
 
-			machineClassProviderSpec := map[string]interface{}{
-				"machineClassRef":   pool.MachineType,
-				"machinePoolRef":    zone,
-				"image":             pool.MachineImage,
-				"networkInterfaces": networkInterfaces,
-				"volumes":           volumes,
-			}
 			machineClassProviderSpecJSON, err := json.Marshal(machineClassProviderSpec)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to marshal machine class for machine pool %s: %w", pool.Name, err)
