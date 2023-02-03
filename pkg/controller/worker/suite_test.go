@@ -26,11 +26,6 @@ import (
 	gardenerextensionv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardener "github.com/gardener/gardener/pkg/client/kubernetes"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
-	"github.com/onmetal/controller-utils/modutils"
-	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	envtestutils "github.com/onmetal/onmetal-api/utils/envtest"
-	utilsenvtest "github.com/onmetal/onmetal-api/utils/envtest"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap/zapcore"
@@ -48,6 +43,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	"github.com/onmetal/controller-utils/modutils"
+	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	envtestutils "github.com/onmetal/onmetal-api/utils/envtest"
 )
 
 const (
@@ -58,7 +58,7 @@ const (
 
 var (
 	testEnv    *envtest.Environment
-	testEnvExt *utilsenvtest.EnvironmentExtensions
+	testEnvExt *envtestutils.EnvironmentExtensions
 	cfg        *rest.Config
 	k8sClient  client.Client
 )
@@ -113,10 +113,10 @@ var _ = BeforeSuite(func() {
 		ErrorIfAPIServicePathIsMissing: true,
 	}
 
-	cfg, err = utilsenvtest.StartWithExtensions(testEnv, testEnvExt)
+	cfg, err = envtestutils.StartWithExtensions(testEnv, testEnvExt)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
-	DeferCleanup(utilsenvtest.StopWithExtensions, testEnv, testEnvExt)
+	DeferCleanup(envtestutils.StopWithExtensions, testEnv, testEnvExt)
 
 	Expect(networkingv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(apiextensionsscheme.AddToScheme(scheme.Scheme)).To(Succeed())
@@ -150,6 +150,9 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) 
 		chartApplier, err = gardener.NewChartApplierForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 
+		volumeName := "test-volume"
+		volumeType := "fast"
+
 		// define test resources
 		pool = gardenerextensionv1alpha1.WorkerPool{
 			MachineType:    "foo",
@@ -162,10 +165,14 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) 
 				Name:    "my-os",
 				Version: "1.0",
 			},
-			Minimum:      0,
-			Name:         "pool",
-			UserData:     []byte("some-data"),
-			Volume:       nil,
+			Minimum:  0,
+			Name:     "pool",
+			UserData: []byte("some-data"),
+			Volume: &gardenerextensionv1alpha1.Volume{
+				Name: &volumeName,
+				Type: &volumeType,
+				Size: "10Gi",
+			},
 			Zones:        []string{"zone1", "zone2"},
 			Architecture: pointer.String("amd64"),
 			NodeTemplate: &gardenerextensionv1alpha1.NodeTemplate{
