@@ -1,3 +1,6 @@
+cloudProviderConfig: |
+  <cloud-provider-config>
+
 images:
   csi-driver: image-repository:image-tag
   csi-node-driver-registrar: image-repository:image-tag

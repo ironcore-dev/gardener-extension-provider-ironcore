@@ -54,6 +54,13 @@ const (
 	// TokenFieldName is the field in a secret where the access token for the onmetal cluster is stored at.
 	TokenFieldName = "token"
 
+	// CloudProviderConfigName is the name of the secret containing the cloud provider config.
+	CloudProviderConfigName = "cloud-provider-config"
+	// CloudProviderCSIDiskConfigName is the name of the secret containing the cloud provider config for disk/volume handling. It is used by csi-driver-controller.
+	CloudProviderCSIDiskConfigName = "cloud-provider-disk-config-csi"
+	// CloudProviderConfigDataKey is the key storing the cloud provider config as value in the cloud provider secret.
+	CloudProviderConfigDataKey = "cloudprovider.conf"
+
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"
 	// CSIControllerName is a constant for the name of the CSI controller deployment in the seed.
@@ -82,6 +89,8 @@ const (
 	CSILivenessProbeName = "csi-liveness-probe"
 	// CSISnapshotValidation is the constant for the name of the csi-snapshot-validation-webhook component.
 	CSISnapshotValidation = "csi-snapshot-validation"
+	// CSIStorageProvisioner is a constant with the storage provisioner name which is used in storageclasses.
+	CSIStorageProvisioner = "onmetal-csi-driver"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
 	MachineControllerManagerName = "machine-controller-manager"
 	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.
