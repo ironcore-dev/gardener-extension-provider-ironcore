@@ -15,7 +15,7 @@ require (
 	github.com/onmetal/controller-utils v0.6.7
 	github.com/onmetal/onmetal-api v0.0.13-0.20230128091502-833ec2223300
 	github.com/onmetal/vgopath v0.0.4
-	github.com/onsi/ginkgo/v2 v2.7.0
+	github.com/onsi/ginkgo/v2 v2.8.0
 	github.com/onsi/gomega v1.26.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
@@ -99,7 +99,7 @@ require (
 	golang.org/x/term v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.4.0 // indirect
+	golang.org/x/tools v0.5.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
