@@ -283,13 +283,9 @@ func ensureKubeControllerManagerLabels(t *corev1.PodTemplateSpec, csiEnabled, cs
 var (
 	etcSSLName = "etc-ssl"
 
-	cloudProviderConfigVolumeMount = corev1.VolumeMount{
-		Name:      internal.CloudProviderConfigName,
-		MountPath: "/etc/kubernetes/cloudprovider",
-	}
 	cloudProviderSecretVolumeMount = corev1.VolumeMount{
-		Name:      v1beta1constants.SecretNameCloudProvider,
-		MountPath: "/srv/cloudprovider",
+		Name:      internal.CloudProviderSecretName,
+		MountPath: "/etc/kubernetes/cloudprovider",
 	}
 	etcSSLVolumeMount = corev1.VolumeMount{
 		Name:      etcSSLName,
@@ -314,22 +310,22 @@ var (
 		},
 	}
 
-	cloudProviderConfigVolume = corev1.Volume{
-		Name: internal.CloudProviderConfigName,
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{Name: internal.CloudProviderConfigName},
-			},
-		},
-	}
 	cloudProviderSecretVolume = corev1.Volume{
-		Name: v1beta1constants.SecretNameCloudProvider,
+		Name: internal.CloudProviderSecretName,
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
-				SecretName: v1beta1constants.SecretNameCloudProvider,
+				SecretName: internal.CloudProviderSecretName,
 			},
 		},
 	}
+	//cloudProviderSecretVolume = corev1.Volume{
+	//	Name: v1beta1constants.SecretNameCloudProvider,
+	//	VolumeSource: corev1.VolumeSource{
+	//		Secret: &corev1.SecretVolumeSource{
+	//			SecretName: v1beta1constants.SecretNameCloudProvider,
+	//		},
+	//	},
+	//}
 	etcSSLVolume = corev1.Volume{
 		Name: etcSSLName,
 		VolumeSource: corev1.VolumeSource{
@@ -343,25 +339,21 @@ var (
 
 func ensureKubeAPIServerVolumeMounts(c *corev1.Container, csiEnabled, csiMigrationComplete bool) {
 	if csiEnabled && csiMigrationComplete {
-		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, cloudProviderConfigVolumeMount.Name)
 		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount.Name)
 		return
 	}
 
-	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, cloudProviderConfigVolumeMount)
 	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount)
 }
 
 func ensureKubeControllerManagerVolumeMounts(c *corev1.Container, version string, csiEnabled, csiMigrationComplete bool) {
 	if csiEnabled && csiMigrationComplete {
-		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, cloudProviderConfigVolumeMount.Name)
 		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount.Name)
 		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, etcSSLVolumeMount.Name)
 		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, usrShareCaCertsVolumeMount.Name)
 		return
 	}
 
-	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, cloudProviderConfigVolumeMount)
 	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount)
 
 	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, etcSSLVolumeMount)
@@ -371,25 +363,21 @@ func ensureKubeControllerManagerVolumeMounts(c *corev1.Container, version string
 
 func ensureKubeAPIServerVolumes(ps *corev1.PodSpec, csiEnabled, csiMigrationComplete bool) {
 	if csiEnabled && csiMigrationComplete {
-		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, cloudProviderConfigVolume.Name)
 		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, cloudProviderSecretVolume.Name)
 		return
 	}
 
-	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, cloudProviderConfigVolume)
 	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, cloudProviderSecretVolume)
 }
 
 func ensureKubeControllerManagerVolumes(ps *corev1.PodSpec, version string, csiEnabled, csiMigrationComplete bool) {
 	if csiEnabled && csiMigrationComplete {
-		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, cloudProviderConfigVolume.Name)
 		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, cloudProviderSecretVolume.Name)
 		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, etcSSLVolume.Name)
 		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, usrShareCaCertsVolume.Name)
 		return
 	}
 
-	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, cloudProviderConfigVolume)
 	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, cloudProviderSecretVolume)
 
 	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, etcSSLVolume)
@@ -401,15 +389,11 @@ func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev
 	if csiEnabled && csiMigrationComplete {
 		if template.Annotations != nil {
 			delete(template.Annotations, "checksum/secret-"+v1beta1constants.SecretNameCloudProvider)
-			delete(template.Annotations, "checksum/configmap-"+internal.CloudProviderConfigName)
 		}
 		return nil
 	}
 
-	if err := controlplane.EnsureSecretChecksumAnnotation(ctx, template, e.client, namespace, v1beta1constants.SecretNameCloudProvider); err != nil {
-		return err
-	}
-	return controlplane.EnsureConfigMapChecksumAnnotation(ctx, template, e.client, namespace, internal.CloudProviderConfigName)
+	return controlplane.EnsureSecretChecksumAnnotation(ctx, template, e.client, namespace, internal.CloudProviderSecretName)
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.

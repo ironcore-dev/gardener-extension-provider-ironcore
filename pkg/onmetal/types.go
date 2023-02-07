@@ -53,6 +53,8 @@ const (
 	NamespaceFieldName = "namespace"
 	// KubeConfigFieldName is containing the effective kubeconfig to access an onmetal cluster.
 	KubeConfigFieldName = "kubeconfig"
+	// TokenFieldName is containing the token to access an onmetal cluster.
+	TokenFieldName = "token"
 
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"

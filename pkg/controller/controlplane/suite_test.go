@@ -23,6 +23,7 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/onmetal/controller-utils/modutils"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
@@ -50,7 +51,6 @@ const (
 	pollingInterval      = 50 * time.Millisecond
 	eventuallyTimeout    = 10 * time.Second
 	consistentlyDuration = 1 * time.Second
-	apiServiceTimeout    = 5 * time.Minute
 )
 
 var (
@@ -80,8 +80,15 @@ var _ = BeforeSuite(func() {
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_clusters.yaml"),
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_infrastructures.yaml"),
+			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_controlplanes.yaml"),
 		},
 		ErrorIfCRDPathMissing: true,
+	}
+	testEnvExt = &utilsenvtest.EnvironmentExtensions{
+		APIServiceDirectoryPaths: []string{
+			modutils.Dir("github.com/onmetal/onmetal-api", "config", "apiserver", "apiservice", "bases"),
+		},
+		ErrorIfAPIServicePathIsMissing: true,
 	}
 
 	cfg, err = utilsenvtest.StartWithExtensions(testEnv, testEnvExt)
@@ -128,6 +135,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 				Name:      "foo",
 			},
 			Spec: v1beta1.ShootSpec{
+				Region: "foo",
 				Provider: v1beta1.Provider{
 					Workers: []v1beta1.Worker{
 						{Name: "foo"},
@@ -157,6 +165,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 		mgr, err := manager.New(cfg, manager.Options{
 			Scheme:             scheme.Scheme,
 			MetricsBindAddress: "0",
+			CertDir:            testEnv.WebhookInstallOptions.LocalServingCertDir,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -171,9 +180,6 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 
 		config, err := clientcmd.Load(kubeconfig)
 		Expect(err).NotTo(HaveOccurred())
-
-		registry := auth.NewSimpleRegionStubRegistry()
-		registry.AddRegionStub("foo", *config)
 
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
@@ -192,7 +198,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			NewRegistry: func(c client.Client) (auth.RegionStubRegistry, error) {
 				registry := auth.NewSimpleRegionStubRegistry()
 				registry.AddRegionStub("foo", *config)
-				return auth.NewSimpleRegionStubRegistry(), nil
+				return registry, nil
 			},
 		})).NotTo(HaveOccurred())
 

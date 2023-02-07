@@ -42,8 +42,7 @@ func NewClientConfigGetter(c client.Client, registry RegionStubRegistry) ClientC
 func (c *clientConfigGetter) GetClientConfig(ctx context.Context, region string, secretKey client.ObjectKey) (clientcmd.ClientConfig, error) {
 	regionStub, err := c.registry.GetRegionStub(ctx, region)
 	if err != nil {
-		// TODO: handle not found
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("failed to get region stub for region %s: %w", region, err)
 	}
 
 	secret := &corev1.Secret{}

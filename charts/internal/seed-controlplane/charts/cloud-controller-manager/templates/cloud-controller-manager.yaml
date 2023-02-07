@@ -118,8 +118,5 @@ spec:
         secret:
           secretName: {{ .Values.secrets.server }}
       - name: cloud-provider-config
-        configMap:
-          name: cloud-provider-config
-      - name: cloudprovider
         secret:
-          secretName: cloudprovider
+          secretName: cloud-provider-config

@@ -41,8 +41,8 @@ var _ = Describe("Secret validation", func() {
 			HaveOccurred()),
 		Entry("should return error when the namespace name is valid",
 			map[string][]byte{
-				onmetal.NamespaceFieldName:  []byte("foo"),
-				onmetal.KubeConfigFieldName: []byte("foo"),
+				onmetal.NamespaceFieldName: []byte("foo"),
+				onmetal.TokenFieldName:     []byte("foo"),
 			},
 			Not(HaveOccurred())),
 	)

@@ -110,7 +110,7 @@ var (
 		Name: "cloud-provider-config",
 		Path: filepath.Join(onmetal.InternalChartsPath, "cloud-provider-config"),
 		Objects: []*chart.Object{
-			{Type: &corev1.ConfigMap{}, Name: internal.CloudProviderConfigName},
+			{Type: &corev1.Secret{}, Name: internal.CloudProviderSecretName},
 		},
 	}
 
@@ -272,7 +272,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	providerSecretKey := client.ObjectKey{Namespace: cp.Namespace, Name: cp.Spec.SecretRef.Name}
 	clientConfig, err := vp.clientConfigGetter.GetClientConfig(ctx, cluster.Shoot.Spec.Region, providerSecretKey)
 	if err != nil {
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("failed to get client config for provider %s: %w", providerSecretKey, err)
 	}
 
 	// Decode infrastructureProviderStatus
@@ -360,7 +360,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 func getConfigChartValues(cpConfig *apisonmetal.ControlPlaneConfig, infraStatus *apisonmetal.InfrastructureStatus, cp *extensionsv1alpha1.ControlPlane, clientConfig clientcmd.ClientConfig) (map[string]interface{}, error) {
 	namespace, _, err := clientConfig.Namespace()
 	if err != nil {
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("failed to get namespace for client config: %w", err)
 	}
 
 	rawConfig, err := clientConfig.RawConfig()
@@ -369,12 +369,12 @@ func getConfigChartValues(cpConfig *apisonmetal.ControlPlaneConfig, infraStatus 
 	}
 	kubeconfigData, err := clientcmd.Write(rawConfig)
 	if err != nil {
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("failed to craete kubeconfig data: %w", err)
 	}
 
 	// Collect config chart values
 	return map[string]interface{}{
-		onmetal.NamespaceFieldName:  string(namespace),
+		onmetal.NamespaceFieldName:  namespace,
 		onmetal.KubeConfigFieldName: string(kubeconfigData),
 	}, nil
 }
@@ -436,8 +436,7 @@ func getCCMChartValues(
 		"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
 		"podAnnotations": map[string]interface{}{
-			"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
-			"checksum/configmap-" + internal.CloudProviderConfigName:      checksums[internal.CloudProviderConfigName],
+			"checksum/secret-" + internal.CloudProviderSecretName: checksums[internal.CloudProviderSecretName],
 		},
 		"podLabels": map[string]interface{}{
 			v1beta1constants.LabelPodMaintenanceRestart: "true",
@@ -482,7 +481,7 @@ func getCSIControllerChartValues(
 		"enabled":  true,
 		"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 		"podAnnotations": map[string]interface{}{
-			"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
+			"checksum/secret-" + internal.CloudProviderSecretName: checksums[internal.CloudProviderSecretName],
 		},
 		"csiSnapshotController": map[string]interface{}{
 			"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
