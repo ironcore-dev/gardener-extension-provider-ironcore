@@ -104,8 +104,8 @@ var _ = Describe("SecretBinding validator", func() {
 			apiReader.EXPECT().Get(context.TODO(), client.ObjectKey{Namespace: namespace, Name: name}, gomock.AssignableToTypeOf(&corev1.Secret{})).
 				DoAndReturn(func(_ context.Context, _ client.ObjectKey, obj *corev1.Secret, _ ...client.GetOption) error {
 					secret := &corev1.Secret{Data: map[string][]byte{
-						onmetal.NamespaceFieldName: []byte("default"),
-						onmetal.TokenFieldName:     []byte("abcd"),
+						onmetal.NamespaceFieldName:  []byte("default"),
+						onmetal.KubeConfigFieldName: []byte("abcd"),
 					}}
 					*obj = *secret
 					return nil

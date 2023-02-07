@@ -24,8 +24,8 @@ import (
 
 // ValidateCloudProviderSecret checks whether the given secret contains a valid onmetal service account.
 func ValidateCloudProviderSecret(secret *corev1.Secret) error {
-	if _, ok := secret.Data[onmetal.TokenFieldName]; !ok {
-		return fmt.Errorf("missing field: %s in cloud provider secret", onmetal.TokenFieldName)
+	if _, ok := secret.Data[onmetal.KubeConfigFieldName]; !ok {
+		return fmt.Errorf("missing field: %s in cloud provider secret", onmetal.KubeConfigFieldName)
 	}
 	namespace, ok := secret.Data[onmetal.NamespaceFieldName]
 	if !ok {

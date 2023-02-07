@@ -23,7 +23,6 @@ import (
 )
 
 var _ = Describe("Secret validation", func() {
-
 	DescribeTable("#ValidateCloudProviderSecret",
 		func(data map[string][]byte, matcher gomegatypes.GomegaMatcher) {
 			secret := &corev1.Secret{
@@ -42,8 +41,8 @@ var _ = Describe("Secret validation", func() {
 			HaveOccurred()),
 		Entry("should return error when the namespace name is valid",
 			map[string][]byte{
-				onmetal.NamespaceFieldName: []byte("foo"),
-				onmetal.TokenFieldName:     []byte("foo"),
+				onmetal.NamespaceFieldName:  []byte("foo"),
+				onmetal.KubeConfigFieldName: []byte("foo"),
 			},
 			Not(HaveOccurred())),
 	)

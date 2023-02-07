@@ -140,8 +140,8 @@ var _ = Describe("ValuesProvider", func() {
 			},
 			Type: corev1.SecretTypeOpaque,
 			Data: map[string][]byte{
-				onmetal.NamespaceFieldName: []byte("default"),
-				onmetal.TokenFieldName:     []byte("abcd"),
+				onmetal.NamespaceFieldName:  []byte("default"),
+				onmetal.KubeConfigFieldName: []byte("abcd"),
 			},
 		}
 
@@ -159,9 +159,8 @@ var _ = Describe("ValuesProvider", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 
-		c = mockclient.NewMockClient(ctrl)
-
-		vp = NewValuesProvider()
+		//auth.NewClientConfigGetter()
+		//vp = NewValuesProvider(clientConfigGetter)
 		err := vp.(inject.Scheme).InjectScheme(scheme)
 		Expect(err).NotTo(HaveOccurred())
 		err = vp.(inject.Client).InjectClient(c)

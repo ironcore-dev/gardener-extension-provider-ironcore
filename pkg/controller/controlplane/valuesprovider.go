@@ -36,6 +36,7 @@ import (
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	"github.com/gardener/gardener/pkg/utils/version"
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -46,8 +47,8 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/types"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -241,14 +242,17 @@ var (
 )
 
 // NewValuesProvider creates a new ValuesProvider for the generic actuator.
-func NewValuesProvider() genericactuator.ValuesProvider {
-	return &valuesProvider{}
+func NewValuesProvider(getter auth.ClientConfigGetter) genericactuator.ValuesProvider {
+	return &valuesProvider{
+		clientConfigGetter: getter,
+	}
 }
 
 // valuesProvider is a ValuesProvider that provides onmetal-specific values for the 2 charts applied by the generic actuator.
 type valuesProvider struct {
 	genericactuator.NoopValuesProvider
 	common.ClientContext
+	clientConfigGetter auth.ClientConfigGetter
 }
 
 // GetConfigChartValues returns the values for the config chart applied by the generic actuator.
@@ -265,12 +269,10 @@ func (vp *valuesProvider) GetConfigChartValues(
 		}
 	}
 
-	provicerSecret := &corev1.Secret{}
-	providerSecretKey := types.NamespacedName{Namespace: cp.Namespace, Name: cp.Spec.SecretRef.Name}
-	if cp.Spec.SecretRef.Name != "" {
-		if err := vp.Client().Get(ctx, providerSecretKey, provicerSecret); err != nil {
-			return nil, fmt.Errorf("could not get provider secret %s: %w", providerSecretKey, err)
-		}
+	providerSecretKey := client.ObjectKey{Namespace: cp.Namespace, Name: cp.Spec.SecretRef.Name}
+	clientConfig, err := vp.clientConfigGetter.GetClientConfig(ctx, cluster.Shoot.Spec.Region, providerSecretKey)
+	if err != nil {
+		return nil, fmt.Errorf("")
 	}
 
 	// Decode infrastructureProviderStatus
@@ -280,7 +282,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get config chart values
-	return getConfigChartValues(cpConfig, infraStatus, cp, provicerSecret)
+	return getConfigChartValues(cpConfig, infraStatus, cp, clientConfig)
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
@@ -320,7 +322,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 }
 
 // GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by the generic actuator.
-// Currently the provider extension does not specify a control plane shoot CRDs chart. That's why we simply return empty values.
+// Currently, the provider extension does not specify a control plane shoot CRDs chart. That's why we simply return empty values.
 func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ context.Context,
 	_ *extensionsv1alpha1.ControlPlane,
@@ -355,20 +357,25 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 }
 
 // getConfigChartValues collects and returns the configuration chart values.
-func getConfigChartValues(cpConfig *apisonmetal.ControlPlaneConfig, infraStatus *apisonmetal.InfrastructureStatus, cp *extensionsv1alpha1.ControlPlane, secret *corev1.Secret) (map[string]interface{}, error) {
-	namespace, ok := secret.Data[onmetal.NamespaceFieldName]
-	if !ok {
-		return nil, fmt.Errorf("no namespace found in provider secret %s", client.ObjectKeyFromObject(secret))
+func getConfigChartValues(cpConfig *apisonmetal.ControlPlaneConfig, infraStatus *apisonmetal.InfrastructureStatus, cp *extensionsv1alpha1.ControlPlane, clientConfig clientcmd.ClientConfig) (map[string]interface{}, error) {
+	namespace, _, err := clientConfig.Namespace()
+	if err != nil {
+		return nil, fmt.Errorf("")
 	}
-	token, ok := secret.Data[onmetal.TokenFieldName]
-	if !ok {
-		return nil, fmt.Errorf("no token found in provider secret %s", client.ObjectKeyFromObject(secret))
+
+	rawConfig, err := clientConfig.RawConfig()
+	if err != nil {
+		return nil, err
+	}
+	kubeconfigData, err := clientcmd.Write(rawConfig)
+	if err != nil {
+		return nil, fmt.Errorf("")
 	}
 
 	// Collect config chart values
 	return map[string]interface{}{
-		onmetal.NamespaceFieldName: string(namespace),
-		onmetal.TokenFieldName:     string(token),
+		onmetal.NamespaceFieldName:  string(namespace),
+		onmetal.KubeConfigFieldName: string(kubeconfigData),
 	}, nil
 }
 

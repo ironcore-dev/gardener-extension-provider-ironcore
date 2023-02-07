@@ -51,8 +51,8 @@ const (
 
 	// NamespaceFieldName is the field in a secret where the namespace is stored at.
 	NamespaceFieldName = "namespace"
-	// TokenFieldName is the field in a secret where the access token for the onmetal cluster is stored at.
-	TokenFieldName = "token"
+	// KubeConfigFieldName is containing the effective kubeconfig to access an onmetal cluster.
+	KubeConfigFieldName = "kubeconfig"
 
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"

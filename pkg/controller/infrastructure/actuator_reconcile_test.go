@@ -65,7 +65,8 @@ var _ = Describe("Infrastructure Reconcile", func() {
 				},
 				Region: "foo",
 				SecretRef: corev1.SecretReference{
-					Name: "my-infra-creds",
+					Namespace: ns.Name,
+					Name:      "my-infra-creds",
 				},
 			},
 		}
