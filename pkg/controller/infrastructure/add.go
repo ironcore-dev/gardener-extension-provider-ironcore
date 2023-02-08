@@ -15,7 +15,10 @@
 package infrastructure
 
 import (
+	"fmt"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -33,17 +36,26 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
-	Registry                  RegionStubRegistry
+	// NewRegistry specifies how to instantiate a new stub registry.
+	NewRegistry auth.NewRegistryFunc
 }
 
 // AddToManagerWithOptions adds a controller with the given AddOptions to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
-func AddToManagerWithOptions(mgr manager.Manager, options AddOptions) error {
+func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
+	if opts.NewRegistry == nil {
+		return fmt.Errorf("must specify NewRegistry")
+	}
+	registry, err := opts.NewRegistry(mgr.GetClient())
+	if err != nil {
+		return err
+	}
+	clientConfigGetter := auth.NewClientConfigGetter(mgr.GetClient(), registry)
 	return infrastructure.Add(mgr, infrastructure.AddArgs{
-		Actuator:          NewActuator(options.Registry),
+		Actuator:          NewActuator(clientConfigGetter),
 		ConfigValidator:   NewConfigValidator(mgr.GetClient(), log.Log),
-		ControllerOptions: options.Controller,
-		Predicates:        infrastructure.DefaultPredicates(options.IgnoreOperationAnnotation),
+		ControllerOptions: opts.Controller,
+		Predicates:        infrastructure.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              onmetal.Type,
 	})
 }

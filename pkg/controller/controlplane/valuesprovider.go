@@ -28,15 +28,14 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	gardenerutils "github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	gutil "github.com/gardener/gardener/pkg/utils/gardener"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
-	"github.com/gardener/gardener/pkg/utils/version"
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -47,8 +46,8 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/types"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -110,7 +109,7 @@ var (
 		Name: "cloud-provider-config",
 		Path: filepath.Join(onmetal.InternalChartsPath, "cloud-provider-config"),
 		Objects: []*chart.Object{
-			{Type: &corev1.ConfigMap{}, Name: internal.CloudProviderConfigName},
+			{Type: &corev1.Secret{}, Name: internal.CloudProviderSecretName},
 		},
 	}
 
@@ -242,14 +241,17 @@ var (
 )
 
 // NewValuesProvider creates a new ValuesProvider for the generic actuator.
-func NewValuesProvider() genericactuator.ValuesProvider {
-	return &valuesProvider{}
+func NewValuesProvider(getter auth.ClientConfigGetter) genericactuator.ValuesProvider {
+	return &valuesProvider{
+		clientConfigGetter: getter,
+	}
 }
 
 // valuesProvider is a ValuesProvider that provides onmetal-specific values for the 2 charts applied by the generic actuator.
 type valuesProvider struct {
 	genericactuator.NoopValuesProvider
 	common.ClientContext
+	clientConfigGetter auth.ClientConfigGetter
 }
 
 // GetConfigChartValues returns the values for the config chart applied by the generic actuator.
@@ -266,12 +268,10 @@ func (vp *valuesProvider) GetConfigChartValues(
 		}
 	}
 
-	provicerSecret := &corev1.Secret{}
-	providerSecretKey := types.NamespacedName{Namespace: cp.Namespace, Name: cp.Spec.SecretRef.Name}
-	if cp.Spec.SecretRef.Name != "" {
-		if err := vp.Client().Get(ctx, providerSecretKey, provicerSecret); err != nil {
-			return nil, fmt.Errorf("could not get provider secret %s: %w", providerSecretKey, err)
-		}
+	providerSecretKey := client.ObjectKey{Namespace: cp.Namespace, Name: cp.Spec.SecretRef.Name}
+	clientConfig, err := vp.clientConfigGetter.GetClientConfig(ctx, cluster.Shoot.Spec.Region, providerSecretKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client config for provider %s: %w", providerSecretKey, err)
 	}
 
 	// Decode infrastructureProviderStatus
@@ -281,7 +281,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get config chart values
-	return getConfigChartValues(cpConfig, infraStatus, cp, provicerSecret)
+	return getConfigChartValues(cpConfig, infraStatus, cp, clientConfig)
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
@@ -321,20 +321,15 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 }
 
 // GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by the generic actuator.
-// Currently the provider extension does not specify a control plane shoot CRDs chart. That's why we simply return empty values.
+// Currently, the provider extension does not specify a control plane shoot CRDs chart. That's why we simply return empty values.
 func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ context.Context,
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	k8sVersionLessThan118, err := version.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
 	return map[string]interface{}{
 		"volumesnapshots": map[string]interface{}{
-			"enabled": !k8sVersionLessThan118,
+			"enabled": false,
 		},
 	}, nil
 }
@@ -345,31 +340,29 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	k8sVersionLessThan118, err := version.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]interface{}{
-		"useLegacyProvisioner": k8sVersionLessThan118,
-	}, nil
+	return map[string]interface{}{}, nil
 }
 
 // getConfigChartValues collects and returns the configuration chart values.
-func getConfigChartValues(cpConfig *apisonmetal.ControlPlaneConfig, infraStatus *apisonmetal.InfrastructureStatus, cp *extensionsv1alpha1.ControlPlane, secret *corev1.Secret) (map[string]interface{}, error) {
-	namespace, ok := secret.Data[onmetal.NamespaceFieldName]
-	if !ok {
-		return nil, fmt.Errorf("no namespace found in provider secret %s", client.ObjectKeyFromObject(secret))
+func getConfigChartValues(cpConfig *apisonmetal.ControlPlaneConfig, infraStatus *apisonmetal.InfrastructureStatus, cp *extensionsv1alpha1.ControlPlane, clientConfig clientcmd.ClientConfig) (map[string]interface{}, error) {
+	namespace, _, err := clientConfig.Namespace()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get namespace for client config: %w", err)
 	}
-	token, ok := secret.Data[onmetal.TokenFieldName]
-	if !ok {
-		return nil, fmt.Errorf("no token found in provider secret %s", client.ObjectKeyFromObject(secret))
+
+	rawConfig, err := clientConfig.RawConfig()
+	if err != nil {
+		return nil, err
+	}
+	kubeconfigData, err := clientcmd.Write(rawConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to craete kubeconfig data: %w", err)
 	}
 
 	// Collect config chart values
 	return map[string]interface{}{
-		onmetal.NamespaceFieldName: string(namespace),
-		onmetal.TokenFieldName:     string(token),
+		onmetal.NamespaceFieldName:  namespace,
+		onmetal.KubeConfigFieldName: string(kubeconfigData),
 	}, nil
 }
 
@@ -430,8 +423,7 @@ func getCCMChartValues(
 		"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
 		"podAnnotations": map[string]interface{}{
-			"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
-			"checksum/configmap-" + internal.CloudProviderConfigName:      checksums[internal.CloudProviderConfigName],
+			"checksum/secret-" + internal.CloudProviderSecretName: checksums[internal.CloudProviderSecretName],
 		},
 		"podLabels": map[string]interface{}{
 			v1beta1constants.LabelPodMaintenanceRestart: "true",
@@ -458,15 +450,6 @@ func getCSIControllerChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	k8sVersionLessThan118, err := version.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	if k8sVersionLessThan118 {
-		return map[string]interface{}{"enabled": false}, nil
-	}
-
 	serverSecret, found := secretsReader.Get(csiSnapshotValidationServerName)
 	if !found {
 		return nil, fmt.Errorf("secret %q not found", csiSnapshotValidationServerName)
@@ -476,7 +459,7 @@ func getCSIControllerChartValues(
 		"enabled":  true,
 		"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 		"podAnnotations": map[string]interface{}{
-			"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
+			"checksum/secret-" + internal.CloudProviderSecretName: checksums[internal.CloudProviderSecretName],
 		},
 		"csiSnapshotController": map[string]interface{}{
 			"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
@@ -509,18 +492,6 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	)
 
 	kubernetesVersion := cluster.Shoot.Spec.Kubernetes.Version
-	k8sVersionLessThan118, err := version.CompareVersions(kubernetesVersion, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	secret := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, onmetal.CloudProviderCSIDiskConfigName), secret); err != nil {
-		return nil, err
-	}
-
-	cloudProviderDiskConfig = secret.Data[onmetal.CloudProviderConfigDataKey]
-	checksums[onmetal.CloudProviderCSIDiskConfigName] = gardenerutils.ComputeChecksum(secret.Data)
 
 	caSecret, found := secretsReader.Get(caNameControlPlane)
 	if !found {
@@ -545,7 +516,16 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 
 	return map[string]interface{}{
 		onmetal.CloudControllerManagerName: map[string]interface{}{"enabled": true},
-		onmetal.CSINodeName:                csiNodeDriverValues,
+		onmetal.CSINodeName: map[string]interface{}{
+			"enabled":           true,
+			"kubernetesVersion": kubernetesVersion,
+			"vpaEnabled":        gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
+			"webhookConfig": map[string]interface{}{
+				"url":      "https://" + onmetal.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
+				"caBundle": string(caSecret.Data[secretutils.DataKeyCertificateBundle]),
+			},
+			"pspDisabled": gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+		},
 	}, nil
 
 }

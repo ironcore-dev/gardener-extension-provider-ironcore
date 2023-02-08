@@ -39,16 +39,8 @@ type ControllerConfiguration struct {
 	// or disable alpha/experimental features.
 	// Default: nil
 	FeatureGates map[string]bool
-	// Regions is a list of supported region mappings of the onmetal extension controller.
-	Regions []Region
-}
-
-type Region struct {
-	// Name is the name of the region
-	Name string
-	// KubeConfigStub is the kubeconfig go template to use as a base for establishing the connection
-	// to the onmetal cluster using the user access token and namespace.
-	KubeConfigStub string
+	// Namespace where the onmetal region secrets are stored.
+	Namespace string
 }
 
 // ETCD is an etcd configuration.

@@ -23,7 +23,6 @@ import (
 )
 
 var _ = Describe("Secret validation", func() {
-
 	DescribeTable("#ValidateCloudProviderSecret",
 		func(data map[string][]byte, matcher gomegatypes.GomegaMatcher) {
 			secret := &corev1.Secret{
