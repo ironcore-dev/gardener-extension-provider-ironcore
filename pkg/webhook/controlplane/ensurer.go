@@ -19,20 +19,16 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-
 	"github.com/Masterminds/semver"
 	"github.com/coreos/go-systemd/v22/unit"
-	"github.com/gardener/gardener/extensions/pkg/controller/csimigration"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/utils/version"
-	versionutils "github.com/gardener/gardener/pkg/utils/version"
 	"github.com/go-logr/logr"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
@@ -59,44 +55,18 @@ func (e *ensurer) InjectClient(client client.Client) error {
 	return nil
 }
 
-func computeCSIMigrationCompleteFeatureGate(version string) (string, error) {
-	k8sGreaterEqual121, err := versionutils.CompareVersions(version, ">=", "1.21")
-	if err != nil {
-		return "", err
-	}
-
-	if k8sGreaterEqual121 {
-		return "InTreePluginGCEUnregister", nil
-	}
-	return "CSIMigrationGCEComplete", nil
-}
-
 // EnsureKubeAPIServerDeployment ensures that the kube-apiserver deployment conforms to the provider requirements.
 func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, _ *appsv1.Deployment) error {
 	template := &new.Spec.Template
 	ps := &template.Spec
 
-	cluster, err := gctx.GetCluster(ctx)
-	if err != nil {
-		return err
-	}
-
-	csiEnabled, csiMigrationComplete, err := csimigration.CheckCSIConditions(cluster, onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return err
-	}
-	csiMigrationCompleteFeatureGate, err := computeCSIMigrationCompleteFeatureGate(cluster.Shoot.Spec.Kubernetes.Version)
-	if err != nil {
-		return err
-	}
-
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
-		ensureKubeAPIServerCommandLineArgs(c, csiEnabled, csiMigrationComplete, csiMigrationCompleteFeatureGate)
-		ensureKubeAPIServerVolumeMounts(c, csiEnabled, csiMigrationComplete)
+		ensureKubeAPIServerCommandLineArgs(c)
+		ensureKubeAPIServerVolumeMounts(c)
 	}
 
-	ensureKubeAPIServerVolumes(ps, csiEnabled, csiMigrationComplete)
-	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace, csiEnabled, csiMigrationComplete)
+	ensureKubeAPIServerVolumes(ps)
+	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace)
 }
 
 // EnsureKubeControllerManagerDeployment ensures that the kube-controller-manager deployment conforms to the provider requirements.
@@ -104,180 +74,49 @@ func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, gct
 	template := &new.Spec.Template
 	ps := &template.Spec
 
-	cluster, err := gctx.GetCluster(ctx)
-	if err != nil {
-		return err
-	}
-
-	csiEnabled, csiMigrationComplete, err := csimigration.CheckCSIConditions(cluster, onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return err
-	}
-	csiMigrationCompleteFeatureGate, err := computeCSIMigrationCompleteFeatureGate(cluster.Shoot.Spec.Kubernetes.Version)
-	if err != nil {
-		return err
-	}
-
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-controller-manager"); c != nil {
-		ensureKubeControllerManagerCommandLineArgs(c, csiEnabled, csiMigrationComplete, csiMigrationCompleteFeatureGate)
-		ensureKubeControllerManagerVolumeMounts(c, cluster.Shoot.Spec.Kubernetes.Version, csiEnabled, csiMigrationComplete)
+		ensureKubeControllerManagerCommandLineArgs(c)
+		ensureKubeControllerManagerVolumeMounts(c)
 	}
 
-	ensureKubeControllerManagerLabels(template, csiEnabled, csiMigrationComplete)
-	ensureKubeControllerManagerVolumes(ps, cluster.Shoot.Spec.Kubernetes.Version, csiEnabled, csiMigrationComplete)
-	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace, csiEnabled, csiMigrationComplete)
+	ensureKubeControllerManagerLabels(template)
+	ensureKubeControllerManagerVolumes(ps)
+	return nil
 }
 
 // EnsureKubeSchedulerDeployment ensures that the kube-scheduler deployment conforms to the provider requirements.
 func (e *ensurer) EnsureKubeSchedulerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, _ *appsv1.Deployment) error {
-	template := &new.Spec.Template
-	ps := &template.Spec
-
-	cluster, err := gctx.GetCluster(ctx)
-	if err != nil {
-		return err
-	}
-
-	csiEnabled, csiMigrationComplete, err := csimigration.CheckCSIConditions(cluster, onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return err
-	}
-	csiMigrationCompleteFeatureGate, err := computeCSIMigrationCompleteFeatureGate(cluster.Shoot.Spec.Kubernetes.Version)
-	if err != nil {
-		return err
-	}
-
-	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-scheduler"); c != nil {
-		ensureKubeSchedulerCommandLineArgs(c, csiEnabled, csiMigrationComplete, csiMigrationCompleteFeatureGate)
-	}
 	return nil
 }
 
 // EnsureClusterAutoscalerDeployment ensures that the cluster-autoscaler deployment conforms to the provider requirements.
 func (e *ensurer) EnsureClusterAutoscalerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, _ *appsv1.Deployment) error {
-	template := &new.Spec.Template
-	ps := &template.Spec
-
-	cluster, err := gctx.GetCluster(ctx)
-	if err != nil {
-		return err
-	}
-
-	// cluster-autoscaler supports the "--feature-gates" flag starting 1.20.
-	// Exit early and do not add the "--feature-gates" flag for K8s < 1.20 Shoots.
-	k8sLessThan120, err := versionutils.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, "<", "1.20")
-	if err != nil {
-		return err
-	}
-	if k8sLessThan120 {
-		return nil
-	}
-
-	// At this point K8s >= 1.20. As CSIMigrationKubernetesVersion is 1.18, we can assume that CSI is enabled and CSI migration is complete.
-	csiMigrationCompleteFeatureGate, err := computeCSIMigrationCompleteFeatureGate(cluster.Shoot.Spec.Kubernetes.Version)
-	if err != nil {
-		return err
-	}
-
-	if c := extensionswebhook.ContainerWithName(ps.Containers, "cluster-autoscaler"); c != nil {
-		ensureClusterAutoscalerCommandLineArgs(c, csiMigrationCompleteFeatureGate)
-	}
 	return nil
 }
 
-func ensureKubeAPIServerCommandLineArgs(c *corev1.Container, csiEnabled, csiMigrationComplete bool, csiMigrationCompleteFeatureGate string) {
-	if csiEnabled {
-		c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-			"CSIMigration=true", ",")
-		c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-			"CSIMigrationGCE=true", ",")
-
-		if csiMigrationComplete {
-			c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-				csiMigrationCompleteFeatureGate+"=true", ",")
-			c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-provider=")
-			c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-config=")
-			c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--enable-admission-plugins=",
-				"PersistentVolumeLabel", ",")
-			c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--disable-admission-plugins=",
-				"PersistentVolumeLabel", ",")
-			return
-		}
-	}
-
-	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--cloud-provider=", "gce")
-	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--cloud-config=",
-		"/etc/kubernetes/cloudprovider/cloudprovider.conf")
-	c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--enable-admission-plugins=",
+func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
+	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-provider=")
+	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-config=")
+	c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--enable-admission-plugins=",
 		"PersistentVolumeLabel", ",")
-	c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--disable-admission-plugins=",
+	c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--disable-admission-plugins=",
 		"PersistentVolumeLabel", ",")
 }
 
-func ensureKubeControllerManagerCommandLineArgs(c *corev1.Container, csiEnabled, csiMigrationComplete bool, csiMigrationCompleteFeatureGate string) {
+func ensureKubeControllerManagerCommandLineArgs(c *corev1.Container) {
 	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--cloud-provider=", "external")
-
-	if csiEnabled {
-		c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-			"CSIMigration=true", ",")
-		c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-			"CSIMigrationGCE=true", ",")
-
-		if csiMigrationComplete {
-			c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-				csiMigrationCompleteFeatureGate+"=true", ",")
-			c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-config=")
-			c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--external-cloud-volume-plugin=")
-			return
-		}
-	}
-
 	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--cloud-config=",
 		"/etc/kubernetes/cloudprovider/cloudprovider.conf")
-	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--external-cloud-volume-plugin=", "gce")
 }
 
-func ensureKubeSchedulerCommandLineArgs(c *corev1.Container, csiEnabled, csiMigrationComplete bool, csiMigrationCompleteFeatureGate string) {
-	if csiEnabled {
-		c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-			"CSIMigration=true", ",")
-		c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-			"CSIMigrationGCE=true", ",")
-
-		if csiMigrationComplete {
-			c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-				csiMigrationCompleteFeatureGate+"=true", ",")
-			return
-		}
-	}
-}
-
-// ensureClusterAutoscalerCommandLineArgs ensures the cluster-autoscaler command line args.
-// cluster-autoscaler supports the "--feature-gates" flag starting 1.20. This func assumes that
-// the K8s version is >= 1.20 which means that CSI is enabled and CSI migration is complete.
-func ensureClusterAutoscalerCommandLineArgs(c *corev1.Container, csiMigrationCompleteFeatureGate string) {
-	c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-		"CSIMigration=true", ",")
-	c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-		"CSIMigrationGCE=true", ",")
-	c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--feature-gates=",
-		csiMigrationCompleteFeatureGate+"=true", ",")
-}
-
-func ensureKubeControllerManagerLabels(t *corev1.PodTemplateSpec, csiEnabled, csiMigrationComplete bool) {
+func ensureKubeControllerManagerLabels(t *corev1.PodTemplateSpec) {
 	// make sure to always remove this label
 	delete(t.Labels, v1beta1constants.LabelNetworkPolicyToBlockedCIDRs)
 
-	if csiEnabled && csiMigrationComplete {
-		if t.Labels != nil {
-			delete(t.Labels, v1beta1constants.LabelNetworkPolicyToPublicNetworks)
-			delete(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks)
-		}
-		return
+	if t.Labels != nil {
+		delete(t.Labels, v1beta1constants.LabelNetworkPolicyToPublicNetworks)
+		delete(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks)
 	}
-
-	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPublicNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
-	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
 }
 
 var (
@@ -318,14 +157,7 @@ var (
 			},
 		},
 	}
-	//cloudProviderSecretVolume = corev1.Volume{
-	//	Name: v1beta1constants.SecretNameCloudProvider,
-	//	VolumeSource: corev1.VolumeSource{
-	//		Secret: &corev1.SecretVolumeSource{
-	//			SecretName: v1beta1constants.SecretNameCloudProvider,
-	//		},
-	//	},
-	//}
+
 	etcSSLVolume = corev1.Volume{
 		Name: etcSSLName,
 		VolumeSource: corev1.VolumeSource{
@@ -337,23 +169,11 @@ var (
 	}
 )
 
-func ensureKubeAPIServerVolumeMounts(c *corev1.Container, csiEnabled, csiMigrationComplete bool) {
-	if csiEnabled && csiMigrationComplete {
-		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount.Name)
-		return
-	}
-
-	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount)
+func ensureKubeAPIServerVolumeMounts(c *corev1.Container) {
+	c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount.Name)
 }
 
-func ensureKubeControllerManagerVolumeMounts(c *corev1.Container, version string, csiEnabled, csiMigrationComplete bool) {
-	if csiEnabled && csiMigrationComplete {
-		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount.Name)
-		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, etcSSLVolumeMount.Name)
-		c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, usrShareCaCertsVolumeMount.Name)
-		return
-	}
-
+func ensureKubeControllerManagerVolumeMounts(c *corev1.Container) {
 	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, cloudProviderSecretVolumeMount)
 
 	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, etcSSLVolumeMount)
@@ -361,23 +181,11 @@ func ensureKubeControllerManagerVolumeMounts(c *corev1.Container, version string
 	c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, usrShareCaCertsVolumeMount)
 }
 
-func ensureKubeAPIServerVolumes(ps *corev1.PodSpec, csiEnabled, csiMigrationComplete bool) {
-	if csiEnabled && csiMigrationComplete {
-		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, cloudProviderSecretVolume.Name)
-		return
-	}
-
-	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, cloudProviderSecretVolume)
+func ensureKubeAPIServerVolumes(ps *corev1.PodSpec) {
+	ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, cloudProviderSecretVolume.Name)
 }
 
-func ensureKubeControllerManagerVolumes(ps *corev1.PodSpec, version string, csiEnabled, csiMigrationComplete bool) {
-	if csiEnabled && csiMigrationComplete {
-		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, cloudProviderSecretVolume.Name)
-		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, etcSSLVolume.Name)
-		ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, usrShareCaCertsVolume.Name)
-		return
-	}
-
+func ensureKubeControllerManagerVolumes(ps *corev1.PodSpec) {
 	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, cloudProviderSecretVolume)
 
 	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, etcSSLVolume)
@@ -385,32 +193,15 @@ func ensureKubeControllerManagerVolumes(ps *corev1.PodSpec, version string, csiE
 	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, usrShareCaCertsVolume)
 }
 
-func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev1.PodTemplateSpec, namespace string, csiEnabled, csiMigrationComplete bool) error {
-	if csiEnabled && csiMigrationComplete {
-		if template.Annotations != nil {
-			delete(template.Annotations, "checksum/secret-"+v1beta1constants.SecretNameCloudProvider)
-		}
-		return nil
-	}
-
+func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev1.PodTemplateSpec, namespace string) error {
 	return controlplane.EnsureSecretChecksumAnnotation(ctx, template, e.client, namespace, internal.CloudProviderSecretName)
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
 func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, new, _ []*unit.UnitOption) ([]*unit.UnitOption, error) {
-	cluster, err := gctx.GetCluster(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	csiEnabled, _, err := csimigration.CheckCSIConditions(cluster, onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
 	if opt := extensionswebhook.UnitOptionWithSectionAndName(new, "Service", "ExecStart"); opt != nil {
 		command := extensionswebhook.DeserializeCommandLine(opt.Value)
-		command = ensureKubeletCommandLineArgs(command, csiEnabled, kubeletVersion)
+		command = ensureKubeletCommandLineArgs(command, true, kubeletVersion)
 		opt.Value = extensionswebhook.SerializeCommandLine(command, 1, " \\\n    ")
 	}
 
@@ -438,33 +229,12 @@ func ensureKubeletCommandLineArgs(command []string, csiEnabled bool, kubeletVers
 
 // EnsureKubeletConfiguration ensures that the kubelet configuration conforms to the provider requirements.
 func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, new, _ *kubeletconfigv1beta1.KubeletConfiguration) error {
-	cluster, err := gctx.GetCluster(ctx)
-	if err != nil {
-		return err
+	if new.FeatureGates == nil {
+		new.FeatureGates = make(map[string]bool)
 	}
 
-	csiEnabled, err := version.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, ">=", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return err
-	}
-	csiMigrationCompleteFeatureGate, err := computeCSIMigrationCompleteFeatureGate(kubeletVersion.String())
-	if err != nil {
-		return err
-	}
-
-	if csiEnabled {
-		if new.FeatureGates == nil {
-			new.FeatureGates = make(map[string]bool)
-		}
-
-		new.FeatureGates["CSIMigration"] = true
-		new.FeatureGates["CSIMigrationGCE"] = true
-		// kubelets of new worker nodes can directly be started with the <csiMigrationCompleteFeatureGate> feature gate
-		new.FeatureGates[csiMigrationCompleteFeatureGate] = true
-
-		if version.ConstraintK8sGreaterEqual123.Check(kubeletVersion) {
-			new.EnableControllerAttachDetach = pointer.Bool(true)
-		}
+	if version.ConstraintK8sGreaterEqual123.Check(kubeletVersion) {
+		new.EnableControllerAttachDetach = pointer.Bool(true)
 	}
 
 	return nil

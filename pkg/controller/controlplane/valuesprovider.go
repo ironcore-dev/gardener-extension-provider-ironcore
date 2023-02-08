@@ -34,7 +34,6 @@ import (
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
-	"github.com/gardener/gardener/pkg/utils/version"
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
@@ -328,14 +327,9 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	k8sVersionLessThan118, err := version.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
 	return map[string]interface{}{
 		"volumesnapshots": map[string]interface{}{
-			"enabled": !k8sVersionLessThan118,
+			"enabled": false,
 		},
 	}, nil
 }
@@ -346,14 +340,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	k8sVersionLessThan118, err := version.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]interface{}{
-		"useLegacyProvisioner": k8sVersionLessThan118,
-	}, nil
+	return map[string]interface{}{}, nil
 }
 
 // getConfigChartValues collects and returns the configuration chart values.
@@ -463,15 +450,6 @@ func getCSIControllerChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	k8sVersionLessThan118, err := version.CompareVersions(cluster.Shoot.Spec.Kubernetes.Version, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	if k8sVersionLessThan118 {
-		return map[string]interface{}{"enabled": false}, nil
-	}
-
 	serverSecret, found := secretsReader.Get(csiSnapshotValidationServerName)
 	if !found {
 		return nil, fmt.Errorf("secret %q not found", csiSnapshotValidationServerName)
@@ -502,10 +480,6 @@ func getControlPlaneShootChartValues(
 	secretsReader secretsmanager.Reader,
 ) (map[string]interface{}, error) {
 	kubernetesVersion := cluster.Shoot.Spec.Kubernetes.Version
-	k8sVersionLessThan118, err := version.CompareVersions(kubernetesVersion, "<", onmetal.CSIMigrationKubernetesVersion)
-	if err != nil {
-		return nil, err
-	}
 
 	caSecret, found := secretsReader.Get(caNameControlPlane)
 	if !found {
@@ -515,7 +489,7 @@ func getControlPlaneShootChartValues(
 	return map[string]interface{}{
 		onmetal.CloudControllerManagerName: map[string]interface{}{"enabled": true},
 		onmetal.CSINodeName: map[string]interface{}{
-			"enabled":           !k8sVersionLessThan118,
+			"enabled":           true,
 			"kubernetesVersion": kubernetesVersion,
 			"vpaEnabled":        gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
 			"webhookConfig": map[string]interface{}{
