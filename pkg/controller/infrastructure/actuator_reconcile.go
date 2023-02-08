@@ -18,20 +18,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -65,6 +66,9 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 	}
 
 	onmetalClient, namespace, err := a.newClientFromConfig(onmetalClientCfg)
+	if err != nil {
+		return err
+	}
 
 	network, err := a.applyNetwork(ctx, onmetalClient, namespace, infra, config, cluster)
 	if err != nil {
@@ -89,15 +93,22 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 
 func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client, namespace string, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) (*ipamv1alpha1.Prefix, error) {
 	prefix := &ipamv1alpha1.Prefix{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Prefix",
+			APIVersion: "ipam.api.onmetal.de/v1alpha1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace:    namespace,
-			GenerateName: generateResourceNameFromCluster(cluster),
+			Namespace: namespace,
+			Name:      generateResourceNameFromCluster(cluster),
 		},
 		Spec: ipamv1alpha1.PrefixSpec{
 			// TODO: for now we only support IPv4 until Gardener has support for IPv6 based Shoots
 			IPFamily: corev1.IPv4Protocol,
-			Prefix:   commonv1alpha1.MustParseNewIPPrefix(*cluster.Shoot.Spec.Networking.Nodes),
 		},
+	}
+
+	if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
+		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(pointer.StringDeref(nodeCIDR, ""))
 	}
 
 	if err := controllerutil.SetControllerReference(infra, prefix, a.Scheme()); err != nil {
@@ -118,9 +129,13 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 	}
 
 	natGateway := &networkingv1alpha1.NATGateway{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "NATGateway",
+			APIVersion: "networking.api.onmetal.de/v1alpha1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace:    namespace,
-			GenerateName: generateResourceNameFromCluster(cluster),
+			Namespace: namespace,
+			Name:      generateResourceNameFromCluster(cluster),
 		},
 		Spec: networkingv1alpha1.NATGatewaySpec{
 			Type: networkingv1alpha1.NATGatewayTypePublic,
@@ -129,16 +144,19 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 			NetworkRef: corev1.LocalObjectReference{
 				Name: network.Name,
 			},
-			NetworkInterfaceSelector: &metav1.LabelSelector{
-				MatchExpressions: []metav1.LabelSelectorRequirement{
-					{
-						Key:      workerNameKey,
-						Operator: metav1.LabelSelectorOpIn,
-						Values:   workerNames,
-					},
+		},
+	}
+
+	if len(workerNames) > 0 {
+		natGateway.Spec.NetworkInterfaceSelector = &metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				{
+					Key:      workerNameKey,
+					Operator: metav1.LabelSelectorOpIn,
+					Values:   workerNames,
 				},
 			},
-		},
+		}
 	}
 
 	if err := controllerutil.SetControllerReference(infra, natGateway, a.Scheme()); err != nil {
@@ -153,9 +171,13 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 
 func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client, namespace string, infra *extensionsv1alpha1.Infrastructure, config *api.InfrastructureConfig, cluster *controller.Cluster) (*networkingv1alpha1.Network, error) {
 	network := &networkingv1alpha1.Network{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Network",
+			APIVersion: "networking.api.onmetal.de/v1alpha1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace:    namespace,
-			GenerateName: generateResourceNameFromCluster(cluster),
+			Namespace: namespace,
+			Name:      generateResourceNameFromCluster(cluster),
 		},
 	}
 

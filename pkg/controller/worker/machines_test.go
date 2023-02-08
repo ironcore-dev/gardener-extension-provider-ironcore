@@ -23,11 +23,6 @@ import (
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -36,6 +31,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Machines", func() {
@@ -51,13 +51,13 @@ var _ = Describe("Machines", func() {
 	It("should create the correct type for the machine class", func() {
 		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(nil, nil, nil), "", nil, nil)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(workerDelegate.MachineClass()).To(Equal(&machinev1alpha1.MachineClass{}))
+		Expect(workerDelegate.MachineClass()).To(Equal(&machinecontrollerv1alpha1.MachineClass{}))
 	})
 
 	It("should create the correct type for the machine class list", func() {
 		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(nil, nil, nil), "", nil, nil)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(workerDelegate.MachineClassList()).To(Equal(&machinev1alpha1.MachineClassList{}))
+		Expect(workerDelegate.MachineClassList()).To(Equal(&machinecontrollerv1alpha1.MachineClassList{}))
 	})
 
 	It("should create the expected machine classes for a multi zone cluster", func() {
@@ -70,6 +70,10 @@ var _ = Describe("Machines", func() {
 			NetworkRef: commonv1alpha1.LocalUIDReference{
 				Name: "my-network",
 				UID:  "1234",
+			},
+			PrefixRef: commonv1alpha1.LocalUIDReference{
+				Name: "my-prefix",
+				UID:  "3766",
 			},
 		}
 		w.Spec.InfrastructureProviderStatus = &runtime.RawExtension{Raw: encodeObject(infraStatus)}
@@ -87,10 +91,10 @@ var _ = Describe("Machines", func() {
 
 		By("ensuring that the machine classes for each pool has been deployed")
 		var (
-			deploymentName1 = fmt.Sprintf("%s-%s-z%d", ns.Name, "pool", 1)
-			deploymentName2 = fmt.Sprintf("%s-%s-z%d", ns.Name, "pool", 2)
-			className1      = fmt.Sprintf("%s-%s", deploymentName1, workerPoolHash)
-			className2      = fmt.Sprintf("%s-%s", deploymentName2, workerPoolHash)
+			deploymentName1 = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, ns.Name, "pool", 1)
+			deploymentName2 = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, ns.Name, "pool", 2)
+			className1      = fmt.Sprintf("%s--%s", deploymentName1, workerPoolHash)
+			className2      = fmt.Sprintf("%s--%s", deploymentName2, workerPoolHash)
 		)
 		Eventually(func(g Gomega) {
 			machineClass1 := &machinecontrollerv1alpha1.MachineClass{}
@@ -105,16 +109,69 @@ var _ = Describe("Machines", func() {
 			Expect(client.IgnoreNotFound(err)).To(Succeed())
 			g.Expect(err).NotTo(HaveOccurred())
 
+			networkInterfaces := []map[string]interface{}{
+				{
+					"name": className1,
+					"ephemeral": map[string]interface{}{
+						"networkInterfaceTemplate": map[string]interface{}{
+							"spec": map[string]interface{}{
+								"networkRef": map[string]string{
+									"name": infraStatus.NetworkRef.Name,
+								},
+								"ipFamilies": []string{"IPv4"},
+								"ips": []map[string]interface{}{
+									{
+										"ephemeral": map[string]interface{}{
+											"prefixTemplate": map[string]interface{}{
+												"spec": map[string]interface{}{
+													"parentRef": infraStatus.PrefixRef.Name,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			volumes := []map[string]interface{}{
+				{
+					"name": pool.Volume.Name,
+					"ephemeral": map[string]interface{}{
+						"volumeTemplate": map[string]interface{}{
+							"spec": map[string]interface{}{
+								"volumeClassRef": pool.Volume.Type,
+								"resources": map[string]string{
+									"storage": pool.Volume.Size,
+								},
+								"image": "registry/my-os",
+							},
+						},
+					},
+				},
+			}
+
 			machineClassProviderSpec1 := map[string]interface{}{
-				"machineClassRefName": pool.MachineType,
-				"machinePoolRefName":  "zone1",
-				"image":               pool.MachineImage,
+				"machineClassRef": map[string]string{
+					"name": pool.MachineType,
+				},
+				"machinePoolRef": map[string]string{
+					"name": "zone1",
+				},
+				"networkInterfaces": networkInterfaces,
+				"volumes":           volumes,
 			}
 
 			machineClassProviderSpec2 := map[string]interface{}{
-				"machineClassRefName": pool.MachineType,
-				"machinePoolRefName":  "zone2",
-				"image":               pool.MachineImage,
+				"machineClassRef": map[string]string{
+					"name": pool.MachineType,
+				},
+				"machinePoolRef": map[string]string{
+					"name": "zone2",
+				},
+				"networkInterfaces": networkInterfaces,
+				"volumes":           volumes,
 			}
 
 			g.Expect(machineClass1).Should(SatisfyAll(
@@ -138,6 +195,8 @@ var _ = Describe("Machines", func() {
 					Raw: encodeMap(machineClassProviderSpec1),
 				}),
 			))
+
+			networkInterfaces[0]["name"] = className2
 
 			g.Expect(machineClass2).Should(SatisfyAll(
 				HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),

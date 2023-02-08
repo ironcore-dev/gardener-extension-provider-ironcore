@@ -24,15 +24,18 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
+
+const shootPrefix = "shoot"
 
 // MachineClassKind yields the name of the machine class kind used by onmetal provider.
 func (w *workerDelegate) MachineClassKind() string {
@@ -132,21 +135,24 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 			return nil, nil, err
 		}
 
-		disks := make([]map[string]interface{}, 0)
-		// root volume
-		if pool.Volume != nil {
-			disk, err := createDiskSpecForVolume(*pool.Volume, w.worker.Name, machineImage, true)
-			if err != nil {
-				return nil, nil, err
-			}
+		machineClassProviderSpec := map[string]interface{}{
+			"machineClassRef": map[string]string{
+				"name": pool.MachineType,
+			},
+		}
 
-			disks = append(disks, disk)
+		if pool.Volume != nil {
+			volumes := make([]map[string]interface{}, 0)
+			volumes = append(volumes, createSpecForVolume(*pool.Volume, machineImage))
+			machineClassProviderSpec["volumes"] = volumes
+		} else {
+			machineClassProviderSpec["image"] = machineImage
 		}
 
 		for zoneIndex, zone := range pool.Zones {
 			var (
-				deploymentName = fmt.Sprintf("%s-%s-z%d", w.worker.Namespace, pool.Name, zoneIndex+1)
-				className      = fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
+				deploymentName = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, w.worker.Namespace, pool.Name, zoneIndex+1)
+				className      = fmt.Sprintf("%s--%s", deploymentName, workerPoolHash)
 			)
 
 			// Here we are going to create the necessary objects:
@@ -165,12 +171,13 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 				}
 			}
 
-			// TODO: adjust according the MachineClassSpec of the Onmetal MCM
-			machineClassProviderSpec := map[string]interface{}{
-				"machineClassRefName": pool.MachineType,
-				"machinePoolRefName":  zone,
-				"image":               pool.MachineImage,
+			networkInterfaces := make([]map[string]interface{}, 0)
+			if infrastructureStatus.NetworkRef.Name != "" && infrastructureStatus.PrefixRef.Name != "" {
+				networkInterfaces = append(networkInterfaces, createSpecForNetworkInterface(className, infrastructureStatus.NetworkRef.Name, infrastructureStatus.PrefixRef.Name))
 			}
+			machineClassProviderSpec["networkInterfaces"] = networkInterfaces
+			machineClassProviderSpec["machinePoolRef"] = map[string]string{"name": zone}
+
 			machineClassProviderSpecJSON, err := json.Marshal(machineClassProviderSpec)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to marshal machine class for machine pool %s: %w", pool.Name, err)
@@ -228,32 +235,46 @@ func (w *workerDelegate) generateHashForWorkerPool(pool v1alpha1.WorkerPool) (st
 	return workerPoolHash, err
 }
 
-func createDiskSpecForVolume(volume v1alpha1.Volume, workerName string, machineImage string, boot bool) (map[string]interface{}, error) {
-	return createDiskSpec(volume.Size, workerName, boot, &machineImage, volume.Type)
-}
-
-func createDiskSpec(size, workerName string, boot bool, machineImage, volumeType *string) (map[string]interface{}, error) {
-	volumeSize, err := worker.DiskSize(size)
-	if err != nil {
-		return nil, err
-	}
-
-	disk := map[string]interface{}{
-		"autoDelete": true,
-		"boot":       boot,
-		"sizeGb":     volumeSize,
-		"labels": map[string]interface{}{
-			"name": workerName,
+func createSpecForNetworkInterface(className, networkName, prefixName string) map[string]interface{} {
+	return map[string]interface{}{
+		"name": className,
+		"ephemeral": map[string]interface{}{
+			"networkInterfaceTemplate": map[string]interface{}{
+				"spec": map[string]interface{}{
+					"networkRef": map[string]string{
+						"name": networkName,
+					},
+					"ipFamilies": []string{"IPv4"},
+					"ips": []map[string]interface{}{
+						{
+							"ephemeral": map[string]interface{}{
+								"prefixTemplate": map[string]interface{}{
+									"spec": map[string]string{
+										"parentRef": prefixName,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
+}
 
-	if machineImage != nil {
-		disk["image"] = *machineImage
+func createSpecForVolume(volume v1alpha1.Volume, machineImage string) map[string]interface{} {
+	return map[string]interface{}{
+		"name": volume.Name,
+		"ephemeral": map[string]interface{}{
+			"volumeTemplate": map[string]interface{}{
+				"spec": map[string]interface{}{
+					"volumeClassRef": volume.Type,
+					"resources": map[string]string{
+						"storage": volume.Size,
+					},
+					"image": machineImage,
+				},
+			},
+		},
 	}
-
-	if volumeType != nil {
-		disk["type"] = *volumeType
-	}
-
-	return disk, nil
 }

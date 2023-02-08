@@ -40,17 +40,23 @@ CLEAN ?= $(LOCALBIN)/clean
 FORMAT ?= $(LOCALBIN)/format
 TEST_COV ?= $(LOCALBIN)/test-cov
 TEST_CLEAN ?= $(LOCALBIN)/test-clean
-CHECK_GENERATE ?= $(LOCALBIN)/check-generate
 GOIMPORTS ?= $(LOCALBIN)/goimports
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 CHECK ?= $(LOCALBIN)/check
 CHECK_CHARTS ?= $(LOCALBIN)/check-charts
-CHECK_DOCFORGE ?= $(LOCALBIN)/check-docforge
+VGOPATH ?= $(LOCALBIN)/vgopath
+DEEPCOPY_GEN ?= $(LOCALBIN)/deepcopy-gen
+CONVERSION_GEN ?= $(LOCALBIN)/conversion-gen
+DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
+ADDLICENSE ?= $(LOCALBIN)/addlicense
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
 CONTROLLER_TOOLS_VERSION ?= v0.9.2
 GOLANGCI_LINT_VERSION ?= v1.50.1
+VGOPATH_VERSION ?= v0.0.2
+CODE_GENERATOR_VERSION ?= v0.26.1
+ADDLICENSE_VERSION ?= v1.1.0
 
 #########################################
 # Rules for local development scenarios #
@@ -115,14 +121,6 @@ clean: $(CLEAN)
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
 	$(CLEAN) ./cmd/... ./pkg/... ./test/...
 
-CHECK_GENERATE_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-generate.sh"
-$(CHECK_GENERATE): $(LOCALBIN)
-	curl -Ss $(CHECK_GENERATE_SCRIPT_URL) -o $(CHECK_GENERATE)
-	chmod +x $(CHECK_GENERATE)
-
-.PHONY: check-generate
-check-generate: $(CHECK_GENERATE)
-	@$(CHECK_GENERATE) $(REPO_ROOT)
 
 $(GOIMPORTS): go.mod
 	go build -o $(GOIMPORTS) golang.org/x/tools/cmd/goimports
@@ -142,27 +140,30 @@ $(CHECK_CHARTS): $(LOCALBIN)
 	curl -Ss $(CHECK_CHARTS_SCRIPT_URL) -o $(CHECK_CHARTS)
 	chmod +x $(CHECK_CHARTS)
 
+.PHONY: add-license
+add-license: addlicense ## Add license headers to all go files.
+	find . -name '*.go' -exec $(ADDLICENSE) -c 'OnMetal authors' {} +
+
+.PHONY: check-license
+check-license: addlicense ## Check that every file has a license header present.
+	find . -name '*.go' -exec $(ADDLICENSE) -check -c 'OnMetal authors' {} +
+
 .PHONY: check
-check: $(GOIMPORTS) $(CHECK) $(CHECK_CHARTS)
-	@$(CHECK) --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/... ./test/...
-	@$(CHECK_CHARTS) ./charts
+check: generate add-license lint test # Generate manifests, code, lint, add licenses, test
 
 CHECK_DOCFORGE_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-docforge.sh"
 $(CHECK_DOCFORGE): $(LOCALBIN)
 	curl -Ss $(CHECK_DOCFORGE_SCRIPT_URL) -o $(CHECK_DOCFORGE)
 	chmod +x $(CHECK_DOCFORGE)
 
-.PHONY: check-docforge
-check-docforge: $(CHECK_DOCFORGE)
-	$(CHECK_DOCFORGE) $(REPO_ROOT) $(REPO_ROOT)/.docforge/manifest.yaml ".docforge/;docs/" "gardener-extension-provider-onmetal" false
 
 .PHONY: generate
-generate:
+generate: vgopath deepcopy-gen defaulter-gen conversion-gen
+	VGOPATH=$(VGOPATH) \
+	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
+	DEFAULTER_GEN=$(DEFAULTER_GEN) \
+	CONVERSION_GEN=$(CONVERSION_GEN) \
 	./hack/update-codegen.sh
-
-#.PHONY: generate
-#generate: $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
-#	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate.sh ./charts/... ./cmd/... ./example/... ./pkg/...
 
 FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/format.sh"
 $(FORMAT): $(LOCALBIN)
@@ -180,6 +181,10 @@ fmt: ## Run go fmt against code.
 .PHONY: vet
 vet: ## Run go vet against code.
 	go vet ./...
+
+.PHONY: lint
+lint: ## Run golangci-lint on the code.
+	golangci-lint run ./...
 
 .PHONY: test
 test: generate fmt vet envtest checklicense ## Run tests.
@@ -232,3 +237,28 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: vgopath
+vgopath: $(VGOPATH) ## Download vgopath locally if necessary.
+$(VGOPATH): $(LOCALBIN)
+	test -s $(LOCALBIN)/vgopath || GOBIN=$(LOCALBIN) go install github.com/onmetal/vgopath@$(VGOPATH_VERSION)
+
+.PHONY: deepcopy-gen
+deepcopy-gen: $(DEEPCOPY_GEN) ## Download deepcopy-gen locally if necessary.
+$(DEEPCOPY_GEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/deepcopy-gen || GOBIN=$(LOCALBIN) go install k8s.io/code-generator/cmd/deepcopy-gen@$(CODE_GENERATOR_VERSION)
+
+.PHONY: defaulter-gen
+defaulter-gen: $(DEFAULTER_GEN) ## Download defaulter-gen locally if necessary.
+$(DEFAULTER_GEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/defaulter-gen || GOBIN=$(LOCALBIN) go install k8s.io/code-generator/cmd/defaulter-gen@$(CODE_GENERATOR_VERSION)
+
+.PHONY: conversion-gen
+conversion-gen: $(CONVERSION_GEN) ## Download conversion-gen locally if necessary.
+$(CONVERSION_GEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/conversion-gen || GOBIN=$(LOCALBIN) go install k8s.io/code-generator/cmd/conversion-gen@$(CODE_GENERATOR_VERSION)
+
+.PHONY: addlicense
+addlicense: $(ADDLICENSE) ## Download addlicense locally if necessary.
+$(ADDLICENSE): $(LOCALBIN)
+	test -s $(LOCALBIN)/addlicense || GOBIN=$(LOCALBIN) go install github.com/google/addlicense@$(ADDLICENSE_VERSION)

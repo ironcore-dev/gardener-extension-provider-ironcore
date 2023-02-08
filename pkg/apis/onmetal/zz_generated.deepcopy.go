@@ -21,6 +21,7 @@
 package onmetal
 
 import (
+	v1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -113,7 +114,11 @@ func (in *ControlPlaneConfig) DeepCopyObject() runtime.Object {
 func (in *InfrastructureConfig) DeepCopyInto(out *InfrastructureConfig) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.NetworkRef = in.NetworkRef
+	if in.NetworkRef != nil {
+		in, out := &in.NetworkRef, &out.NetworkRef
+		*out = new(v1.LocalObjectReference)
+		**out = **in
+	}
 	return
 }
 

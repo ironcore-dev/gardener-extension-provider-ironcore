@@ -28,7 +28,7 @@ type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
 
 	// NetworkRef references the network to use for the Shoot creation.
-	NetworkRef corev1.LocalObjectReference `json:"networkRef,omitempty"`
+	NetworkRef *corev1.LocalObjectReference `json:"networkRef,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -17,6 +17,8 @@ package infrastructure
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -28,11 +30,11 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sync"
 )
 
 var onmetalScheme = runtime.NewScheme()
@@ -46,8 +48,7 @@ func init() {
 
 type actuator struct {
 	common.RESTConfigContext
-	disableProjectedTokenMount bool
-	regionStubRegistry         RegionStubRegistry
+	regionStubRegistry RegionStubRegistry
 }
 
 type RegionStubRegistry interface {
@@ -135,7 +136,7 @@ func (a *actuator) getClientConfigForInfra(ctx context.Context, infra *extension
 	}
 
 	secret := &v1.Secret{}
-	secretKey := client.ObjectKey{Namespace: infra.Namespace, Name: infra.Spec.SecretRef.Name}
+	secretKey := types.NamespacedName{Namespace: infra.Namespace, Name: infra.Spec.SecretRef.Name}
 	if err := a.Client().Get(ctx, secretKey, secret); err != nil {
 		return nil, fmt.Errorf("failed to get infrastructure secret %s: %w", secretKey, err)
 	}
@@ -177,6 +178,8 @@ func ParseInfraSecret(secret *v1.Secret) (namespace, token string, err error) {
 }
 
 // NewActuator creates a new infrastructure.Actuator.
-func NewActuator() infrastructure.Actuator {
-	return &actuator{}
+func NewActuator(registry RegionStubRegistry) infrastructure.Actuator {
+	return &actuator{
+		regionStubRegistry: registry,
+	}
 }

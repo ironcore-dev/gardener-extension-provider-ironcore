@@ -26,10 +26,6 @@ import (
 	gardenerextensionv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardener "github.com/gardener/gardener/pkg/client/kubernetes"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
-	"github.com/onmetal/controller-utils/modutils"
-	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	envtestutils "github.com/onmetal/onmetal-api/utils/envtest"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap/zapcore"
@@ -44,16 +40,20 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	"github.com/onmetal/controller-utils/modutils"
+	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	envtestutils "github.com/onmetal/onmetal-api/utils/envtest"
 )
 
 const (
-	slowSpecThreshold    = 20 * time.Second
-	eventuallyTimeout    = 20 * time.Second
-	pollingInterval      = 250 * time.Millisecond
+	pollingInterval      = 50 * time.Millisecond
+	eventuallyTimeout    = 10 * time.Second
 	consistentlyDuration = 1 * time.Second
-	apiServiceTimeout    = 5 * time.Minute
 )
 
 var (
@@ -116,7 +116,6 @@ var _ = BeforeSuite(func() {
 	cfg, err = envtestutils.StartWithExtensions(testEnv, testEnvExt)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
-
 	DeferCleanup(envtestutils.StopWithExtensions, testEnv, testEnvExt)
 
 	Expect(networkingv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
@@ -129,13 +128,16 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
+
+	komega.SetClient(k8sClient)
 })
 
 func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) {
-	ns := &corev1.Namespace{}
 	var (
 		chartApplier gardener.ChartApplier
 	)
+	ns := &corev1.Namespace{}
+
 	BeforeEach(func() {
 		var err error
 		*ns = corev1.Namespace{
@@ -147,6 +149,9 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) 
 
 		chartApplier, err = gardener.NewChartApplierForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
+
+		volumeName := "test-volume"
+		volumeType := "fast"
 
 		// define test resources
 		pool = gardenerextensionv1alpha1.WorkerPool{
@@ -160,10 +165,14 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) 
 				Name:    "my-os",
 				Version: "1.0",
 			},
-			Minimum:      0,
-			Name:         "pool",
-			UserData:     []byte("some-data"),
-			Volume:       nil,
+			Minimum:  0,
+			Name:     "pool",
+			UserData: []byte("some-data"),
+			Volume: &gardenerextensionv1alpha1.Volume{
+				Name: &volumeName,
+				Type: &volumeType,
+				Size: "10Gi",
+			},
 			Zones:        []string{"zone1", "zone2"},
 			Architecture: pointer.String("amd64"),
 			NodeTemplate: &gardenerextensionv1alpha1.NodeTemplate{
