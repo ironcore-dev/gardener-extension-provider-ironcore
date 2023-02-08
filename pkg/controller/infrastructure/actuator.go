@@ -17,23 +17,18 @@ package infrastructure
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -48,105 +43,16 @@ func init() {
 
 type actuator struct {
 	common.RESTConfigContext
-	regionStubRegistry RegionStubRegistry
-}
-
-type RegionStubRegistry interface {
-	GetRegionStub(ctx context.Context, region string) (*RegionStub, error)
-}
-
-type SimpleRegionStubRegistry struct {
-	mu    sync.RWMutex
-	items map[string]clientcmdapi.Config
-}
-
-func NewSimpleRegionStubRegistry() *SimpleRegionStubRegistry {
-	return &SimpleRegionStubRegistry{items: make(map[string]clientcmdapi.Config)}
-}
-
-func (s *SimpleRegionStubRegistry) GetRegionStub(ctx context.Context, region string) (*RegionStub, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	item, ok := s.items[region]
-	if !ok {
-		return nil, errors.NewNotFound(schema.GroupResource{}, fmt.Sprintf("no stub for region %s", region))
-	}
-	return NewRegionStub(&item)
-}
-
-func (s *SimpleRegionStubRegistry) AddRegionStub(region string, clientCfg clientcmdapi.Config) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.items[region] = clientCfg
-}
-
-type SecretRegionStubRegistry struct {
-	client    client.Client
-	namespace string
-}
-
-func (s *SecretRegionStubRegistry) GetRegionStub(ctx context.Context, region string) (*RegionStub, error) {
-	secret := &v1.Secret{}
-	secretKey := client.ObjectKey{
-		Namespace: s.namespace,
-		Name:      fmt.Sprintf("onmetal-region-%s", region),
-	}
-	if err := s.client.Get(ctx, secretKey, secret); err != nil {
-		return nil, fmt.Errorf("failed to get secret for region %s: %w", region, err)
-	}
-	kubeconfig, ok := secret.Data["kubeconfigStub"]
-	if !ok {
-		return nil, fmt.Errorf("region %s secret does not contain a kubeconfig stub", region)
-	}
-	clientCfg, err := clientcmd.Load(kubeconfig)
-	if err != nil {
-		return nil, fmt.Errorf("error loading region %s kubeconfig stub: %w", region, err)
-	}
-	return NewRegionStub(clientCfg)
-}
-
-type RegionStub struct {
-	config clientcmdapi.Config
-}
-
-func NewRegionStub(clientCfg *clientcmdapi.Config) (*RegionStub, error) {
-	// TODO: Validate client cfg to be non-functional for stub to avoid a customer accidentally (by wrong config)
-	// 		 exposing a confidential kubeconfig.
-	return &RegionStub{config: *clientCfg}, nil
-}
-
-func (r *RegionStub) ClientConfig(namespace string, token string) (clientcmd.ClientConfig, error) {
-	return clientcmd.NewDefaultClientConfig(r.config, &clientcmd.ConfigOverrides{
-		AuthInfo: clientcmdapi.AuthInfo{
-			Token: token,
-		},
-		Context: clientcmdapi.Context{
-			Namespace: namespace,
-		},
-	}), nil
+	clientConfigGetter auth.ClientConfigGetter
 }
 
 func (a *actuator) getClientConfigForInfra(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) (clientcmd.ClientConfig, error) {
-	regionStub, err := a.regionStubRegistry.GetRegionStub(ctx, infra.Spec.Region)
+	secretKey := client.ObjectKey{Namespace: infra.Spec.SecretRef.Namespace, Name: infra.Spec.SecretRef.Name}
+	clientCfg, err := a.clientConfigGetter.GetClientConfig(ctx, infra.Spec.Region, secretKey)
 	if err != nil {
-		// TODO: handle not found
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("failed to get client config from infra secret %s: %w", secretKey, err)
 	}
-
-	secret := &v1.Secret{}
-	secretKey := types.NamespacedName{Namespace: infra.Namespace, Name: infra.Spec.SecretRef.Name}
-	if err := a.Client().Get(ctx, secretKey, secret); err != nil {
-		return nil, fmt.Errorf("failed to get infrastructure secret %s: %w", secretKey, err)
-	}
-
-	namespace, token, err := ParseInfraSecret(secret)
-	if err != nil {
-		return nil, err
-	}
-
-	return regionStub.ClientConfig(namespace, token)
+	return clientCfg, nil
 }
 
 func (a *actuator) newClientFromConfig(clientCfg clientcmd.ClientConfig) (client.Client, string, error) {
@@ -165,21 +71,9 @@ func (a *actuator) newClientFromConfig(clientCfg clientcmd.ClientConfig) (client
 	return c, namespace, nil
 }
 
-func ParseInfraSecret(secret *v1.Secret) (namespace, token string, err error) {
-	namespaceData, ok := secret.Data["namespace"]
-	if !ok {
-		return "", "", fmt.Errorf("namespace needs to be set")
-	}
-	tokenData, ok := secret.Data["token"]
-	if !ok {
-		return "", "", fmt.Errorf("token needs to be set")
-	}
-	return string(namespaceData), string(tokenData), nil
-}
-
 // NewActuator creates a new infrastructure.Actuator.
-func NewActuator(registry RegionStubRegistry) infrastructure.Actuator {
+func NewActuator(configGetter auth.ClientConfigGetter) infrastructure.Actuator {
 	return &actuator{
-		regionStubRegistry: registry,
+		clientConfigGetter: configGetter,
 	}
 }

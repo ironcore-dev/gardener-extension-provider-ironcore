@@ -1,9 +1,8 @@
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
-  name: cloud-provider-config
+  name: cloudprovider
   namespace: {{ .Release.Namespace }}
 data:
-  cloudprovider.conf: |
-    namespace: {{ .Values.namespace }}
-    kubeconfig: {{ .Values.kubeconfig }}
+  namespace: {{ .Values.namespace }}
+  kubeconfig: {{ .Values.kubeconfig }}

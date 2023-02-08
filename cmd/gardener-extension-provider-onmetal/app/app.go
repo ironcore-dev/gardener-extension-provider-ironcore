@@ -20,28 +20,37 @@ import (
 	"os"
 
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
-	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
-	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
-	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
-	onmetalinfrastructure "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
-	onmetalworker "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-
-	"github.com/gardener/gardener/extensions/pkg/controller"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	extensionscontrolplanecontroller "github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
+	extensionshealthcheckcontroller "github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
+	extensionsinfrastructurecontroller "github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
+	extensionsworkercontroller "github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
+	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
+	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
+	healthcheckcontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
+	infrastructurecontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
+	onmetalinfrastructure "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
+	onmetalworker "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
+	workercontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	onmetalcontrolplaneexposure "github.com/onmetal/gardener-extension-provider-onmetal/pkg/webhook/controlplaneexposure"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/component-base/version/verflag"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -93,9 +102,25 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			Namespace: os.Getenv("WEBHOOK_CONFIG_NAMESPACE"),
 		}
 
-		controllerSwitches = onmetalcmd.ControllerSwitchOptions()
-		webhookSwitches    = onmetalcmd.WebhookSwitchOptions()
-		webhookOptions     = webhookcmd.NewAddToManagerOptions(
+		controllerSwitches = controllercmd.NewSwitchOptions(
+			controllercmd.Switch(extensionscontrolplanecontroller.ControllerName, func(manager manager.Manager) error {
+				return onmetalcontrolplane.AddToManagerWithOptions(manager, onmetalcontrolplane.AddOptions{
+					Controller: controller.Options{
+						MaxConcurrentReconciles: controlPlaneCtrlOpts.Completed().MaxConcurrentReconciles,
+					},
+					IgnoreOperationAnnotation: reconcileOpts.Completed().IgnoreOperationAnnotation,
+					NewRegistry: func(c client.Client) (auth.RegionStubRegistry, error) {
+						return auth.NewSecretRegionStubRegistry(c, configFileOpts.Completed().Config.Namespace), nil
+					},
+				})
+			}),
+			controllercmd.Switch(extensionsinfrastructurecontroller.ControllerName, infrastructurecontroller.AddToManager),
+			controllercmd.Switch(extensionsworkercontroller.ControllerName, workercontroller.AddToManager),
+			controllercmd.Switch(extensionshealthcheckcontroller.ControllerName, healthcheckcontroller.AddToManager),
+		)
+
+		webhookSwitches = onmetalcmd.WebhookSwitchOptions()
+		webhookOptions  = webhookcmd.NewAddToManagerOptions(
 			onmetal.ProviderName,
 			genericactuator.ShootWebhooksResourceName,
 			genericactuator.ShootWebhookNamespaceSelector(onmetal.Type),
@@ -142,7 +167,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			scheme := mgr.GetScheme()
-			if err := controller.AddToScheme(scheme); err != nil {
+			if err := extensionscontroller.AddToScheme(scheme); err != nil {
 				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 			if err := onmetalinstall.AddToScheme(scheme); err != nil {
@@ -164,10 +189,8 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			configFileOpts.Completed().ApplyETCDStorage(&onmetalcontrolplaneexposure.DefaultAddOptions.ETCDStorage)
 			configFileOpts.Completed().ApplyHealthCheckConfig(&healthcheck.DefaultAddOptions.HealthCheckConfig)
 			healthCheckCtrlOpts.Completed().Apply(&healthcheck.DefaultAddOptions.Controller)
-			controlPlaneCtrlOpts.Completed().Apply(&onmetalcontrolplane.DefaultAddOptions.Controller)
 			infraCtrlOpts.Completed().Apply(&onmetalinfrastructure.DefaultAddOptions.Controller)
 			reconcileOpts.Completed().Apply(&onmetalinfrastructure.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&onmetalcontrolplane.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&onmetalworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&onmetalworker.DefaultAddOptions.Controller)
 

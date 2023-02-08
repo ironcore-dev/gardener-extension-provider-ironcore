@@ -43,17 +43,8 @@ type ControllerConfiguration struct {
 	// Default: nil
 	// +optional
 	FeatureGates map[string]bool `json:"featureGates,omitempty"`
-	// Regions is a list of supported region mappings of the onmetal extension controller.
-	Regions []Region `json:"regions,omitempty"`
-}
-
-// Region is defining a region/kubeconfig mapping to define the access
-type Region struct {
-	// Name is the name of the region
-	Name string `json:"name"`
-	// KubeConfigStub is the kubeconfig go template to use as a base for establishing the connection
-	// to the onmetal cluster using the user access token and namespace.
-	KubeConfigStub string `json:"kubeConfigStub"`
+	// Namespace where the onmetal region secrets are stored.
+	Namespace string `json:"namespace"`
 }
 
 // ETCD is an etcd configuration.

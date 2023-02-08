@@ -51,7 +51,9 @@ const (
 
 	// NamespaceFieldName is the field in a secret where the namespace is stored at.
 	NamespaceFieldName = "namespace"
-	// TokenFieldName is the field in a secret where the access token for the onmetal cluster is stored at.
+	// KubeConfigFieldName is containing the effective kubeconfig to access an onmetal cluster.
+	KubeConfigFieldName = "kubeconfig"
+	// TokenFieldName is containing the token to access an onmetal cluster.
 	TokenFieldName = "token"
 
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
@@ -88,10 +90,6 @@ const (
 	MachineControllerManagerVpaName = "machine-controller-manager-vpa"
 	// MachineControllerManagerMonitoringConfigName is the name of the ConfigMap containing monitoring stack configurations for machine-controller-manager.
 	MachineControllerManagerMonitoringConfigName = "machine-controller-manager-monitoring-config"
-
-	// CSIMigrationKubernetesVersion is a constant for the Kubernetes version for which the Shoot's CSI migration will be
-	// performed.
-	CSIMigrationKubernetesVersion = "1.18"
 )
 
 var (
