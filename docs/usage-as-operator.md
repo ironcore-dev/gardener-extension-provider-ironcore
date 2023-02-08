@@ -48,6 +48,19 @@ spec:
   - name: coreos
     versions:
     - version: 2135.6.0
+  machineTypes:
+  - name: m5-metal
+    cpu: "96"
+    gpu: "0"
+    memory: 384Gi
+  - name: t3-small
+    cpu: "2"
+    gpu: "0"
+    memory: 2Gi
+  - name: x3-xlarge
+    cpu: "4"
+    gpu: "0"
+    memory: 8Gi
   regions:
   - region: europe-west1
     names:
