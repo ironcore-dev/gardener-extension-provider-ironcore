@@ -164,6 +164,7 @@ generate: vgopath deepcopy-gen defaulter-gen conversion-gen
 	DEFAULTER_GEN=$(DEFAULTER_GEN) \
 	CONVERSION_GEN=$(CONVERSION_GEN) \
 	./hack/update-codegen.sh
+	go generate ./charts/...
 
 FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/format.sh"
 $(FORMAT): $(LOCALBIN)
