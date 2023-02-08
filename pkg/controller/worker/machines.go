@@ -136,17 +136,14 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 		}
 
 		machineClassProviderSpec := map[string]interface{}{
-			"machineClassRef": map[string]string{
-				"name": pool.MachineType,
-			},
+			"image": machineImage,
 		}
 
 		if pool.Volume != nil {
-			volumes := make([]map[string]interface{}, 0)
-			volumes = append(volumes, createSpecForVolume(*pool.Volume, machineImage))
-			machineClassProviderSpec["volumes"] = volumes
-		} else {
-			machineClassProviderSpec["image"] = machineImage
+			machineClassProviderSpec["rootDisk"] = map[string]interface{}{
+				"size":            pool.Volume.Size,
+				"volumeClassName": pool.Volume.Type,
+			}
 		}
 
 		for zoneIndex, zone := range pool.Zones {
@@ -171,12 +168,12 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 				}
 			}
 
-			networkInterfaces := make([]map[string]interface{}, 0)
-			if infrastructureStatus.NetworkRef.Name != "" && infrastructureStatus.PrefixRef.Name != "" {
-				networkInterfaces = append(networkInterfaces, createSpecForNetworkInterface(className, infrastructureStatus.NetworkRef.Name, infrastructureStatus.PrefixRef.Name))
+			machineClassProviderSpec["networkName"] = infrastructureStatus.NetworkRef.Name
+			machineClassProviderSpec["prefixName"] = infrastructureStatus.PrefixRef.Name
+			machineClassProviderSpec["labels"] = map[string]string{
+				"shoot-name":      w.worker.Name,
+				"shoot-namespace": w.worker.Namespace,
 			}
-			machineClassProviderSpec["networkInterfaces"] = networkInterfaces
-			machineClassProviderSpec["machinePoolRef"] = map[string]string{"name": zone}
 
 			machineClassProviderSpecJSON, err := json.Marshal(machineClassProviderSpec)
 			if err != nil {
@@ -233,48 +230,4 @@ func (w *workerDelegate) generateHashForWorkerPool(pool v1alpha1.WorkerPool) (st
 		return "", fmt.Errorf("failed to generate hash for worke pool %s: %w", pool.Name, err)
 	}
 	return workerPoolHash, err
-}
-
-func createSpecForNetworkInterface(className, networkName, prefixName string) map[string]interface{} {
-	return map[string]interface{}{
-		"name": className,
-		"ephemeral": map[string]interface{}{
-			"networkInterfaceTemplate": map[string]interface{}{
-				"spec": map[string]interface{}{
-					"networkRef": map[string]string{
-						"name": networkName,
-					},
-					"ipFamilies": []string{"IPv4"},
-					"ips": []map[string]interface{}{
-						{
-							"ephemeral": map[string]interface{}{
-								"prefixTemplate": map[string]interface{}{
-									"spec": map[string]string{
-										"parentRef": prefixName,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func createSpecForVolume(volume v1alpha1.Volume, machineImage string) map[string]interface{} {
-	return map[string]interface{}{
-		"name": volume.Name,
-		"ephemeral": map[string]interface{}{
-			"volumeTemplate": map[string]interface{}{
-				"spec": map[string]interface{}{
-					"volumeClassRef": volume.Type,
-					"resources": map[string]string{
-						"storage": volume.Size,
-					},
-					"image": machineImage,
-				},
-			},
-		},
-	}
 }
