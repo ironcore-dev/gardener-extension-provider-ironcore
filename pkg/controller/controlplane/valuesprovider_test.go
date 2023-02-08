@@ -19,31 +19,34 @@ import (
 	"path/filepath"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils"
 
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
 	ctx := testutils.SetupContext()
-	ns, kubeconfig, vp := SetupTest(ctx)
+	ns, kubeconfig, valueProvider := SetupTest(ctx)
 
 	var (
 		fakeClient         client.Client
@@ -134,7 +137,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				},
 			}
 
-			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
+			values, err := valueProvider.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(map[string]interface{}{
 				onmetal.CloudControllerManagerName: enabledTrue,
@@ -169,7 +172,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				},
 			}
 
-			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
+			values, err := valueProvider.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(map[string]interface{}{
 				onmetal.CloudControllerManagerName: enabledTrue,
@@ -203,7 +206,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				},
 			}
 
-			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
+			values, err := valueProvider.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(map[string]interface{}{
 				onmetal.CloudControllerManagerName: enabledTrue,
@@ -215,6 +218,60 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}))
 		})
 
+	})
+
+	Describe("#GetStorageClassesChartValues", func() {
+		It("should return correct storage class chart values", func() {
+			cp := &extensionsv1alpha1.ControlPlane{}
+			storageClasses := []apisonmetal.VolumeClassDefinition{{
+				Name:             "testStorage",
+				StorageClassName: pointer.String("testStorageClass"),
+			},
+			}
+			cloudProfileConfig := &apisonmetal.CloudProfileConfig{
+				VolumeClasses: storageClasses,
+			}
+
+			cloudProfileConfigJSON, _ := json.Marshal(cloudProfileConfig)
+			cluster := &extensionscontroller.Cluster{
+				CloudProfile: &gardencorev1beta1.CloudProfile{
+					Spec: gardencorev1beta1.CloudProfileSpec{
+						ProviderConfig: &runtime.RawExtension{
+							Raw: cloudProfileConfigJSON,
+						},
+					},
+				},
+				Shoot: &gardencorev1beta1.Shoot{
+					Spec: gardencorev1beta1.ShootSpec{
+						Kubernetes: gardencorev1beta1.Kubernetes{
+							Version: "1.24.0",
+							VerticalPodAutoscaler: &gardencorev1beta1.VerticalPodAutoscaler{
+								Enabled: true,
+							},
+							KubeAPIServer: &gardencorev1beta1.KubeAPIServerConfig{
+								AdmissionPlugins: []gardencorev1beta1.AdmissionPlugin{
+									{
+										Name: "PodSecurityPolicy",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
+			common.NewClientContext(k8sClient, k8sClient.Scheme(), decoder)
+			clientContext := common.NewClientContext(k8sClient, k8sClient.Scheme(), decoder)
+			valueProvider.ClientContext = clientContext
+
+			values, err := valueProvider.GetStorageClassesChartValues(ctx, cp, cluster)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(values["volumeClasses"]).To(HaveLen(1))
+			Expect(values["volumeClasses"].([]map[string]interface{})[0]["name"]).To(Equal("testStorage"))
+			Expect(values["volumeClasses"].([]map[string]interface{})[0]["storageClassName"]).To(Equal(pointer.String("testStorageClass")))
+		})
 	})
 
 })

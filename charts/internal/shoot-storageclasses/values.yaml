@@ -1,2 +1,7 @@
-useLegacyProvisioner: true
-volumeClassName: fast
+# volumeClasses:
+#  - name: general-purpose
+#    storageClassName: default
+#    default: true
+#  - name: throughput-optimized
+#    storageClassName: sample
+#    default: false

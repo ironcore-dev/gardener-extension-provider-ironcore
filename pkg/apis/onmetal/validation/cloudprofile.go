@@ -20,9 +20,10 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core"
 	"github.com/gardener/gardener/pkg/apis/core/helper"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/strings/slices"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
 
 // ValidateCloudProfileConfig validates a CloudProfileConfig object.
@@ -42,6 +43,25 @@ func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machin
 		if !processed && len(image.Versions) > 0 {
 			allErrs = append(allErrs, field.Required(machineImagesPath, fmt.Sprintf("must provide an image mapping for image %q", image.Name)))
 		}
+	}
+
+	volumeClassesPath := fldPath.Child("volumeClasses")
+
+	if len(cpConfig.VolumeClasses) == 0 {
+		allErrs = append(allErrs, field.Required(volumeClassesPath, "must provide atleast one volumeClass"))
+	}
+
+	for i, volumeClass := range cpConfig.VolumeClasses {
+		idxPath := volumeClassesPath.Index(i)
+
+		if volumeClass.Name == "" {
+			allErrs = append(allErrs, field.Required(idxPath.Child("name"), "must provide name for volumeClass"))
+		}
+
+		if volumeClass.StorageClassName == nil || *volumeClass.StorageClassName == "" {
+			allErrs = append(allErrs, field.Required(idxPath.Child("storageClassName"), "must provide storage class name for volumeClass"))
+		}
+
 	}
 
 	return allErrs

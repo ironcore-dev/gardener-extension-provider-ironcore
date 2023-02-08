@@ -34,10 +34,6 @@ import (
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -47,6 +43,12 @@ import (
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	onmetalv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 const (
@@ -287,7 +289,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 }
 
 // GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by the generic actuator.
-// Currently, the provider extension does not specify a control plane shoot CRDs chart. That's why we simply return empty values.
+// Currently the provider extension does not specify a control plane shoot CRDs chart. That's why we simply return empty values.
 func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ context.Context,
 	_ *extensionsv1alpha1.ControlPlane,
@@ -299,10 +301,36 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 // GetStorageClassesChartValues returns the values for the storage classes chart applied by the generic actuator.
 func (vp *valuesProvider) GetStorageClassesChartValues(
 	_ context.Context,
-	_ *extensionsv1alpha1.ControlPlane,
+	controlPlane *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	return map[string]interface{}{}, nil
+	providerConfig := &onmetalv1alpha1.CloudProfileConfig{}
+	if cluster.CloudProfile.Spec.ProviderConfig != nil {
+		if _, _, err := vp.Decoder().Decode(cluster.CloudProfile.Spec.ProviderConfig.Raw, nil, providerConfig); err != nil {
+			return nil, fmt.Errorf("could not decode providerConfig of controlplane '%s': %w", client.ObjectKeyFromObject(controlPlane), err)
+		}
+	}
+	values := make(map[string]interface{})
+	if providerConfig.VolumeClasses != nil && len(providerConfig.VolumeClasses) != 0 {
+		allVc := make([]map[string]interface{}, len(providerConfig.VolumeClasses))
+		for i, vc := range providerConfig.VolumeClasses {
+			var volumeClassValues = map[string]interface{}{
+				"name": vc.Name,
+			}
+
+			if vc.StorageClassName != nil && *vc.StorageClassName != "" {
+				volumeClassValues["storageClassName"] = vc.StorageClassName
+			}
+
+			if vc.Default != nil && *vc.Default {
+				volumeClassValues["default"] = true
+			}
+			allVc[i] = volumeClassValues
+		}
+		values["volumeClasses"] = allVc
+		return values, nil
+	}
+	return values, nil
 }
 
 // getConfigChartValues collects and returns the configuration chart values.

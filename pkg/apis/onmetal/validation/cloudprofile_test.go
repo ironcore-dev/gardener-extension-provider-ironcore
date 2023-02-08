@@ -16,12 +16,13 @@ package validation
 
 import (
 	"github.com/gardener/gardener/pkg/apis/core"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
 
 var _ = Describe("CloudProfileConfig validation", func() {
@@ -49,6 +50,11 @@ var _ = Describe("CloudProfileConfig validation", func() {
 							},
 						},
 					},
+				},
+				VolumeClasses: []apisonmetal.VolumeClassDefinition{{
+					Name:             "testStorage",
+					StorageClassName: pointer.String("standard"),
+				},
 				},
 			}
 			machineImages = []core.MachineImage{
@@ -119,6 +125,69 @@ var _ = Describe("CloudProfileConfig validation", func() {
 					PointTo(MatchFields(IgnoreExtras, Fields{
 						"Type":  Equal(field.ErrorTypeNotSupported),
 						"Field": Equal("machineImages[0].versions[0].architecture"),
+					})),
+				))
+			})
+		})
+
+		Context("VolumeClass validation", func() {
+			It("should pass validation", func() {
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
+
+				Expect(errorList).To(BeEmpty())
+			})
+
+			It("should require a VolumeClass fields to be configured", func() {
+				cloudProfileConfig.VolumeClasses[0] = apisonmetal.VolumeClassDefinition{}
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
+
+				Expect(errorList).To(ConsistOf(
+					PointTo(MatchFields(IgnoreExtras, Fields{
+						"Type":  Equal(field.ErrorTypeRequired),
+						"Field": Equal("volumeClasses[0].name"),
+					})),
+					PointTo(MatchFields(IgnoreExtras, Fields{
+						"Type":  Equal(field.ErrorTypeRequired),
+						"Field": Equal("volumeClasses[0].storageClassName"),
+					})),
+				))
+			})
+
+			It("should require a VolumeClass name field to be configured", func() {
+				cloudProfileConfig.VolumeClasses[0] = apisonmetal.VolumeClassDefinition{
+					StorageClassName: pointer.String("standard"),
+				}
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
+
+				Expect(errorList).To(ConsistOf(
+					PointTo(MatchFields(IgnoreExtras, Fields{
+						"Type":  Equal(field.ErrorTypeRequired),
+						"Field": Equal("volumeClasses[0].name"),
+					})),
+				))
+			})
+			It("should require a VolumeClass StorageClassName field to be configured", func() {
+				cloudProfileConfig.VolumeClasses[0] = apisonmetal.VolumeClassDefinition{
+					Name: "test",
+				}
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
+
+				Expect(errorList).To(ConsistOf(
+					PointTo(MatchFields(IgnoreExtras, Fields{
+						"Type":  Equal(field.ErrorTypeRequired),
+						"Field": Equal("volumeClasses[0].storageClassName"),
+					})),
+				))
+			})
+
+			It("should require a VolumeClass to be configured", func() {
+				cloudProfileConfig.VolumeClasses = nil
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
+
+				Expect(errorList).To(ConsistOf(
+					PointTo(MatchFields(IgnoreExtras, Fields{
+						"Type":  Equal(field.ErrorTypeRequired),
+						"Field": Equal("volumeClasses"),
 					})),
 				))
 			})

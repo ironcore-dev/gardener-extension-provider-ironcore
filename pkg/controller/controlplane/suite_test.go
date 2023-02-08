@@ -23,10 +23,10 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -39,6 +39,10 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 )
 
 const (
@@ -84,6 +88,8 @@ var _ = BeforeSuite(func() {
 
 	Expect(extensionsv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(corev1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(storagev1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(apisonmetal.AddToScheme(scheme.Scheme)).To(Succeed())
 
 	// Init package-level k8sClient
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
@@ -140,12 +146,35 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 		shootJson, err := json.Marshal(shoot)
 		Expect(err).NotTo(HaveOccurred())
 
+		volumeClasses := []apisonmetal.VolumeClassDefinition{{
+			Name:             "testStorage",
+			StorageClassName: pointer.String("testStorageClass"),
+		},
+		}
+		cloudProfileConfig := apisonmetal.CloudProfileConfig{
+			VolumeClasses: volumeClasses,
+		}
+
+		cloudProfileConfigJSON, err := json.Marshal(cloudProfileConfig)
+		Expect(err).NotTo(HaveOccurred())
+
+		cloudProfile := v1beta1.CloudProfile{
+			Spec: v1beta1.CloudProfileSpec{
+				ProviderConfig: &runtime.RawExtension{
+					Raw: cloudProfileConfigJSON,
+				},
+			},
+		}
+
+		cloudProfileJSON, err := json.Marshal(cloudProfile)
+
+		Expect(err).NotTo(HaveOccurred())
 		*cluster = extensionsv1alpha1.Cluster{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: namespace.Name,
 			},
 			Spec: extensionsv1alpha1.ClusterSpec{
-				CloudProfile: runtime.RawExtension{Raw: []byte("{}")},
+				CloudProfile: runtime.RawExtension{Raw: cloudProfileJSON},
 				Seed:         runtime.RawExtension{Raw: []byte("{}")},
 				Shoot:        runtime.RawExtension{Raw: shootJson},
 			},

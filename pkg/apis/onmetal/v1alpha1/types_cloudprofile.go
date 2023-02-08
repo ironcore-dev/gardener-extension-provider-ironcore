@@ -28,6 +28,8 @@ type CloudProfileConfig struct {
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
 	MachineImages []MachineImages `json:"machineImages"`
+	// VolumeClasses defines VolumeClasses for the shoot
+	VolumeClasses []VolumeClassDefinition `json:"volumeClasses"`
 }
 
 // MachineImages is a mapping from logical names and versions to provider-specific identifiers.
@@ -47,4 +49,15 @@ type MachineImageVersion struct {
 	// Architecture is the CPU architecture of the machine image.
 	// +optional
 	Architecture *string `json:"architecture,omitempty"`
+}
+
+// VolumeClassDefinition is a definition of a volumeClass
+type VolumeClassDefinition struct {
+	// Name is the name of the volumeClass
+	Name string `json:"name"`
+	// StorageClassName is the name of the storageClass
+	StorageClassName *string `json:"storageClassName"`
+	// Default set the storageclass to the default one
+	// +optional
+	Default *bool `json:"default,omitempty"`
 }
