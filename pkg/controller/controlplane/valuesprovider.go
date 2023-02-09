@@ -38,7 +38,6 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -129,7 +128,7 @@ var (
 			{
 				Name: onmetal.CSIControllerName,
 				Images: []string{
-					onmetal.CSIDriverImageName,
+					onmetal.CSIDriverOnmetalImageName,
 					onmetal.CSIProvisionerImageName,
 					onmetal.CSIAttacherImageName,
 					onmetal.CSISnapshotterImageName,
@@ -173,7 +172,7 @@ var (
 			{
 				Name: onmetal.CSINodeName,
 				Images: []string{
-					onmetal.CSIDriverImageName,
+					onmetal.CSIDriverOnmetalImageName,
 					onmetal.CSINodeDriverRegistrarImageName,
 					onmetal.CSILivenessProbeImageName,
 				},
@@ -211,8 +210,6 @@ var (
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
 					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
 					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-					// csi-snapshot-validation-webhook
-					{Type: &admissionregistrationv1.ValidatingWebhookConfiguration{}, Name: onmetal.CSISnapshotValidation},
 				},
 			},
 		},
@@ -277,16 +274,16 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 
 // GetControlPlaneShootChartValues returns the values for the control plane shoot chart applied by the generic actuator.
 func (vp *valuesProvider) GetControlPlaneShootChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
+	_ context.Context,
+	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
-	secretsReader secretsmanager.Reader,
-	checksums map[string]string,
+	_ secretsmanager.Reader,
+	_ map[string]string,
 ) (
 	map[string]interface{},
 	error,
 ) {
-	return vp.getControlPlaneShootChartValues(ctx, cp, cluster, secretsReader, checksums)
+	return vp.getControlPlaneShootChartValues(cluster)
 }
 
 // GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by the generic actuator.
@@ -440,57 +437,28 @@ func getCSIControllerChartValues(
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
 func (vp *valuesProvider) getControlPlaneShootChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
-	secretsReader secretsmanager.Reader,
-	checksums map[string]string,
 ) (
 	map[string]interface{},
 	error,
 ) {
 
 	var (
-		cloudProviderDiskConfig []byte
-		csiNodeDriverValues     map[string]interface{}
-		caBundle                string
+		csiNodeDriverValues map[string]interface{}
 	)
 
 	kubernetesVersion := cluster.Shoot.Spec.Kubernetes.Version
 
-	caSecret, found := secretsReader.Get(caNameControlPlane)
-	if !found {
-		return nil, fmt.Errorf("secret %q not found", caNameControlPlane)
-	}
-	caBundle = string(caSecret.Data[secretutils.DataKeyCertificateBundle])
-
 	csiNodeDriverValues = map[string]interface{}{
-		"enabled":           !k8sVersionLessThan118,
+		"enabled":           true,
 		"kubernetesVersion": kubernetesVersion,
 		"vpaEnabled":        gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
-		"podAnnotations": map[string]interface{}{
-			"checksum/secret-" + onmetal.CloudProviderCSIDiskConfigName: checksums[onmetal.CloudProviderCSIDiskConfigName],
-		},
-		"cloudProviderConfig": cloudProviderDiskConfig,
-		"webhookConfig": map[string]interface{}{
-			"url":      "https://" + onmetal.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
-			"caBundle": caBundle,
-		},
-		"pspDisabled": gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+		"pspDisabled":       gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
 	}
 
 	return map[string]interface{}{
 		onmetal.CloudControllerManagerName: map[string]interface{}{"enabled": true},
-		onmetal.CSINodeName: map[string]interface{}{
-			"enabled":           true,
-			"kubernetesVersion": kubernetesVersion,
-			"vpaEnabled":        gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
-			"webhookConfig": map[string]interface{}{
-				"url":      "https://" + onmetal.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
-				"caBundle": string(caSecret.Data[secretutils.DataKeyCertificateBundle]),
-			},
-			"pspDisabled": gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
-		},
+		onmetal.CSINodeName:                csiNodeDriverValues,
 	}, nil
 
 }

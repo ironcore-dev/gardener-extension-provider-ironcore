@@ -35,15 +35,28 @@ spec:
       {{- end }}
       containers:
       - name: csi-driver
-        image: {{ index .Values.images "csi-driver" }}
-        args:
-        - --endpoint=$(CSI_ENDPOINT)
-        - --run-controller-service=false
-        - --logtostderr
-        - --v=5
+        image: {{ index .Values.images "csi-driver-onmetal" }}
         env:
         - name: CSI_ENDPOINT
           value: unix:{{ .Values.socketPath }}
+        - name: X_CSI_MODE
+          value: node
+        - name: X_CSI_DEBUG
+          value: "false"
+        - name: APP_LOG_LEVEL
+          value: "info"
+        - name: CSI_DRIVER_NAME
+          value: "onmetal-csi-driver"
+        - name: X_CSI_SPEC_DISABLE_LEN_CHECK
+          value: "true"
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: NODE_IP_ADDRESS
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP 
 {{- if .Values.resources.driver }}
         resources:
 {{ toYaml .Values.resources.driver | indent 10 }}
@@ -66,10 +79,11 @@ spec:
         - name: kubelet-dir
           mountPath: /var/lib/kubelet
           mountPropagation: "Bidirectional"
-        - name: plugin-dir
+        - name: socket-dir
           mountPath: /csi
-        - name: device-dir
+        - name: pods-probe-dir
           mountPath: /dev
+          mountPropagation: HostToContainer
 
       - name: csi-node-driver-registrar
         image: {{ index .Values.images "csi-node-driver-registrar" }}
@@ -94,7 +108,7 @@ spec:
 {{ toYaml .Values.resources.nodeDriverRegistrar | indent 10 }}
 {{- end }}
         volumeMounts:
-        - name: plugin-dir
+        - name: socket-dir
           mountPath: /csi
         - name: registration-dir
           mountPath: /registration
@@ -108,7 +122,7 @@ spec:
 {{ toYaml .Values.resources.livenessProbe | indent 10 }}
 {{- end }}
         volumeMounts:
-        - name: plugin-dir
+        - name: socket-dir
           mountPath: /csi
 
       volumes:
@@ -116,7 +130,7 @@ spec:
         hostPath:
           path: /var/lib/kubelet
           type: Directory
-      - name: plugin-dir
+      - name: socket-dir
         hostPath:
           path: /var/lib/kubelet/plugins/{{ include "csi-driver-node.provisioner" . }}/
           type: DirectoryOrCreate
@@ -124,7 +138,7 @@ spec:
         hostPath:
           path: /var/lib/kubelet/plugins_registry/
           type: Directory
-      - name: device-dir
+      - name: pods-probe-dir
         hostPath:
           path: /dev
           type: Directory

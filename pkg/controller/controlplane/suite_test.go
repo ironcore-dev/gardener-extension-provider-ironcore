@@ -99,13 +99,14 @@ var _ = AfterSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte) {
+func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider) {
 	var (
-		cancel context.CancelFunc
+		cancel     context.CancelFunc
+		namespace  = &corev1.Namespace{}
+		cluster    = &extensionsv1alpha1.Cluster{}
+		kubeconfig = &[]byte{}
+		vp         = &valuesProvider{}
 	)
-	namespace := &corev1.Namespace{}
-	cluster := &extensionsv1alpha1.Cluster{}
-	kubeconfig := &[]byte{}
 
 	BeforeEach(func() {
 		var mgrCtx context.Context
@@ -195,6 +196,12 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte) {
 			defer GinkgoRecover()
 			Expect(mgr.Start(mgrCtx)).To(Succeed(), "failed to start manager")
 		}()
+
+		registry := auth.NewSimpleRegionStubRegistry()
+		registry.AddRegionStub("foo", *config)
+		clientConfigGetter := auth.NewClientConfigGetter(k8sClient, registry)
+		vp = NewValuesProvider(clientConfigGetter).(*valuesProvider)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -203,5 +210,5 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte) {
 		Expect(k8sClient.Delete(ctx, cluster)).To(Succeed(), "failed to delete cluster")
 	})
 
-	return namespace, kubeconfig
+	return namespace, kubeconfig, vp
 }

@@ -26,8 +26,8 @@ const (
 
 	// CloudControllerManagerImageName is the name of the cloud-controller-manager image.
 	CloudControllerManagerImageName = "cloud-controller-manager"
-	// CSIDriverImageName is the name of the csi-driver image.
-	CSIDriverImageName = "csi-driver"
+	// CSIDriverOnmetalImageName is the name of the csi-driver image.
+	CSIDriverOnmetalImageName = "csi-driver-onmetal"
 	// CSIProvisionerImageName is the name of the csi-provisioner image.
 	CSIProvisionerImageName = "csi-provisioner"
 	// CSIAttacherImageName is the name of the csi-attacher image.
@@ -55,13 +55,6 @@ const (
 	KubeConfigFieldName = "kubeconfig"
 	// TokenFieldName is containing the token to access an onmetal cluster.
 	TokenFieldName = "token"
-
-	// CloudProviderConfigName is the name of the secret containing the cloud provider config.
-	CloudProviderConfigName = "cloud-provider-config"
-	// CloudProviderCSIDiskConfigName is the name of the secret containing the cloud provider config for disk/volume handling. It is used by csi-driver-controller.
-	CloudProviderCSIDiskConfigName = "cloud-provider-disk-config-csi"
-	// CloudProviderConfigDataKey is the key storing the cloud provider config as value in the cloud provider secret.
-	CloudProviderConfigDataKey = "cloudprovider.conf"
 
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"
