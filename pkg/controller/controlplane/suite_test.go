@@ -23,13 +23,7 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/controller-utils/modutils"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
-	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
-	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
-	utilsenvtest "github.com/onmetal/onmetal-api/utils/envtest"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -54,10 +48,9 @@ const (
 )
 
 var (
-	testEnv    *envtest.Environment
-	testEnvExt *utilsenvtest.EnvironmentExtensions
-	cfg        *rest.Config
-	k8sClient  client.Client
+	testEnv   *envtest.Environment
+	cfg       *rest.Config
+	k8sClient client.Client
 )
 
 func TestAPIs(t *testing.T) {
@@ -84,22 +77,11 @@ var _ = BeforeSuite(func() {
 		},
 		ErrorIfCRDPathMissing: true,
 	}
-	testEnvExt = &utilsenvtest.EnvironmentExtensions{
-		APIServiceDirectoryPaths: []string{
-			modutils.Dir("github.com/onmetal/onmetal-api", "config", "apiserver", "apiservice", "bases"),
-		},
-		ErrorIfAPIServicePathIsMissing: true,
-	}
 
-	cfg, err = utilsenvtest.StartWithExtensions(testEnv, testEnvExt)
+	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
-	DeferCleanup(utilsenvtest.StopWithExtensions, testEnv, testEnvExt)
 
-	Expect(computev1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
-	Expect(storagev1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
-	Expect(ipamv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
-	Expect(networkingv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(extensionsv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(corev1.AddToScheme(scheme.Scheme)).To(Succeed())
 
@@ -109,6 +91,12 @@ var _ = BeforeSuite(func() {
 	Expect(k8sClient).NotTo(BeNil())
 
 	komega.SetClient(k8sClient)
+})
+
+var _ = AfterSuite(func() {
+	By("tearing down the test environment")
+	err := testEnv.Stop()
+	Expect(err).NotTo(HaveOccurred())
 })
 
 func SetupTest(ctx context.Context) *corev1.Namespace {

@@ -27,12 +27,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
+	"os"
+	"path/filepath"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
 	ctx := testutils.SetupContext()
 	ns := SetupTest(ctx)
+
+	BeforeEach(func() {
+		curDir, err := os.Getwd()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(os.Chdir(filepath.Join("..", "..", ".."))).To(Succeed())
+		DeferCleanup(os.Chdir, curDir)
+	})
 
 	Describe("#GetConfigChartValues", func() {
 		It("should return correct config chart values", func() {
