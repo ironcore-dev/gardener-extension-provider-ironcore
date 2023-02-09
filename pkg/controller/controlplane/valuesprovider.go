@@ -45,7 +45,6 @@ import (
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -219,21 +218,6 @@ var (
 		},
 	}
 
-	controlPlaneShootCRDsChart = &chart.Chart{
-		Name: "shoot-crds",
-		Path: filepath.Join(onmetal.InternalChartsPath, "shoot-crds"),
-		SubCharts: []*chart.Chart{
-			{
-				Name: "volumesnapshots",
-				Objects: []*chart.Object{
-					{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshotclasses.snapshot.storage.k8s.io"},
-					{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshotcontents.snapshot.storage.k8s.io"},
-					{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshots.snapshot.storage.k8s.io"},
-				},
-			},
-		},
-	}
-
 	storageClassChart = &chart.Chart{
 		Name: "shoot-storageclasses",
 		Path: filepath.Join(onmetal.InternalChartsPath, "shoot-storageclasses"),
@@ -312,11 +296,7 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	return map[string]interface{}{
-		"volumesnapshots": map[string]interface{}{
-			"enabled": false,
-		},
-	}, nil
+	return map[string]interface{}{}, nil
 }
 
 // GetStorageClassesChartValues returns the values for the storage classes chart applied by the generic actuator.
