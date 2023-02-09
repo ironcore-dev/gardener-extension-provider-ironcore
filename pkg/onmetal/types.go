@@ -57,8 +57,6 @@ const (
 	TokenFieldName = "token"
 	// NetworkName is the name of network
 	NetworkFieldName = "networkname"
-	// Kubeconfig is the config of kubernetes cluster where onmetal is running
-	KubeconfigFieldName = "kubeconfig"
 
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"
