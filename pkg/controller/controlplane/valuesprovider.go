@@ -45,7 +45,6 @@ import (
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -219,21 +218,6 @@ var (
 		},
 	}
 
-	controlPlaneShootCRDsChart = &chart.Chart{
-		Name: "shoot-crds",
-		Path: filepath.Join(onmetal.InternalChartsPath, "shoot-crds"),
-		SubCharts: []*chart.Chart{
-			{
-				Name: "volumesnapshots",
-				Objects: []*chart.Object{
-					{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshotclasses.snapshot.storage.k8s.io"},
-					{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshotcontents.snapshot.storage.k8s.io"},
-					{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshots.snapshot.storage.k8s.io"},
-				},
-			},
-		},
-	}
-
 	storageClassChart = &chart.Chart{
 		Name: "shoot-storageclasses",
 		Path: filepath.Join(onmetal.InternalChartsPath, "shoot-storageclasses"),
@@ -260,28 +244,13 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	// Decode providerConfig
-	cpConfig := &apisonmetal.ControlPlaneConfig{}
-	if cp.Spec.ProviderConfig != nil {
-		if _, _, err := vp.Decoder().Decode(cp.Spec.ProviderConfig.Raw, nil, cpConfig); err != nil {
-			return nil, fmt.Errorf("could not decode providerConfig of controlplane '%s': %w", kutil.ObjectName(cp), err)
-		}
-	}
-
 	providerSecretKey := client.ObjectKey{Namespace: cp.Namespace, Name: cp.Spec.SecretRef.Name}
 	clientConfig, err := vp.clientConfigGetter.GetClientConfig(ctx, cluster.Shoot.Spec.Region, providerSecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client config for provider %s: %w", providerSecretKey, err)
 	}
-
-	// Decode infrastructureProviderStatus
-	infraStatus := &apisonmetal.InfrastructureStatus{}
-	if _, _, err := vp.Decoder().Decode(cp.Spec.InfrastructureProviderStatus.Raw, nil, infraStatus); err != nil {
-		return nil, fmt.Errorf("could not decode infrastructureProviderStatus of controlplane '%s': %w", kutil.ObjectName(cp), err)
-	}
-
 	// Get config chart values
-	return getConfigChartValues(cpConfig, infraStatus, cp, clientConfig)
+	return getConfigChartValues(clientConfig)
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
@@ -327,11 +296,7 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	return map[string]interface{}{
-		"volumesnapshots": map[string]interface{}{
-			"enabled": false,
-		},
-	}, nil
+	return map[string]interface{}{}, nil
 }
 
 // GetStorageClassesChartValues returns the values for the storage classes chart applied by the generic actuator.
@@ -344,7 +309,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 }
 
 // getConfigChartValues collects and returns the configuration chart values.
-func getConfigChartValues(cpConfig *apisonmetal.ControlPlaneConfig, infraStatus *apisonmetal.InfrastructureStatus, cp *extensionsv1alpha1.ControlPlane, clientConfig clientcmd.ClientConfig) (map[string]interface{}, error) {
+func getConfigChartValues(clientConfig clientcmd.ClientConfig) (map[string]interface{}, error) {
 	namespace, _, err := clientConfig.Namespace()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get namespace for client config: %w", err)

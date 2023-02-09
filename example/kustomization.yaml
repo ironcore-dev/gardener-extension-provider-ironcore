@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - 20-crd-druid.gardener.cloud_etcdcopybackupstasks.yaml
+  - 20-crd-extensions.gardener.cloud_bastions.yaml
+  - 20-crd-extensions.gardener.cloud_dnsrecords.yaml
+  - 20-crd-extensions.gardener.cloud_operatingsystemconfigs.yaml
+  - 20-crd-druid.gardener.cloud_etcds.yaml
+  - 20-crd-extensions.gardener.cloud_clusters.yaml
+  - 20-crd-extensions.gardener.cloud_extensions.yaml
+  - 20-crd-extensions.gardener.cloud_workers.yaml
+  - 20-crd-extensions.gardener.cloud_backupbuckets.yaml
+  - 20-crd-extensions.gardener.cloud_containerruntimes.yaml
+  - 20-crd-extensions.gardener.cloud_infrastructures.yaml
+  - 20-crd-resources.gardener.cloud_managedresources.yaml
+  - 20-crd-extensions.gardener.cloud_backupentries.yaml
+  - 20-crd-extensions.gardener.cloud_controlplanes.yaml
+  - 20-crd-extensions.gardener.cloud_networks.yaml
+#  - 20-crd-vpa.yaml

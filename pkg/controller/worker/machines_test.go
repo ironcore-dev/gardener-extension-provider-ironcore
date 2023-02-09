@@ -60,7 +60,7 @@ var _ = Describe("Machines", func() {
 		Expect(workerDelegate.MachineClassList()).To(Equal(&machinecontrollerv1alpha1.MachineClassList{}))
 	})
 
-	It("should create the expected machine classes for a multi zone cluster", func() {
+	It("should create the expected machine class for a multi zone cluster", func() {
 		By("defining and setting infrastructure status for worker")
 		infraStatus := &api.InfrastructureStatus{
 			TypeMeta: metav1.TypeMeta{
@@ -78,7 +78,7 @@ var _ = Describe("Machines", func() {
 		}
 		w.Spec.InfrastructureProviderStatus = &runtime.RawExtension{Raw: encodeObject(infraStatus)}
 
-		By("deploying the machine classes for a given multi zone cluster")
+		By("deploying the machine class for a given multi zone cluster")
 		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
 		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(k8sClient, k8sClient.Scheme(), decoder), "", w, cluster)
 		Expect(err).NotTo(HaveOccurred())
@@ -89,92 +89,33 @@ var _ = Describe("Machines", func() {
 		workerPoolHash, err := worker.WorkerPoolHash(pool, cluster)
 		Expect(err).NotTo(HaveOccurred())
 
-		By("ensuring that the machine classes for each pool has been deployed")
+		By("ensuring that the machine class for each pool has been deployed")
 		var (
-			deploymentName1 = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, ns.Name, "pool", 1)
-			deploymentName2 = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, ns.Name, "pool", 2)
-			className1      = fmt.Sprintf("%s--%s", deploymentName1, workerPoolHash)
-			className2      = fmt.Sprintf("%s--%s", deploymentName2, workerPoolHash)
+			deploymentName = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, ns.Name, "pool", 1)
+			className      = fmt.Sprintf("%s--%s", deploymentName, workerPoolHash)
 		)
 		Eventually(func(g Gomega) {
-			machineClass1 := &machinecontrollerv1alpha1.MachineClass{}
-			machineClassKey1 := types.NamespacedName{Namespace: ns.Name, Name: className1}
-			err := k8sClient.Get(ctx, machineClassKey1, machineClass1)
+			machineClass := &machinecontrollerv1alpha1.MachineClass{}
+			machineClassKey := types.NamespacedName{Namespace: ns.Name, Name: className}
+			err := k8sClient.Get(ctx, machineClassKey, machineClass)
 			Expect(client.IgnoreNotFound(err)).To(Succeed())
 			g.Expect(err).NotTo(HaveOccurred())
 
-			machineClass2 := &machinecontrollerv1alpha1.MachineClass{}
-			machineClassKey2 := types.NamespacedName{Namespace: ns.Name, Name: className2}
-			err = k8sClient.Get(ctx, machineClassKey2, machineClass2)
-			Expect(client.IgnoreNotFound(err)).To(Succeed())
-			g.Expect(err).NotTo(HaveOccurred())
-
-			networkInterfaces := []map[string]interface{}{
-				{
-					"name": className1,
-					"ephemeral": map[string]interface{}{
-						"networkInterfaceTemplate": map[string]interface{}{
-							"spec": map[string]interface{}{
-								"networkRef": map[string]string{
-									"name": infraStatus.NetworkRef.Name,
-								},
-								"ipFamilies": []string{"IPv4"},
-								"ips": []map[string]interface{}{
-									{
-										"ephemeral": map[string]interface{}{
-											"prefixTemplate": map[string]interface{}{
-												"spec": map[string]interface{}{
-													"parentRef": infraStatus.PrefixRef.Name,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
+			machineClassProviderSpec := map[string]interface{}{
+				"image": "registry/my-os",
+				"rootDisk": map[string]interface{}{
+					"size":            pool.Volume.Size,
+					"volumeClassName": pool.Volume.Type,
 				},
-			}
-			volumes := []map[string]interface{}{
-				{
-					"name": pool.Volume.Name,
-					"ephemeral": map[string]interface{}{
-						"volumeTemplate": map[string]interface{}{
-							"spec": map[string]interface{}{
-								"volumeClassRef": pool.Volume.Type,
-								"resources": map[string]string{
-									"storage": pool.Volume.Size,
-								},
-								"image": "registry/my-os",
-							},
-						},
-					},
+				"networkName": infraStatus.NetworkRef.Name,
+				"prefixName":  infraStatus.PrefixRef.Name,
+				"labels": map[string]interface{}{
+					"shoot-name":      w.Name,
+					"shoot-namespace": w.Namespace,
 				},
 			}
 
-			machineClassProviderSpec1 := map[string]interface{}{
-				"machineClassRef": map[string]string{
-					"name": pool.MachineType,
-				},
-				"machinePoolRef": map[string]string{
-					"name": "zone1",
-				},
-				"networkInterfaces": networkInterfaces,
-				"volumes":           volumes,
-			}
-
-			machineClassProviderSpec2 := map[string]interface{}{
-				"machineClassRef": map[string]string{
-					"name": pool.MachineType,
-				},
-				"machinePoolRef": map[string]string{
-					"name": "zone2",
-				},
-				"networkInterfaces": networkInterfaces,
-				"volumes":           volumes,
-			}
-
-			g.Expect(machineClass1).Should(SatisfyAll(
+			g.Expect(machineClass).Should(SatisfyAll(
 				HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
 				HaveField("CredentialsSecretRef", &corev1.SecretReference{
 					Namespace: w.Spec.SecretRef.Namespace,
@@ -182,7 +123,7 @@ var _ = Describe("Machines", func() {
 				}),
 				HaveField("SecretRef", &corev1.SecretReference{
 					Namespace: ns.Name,
-					Name:      className1,
+					Name:      className,
 				}),
 				HaveField("Provider", onmetal.ProviderName),
 				HaveField("NodeTemplate", &machinecontrollerv1alpha1.NodeTemplate{
@@ -192,55 +133,20 @@ var _ = Describe("Machines", func() {
 					Zone:         "zone1",
 				}),
 				HaveField("ProviderSpec", runtime.RawExtension{
-					Raw: encodeMap(machineClassProviderSpec1),
-				}),
-			))
-
-			networkInterfaces[0]["name"] = className2
-
-			g.Expect(machineClass2).Should(SatisfyAll(
-				HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
-				HaveField("CredentialsSecretRef", &corev1.SecretReference{
-					Namespace: w.Spec.SecretRef.Namespace,
-					Name:      w.Spec.SecretRef.Name,
-				}),
-				HaveField("SecretRef", &corev1.SecretReference{
-					Namespace: ns.Name,
-					Name:      className2,
-				}),
-				HaveField("Provider", onmetal.ProviderName),
-				HaveField("NodeTemplate", &machinecontrollerv1alpha1.NodeTemplate{
-					Capacity:     pool.NodeTemplate.Capacity,
-					InstanceType: pool.MachineType,
-					Region:       w.Spec.Region,
-					Zone:         "zone2",
-				}),
-				HaveField("ProviderSpec", runtime.RawExtension{
-					Raw: encodeMap(machineClassProviderSpec2),
+					Raw: encodeMap(machineClassProviderSpec),
 				}),
 			))
 		}).Should(Succeed())
 
-		By("ensuring that the machine class secrets have been applied")
+		By("ensuring that the machine class secret have been applied")
 		Eventually(func(g Gomega) {
-			machineClassSecret1 := &corev1.Secret{}
-			machineClassSecretKey1 := types.NamespacedName{Namespace: ns.Name, Name: className1}
-			err := k8sClient.Get(ctx, machineClassSecretKey1, machineClassSecret1)
+			machineClassSecret := &corev1.Secret{}
+			machineClassSecretKey := types.NamespacedName{Namespace: ns.Name, Name: className}
+			err := k8sClient.Get(ctx, machineClassSecretKey, machineClassSecret)
 			Expect(client.IgnoreNotFound(err)).To(Succeed())
 			g.Expect(err).NotTo(HaveOccurred())
 
-			g.Expect(machineClassSecret1).Should(SatisfyAll(
-				HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
-				HaveField("Data", HaveKeyWithValue("userData", []byte("some-data"))),
-			))
-
-			machineClassSecret2 := &corev1.Secret{}
-			machineClassSecretKey2 := types.NamespacedName{Namespace: ns.Name, Name: className2}
-			err = k8sClient.Get(ctx, machineClassSecretKey2, machineClassSecret2)
-			Expect(client.IgnoreNotFound(err)).To(Succeed())
-			g.Expect(err).NotTo(HaveOccurred())
-
-			g.Expect(machineClassSecret2).Should(SatisfyAll(
+			g.Expect(machineClassSecret).Should(SatisfyAll(
 				HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
 				HaveField("Data", HaveKeyWithValue("userData", []byte("some-data"))),
 			))
