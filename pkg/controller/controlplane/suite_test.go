@@ -99,12 +99,13 @@ var _ = AfterSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func SetupTest(ctx context.Context) *corev1.Namespace {
+func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte) {
 	var (
 		cancel context.CancelFunc
 	)
 	namespace := &corev1.Namespace{}
 	cluster := &extensionsv1alpha1.Cluster{}
+	kubeconfig := &[]byte{}
 
 	BeforeEach(func() {
 		var mgrCtx context.Context
@@ -163,10 +164,10 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 		}, cfg)
 		Expect(err).NotTo(HaveOccurred())
 
-		kubeconfig, err := user.KubeConfig()
+		*kubeconfig, err = user.KubeConfig()
 		Expect(err).NotTo(HaveOccurred())
 
-		config, err := clientcmd.Load(kubeconfig)
+		config, err := clientcmd.Load(*kubeconfig)
 		Expect(err).NotTo(HaveOccurred())
 
 		secret := &corev1.Secret{
@@ -202,5 +203,5 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 		Expect(k8sClient.Delete(ctx, cluster)).To(Succeed(), "failed to delete cluster")
 	})
 
-	return namespace
+	return namespace, kubeconfig
 }
