@@ -1,0 +1,4 @@
+namespace: {{ .Values.namespace }}
+networkname: {{ .Values.networkname }}
+kubeconfig: |-
+  {{ .Values.kubeconfig }}
