@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: csi-driver-controller-config
-  namespace: {{ .Release.Namespace }}
-data:
-  namespace: {{ .Values.namespace }}
-  kubeconfig: |
-    {{ .Values.kubeconfig }}

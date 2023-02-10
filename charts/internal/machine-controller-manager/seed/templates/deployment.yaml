@@ -49,14 +49,14 @@ spec:
         - --machine-drain-timeout=2h
         - --machine-health-timeout=10m
         - --namespace={{ .Release.Namespace }}
-        - --port={{ .Values.metricsPortGCP }}
+        - --port={{ .Values.metricsPortOnmetal }}
         - --target-kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
         - --v=3
         livenessProbe:
           failureThreshold: 3
           httpGet:
             path: /healthz
-            port: {{ .Values.metricsPortGCP }}
+            port: {{ .Values.metricsPortOnmetal }}
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 10

@@ -7,7 +7,3 @@
 {{- define "cloud-controller-manager.port" -}}
 10258
 {{- end -}}
-
-{{- define "deploymentversion" -}}
-apps/v1
-{{- end -}}

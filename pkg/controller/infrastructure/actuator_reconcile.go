@@ -192,6 +192,8 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 }
 
 func generateResourceNameFromCluster(cluster *controller.Cluster) string {
+	// TODO: use cluster.Name
+	// alternatively shoot.status.technicalID
 	return fmt.Sprintf("%s--%s--%s", shootPrefix, cluster.Shoot.Namespace, cluster.Shoot.Name)
 }
 
@@ -202,6 +204,7 @@ func (a *actuator) updateProviderStatus(
 	natGateway *networkingv1alpha1.NATGateway,
 	prefix *ipamv1alpha1.Prefix,
 ) error {
+	// TODO: use api/infrastatus -> serialize
 	providerStatus := map[string]interface{}{
 		"networkRef": map[string]interface{}{
 			"name": network.Name,

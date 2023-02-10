@@ -1,2 +1,1 @@
-namespace: default
-kubeconfig: abcd
+networkName: foo
