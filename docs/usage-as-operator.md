@@ -61,6 +61,25 @@ spec:
     cpu: "4"
     gpu: "0"
     memory: 8Gi
+  volumeClasses:
+  - name: fast
+    storageClassName: default
+    default: true
+  - name: slow
+    storageClassName: my-storageclass
+    default: false
+  - name: super-fast
+    storageClassName: sample-storageclass
+    default: false
+  - name: general-purpose
+    storageClassName: my-storageclass1
+    default: false
+  - name: throughput-optimized
+    storageClassName: my-storageclass2
+    default: false
+  - name: io-optimized
+    storageClassName: my-storageclass3
+    default: false
   regions:
   - region: europe-west1
     names:
