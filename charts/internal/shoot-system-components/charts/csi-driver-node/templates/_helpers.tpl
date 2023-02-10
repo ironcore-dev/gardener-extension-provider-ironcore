@@ -7,7 +7,7 @@ provider-onmetal
 {{- end -}}
 
 {{- define "csi-driver-node.provisioner" -}}
-pd.csi.storage.gke.io
+csi.onmetal.de
 {{- end -}}
 
 {{- define "csi-driver-node.storageversion" -}}

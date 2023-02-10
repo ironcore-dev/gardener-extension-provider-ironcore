@@ -26,8 +26,8 @@ const (
 
 	// CloudControllerManagerImageName is the name of the cloud-controller-manager image.
 	CloudControllerManagerImageName = "cloud-controller-manager"
-	// CSIDriverImageName is the name of the csi-driver image.
-	CSIDriverImageName = "csi-driver"
+	// CSIDriverOnmetalImageName is the name of the csi-driver image.
+	CSIDriverOnmetalImageName = "csi-driver-onmetal"
 	// CSIProvisionerImageName is the name of the csi-provisioner image.
 	CSIProvisionerImageName = "csi-provisioner"
 	// CSIAttacherImageName is the name of the csi-attacher image.
@@ -84,6 +84,8 @@ const (
 	CSILivenessProbeName = "csi-liveness-probe"
 	// CSISnapshotValidation is the constant for the name of the csi-snapshot-validation-webhook component.
 	CSISnapshotValidation = "csi-snapshot-validation"
+	// CSIStorageProvisioner is a constant with the storage provisioner name which is used in storageclasses.
+	CSIStorageProvisioner = "onmetal-csi-driver"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
 	MachineControllerManagerName = "machine-controller-manager"
 	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.

@@ -38,7 +38,7 @@ spec:
       priorityClassName: gardener-system-300
       containers:
       - name: onmetal-csi-driver
-        image: {{ index .Values.images "csi-driver" }}
+        image: {{ index .Values.images "csi-driver-onmetal" }}
         imagePullPolicy: IfNotPresent
         args :
         - --endpoint=$(CSI_ENDPOINT)

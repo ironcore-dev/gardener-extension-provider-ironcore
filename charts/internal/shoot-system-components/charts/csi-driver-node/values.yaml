@@ -1,17 +1,12 @@
 images:
-  csi-driver: image-repository:image-tag
+  csi-driver-onmetal: image-repository:image-tag
   csi-node-driver-registrar: image-repository:image-tag
   csi-liveness-probe: image-repository:image-tag
 
 socketPath: /csi/csi.sock
 vpaEnabled: false
 
-webhookConfig:
-  url: https://service-name.service-namespace/volumesnapshot
-  caBundle: |
-    -----BEGIN CERTIFICATE-----
-    ...
-    -----END CERTIFICATE-----
+kubernetesVersion: v1.25.0
 
 resources:
   driver:
