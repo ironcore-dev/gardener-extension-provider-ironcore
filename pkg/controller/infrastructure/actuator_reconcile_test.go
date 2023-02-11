@@ -25,7 +25,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 
@@ -88,14 +87,8 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		}
 
 		Eventually(Object(network)).Should(SatisfyAll(
-			HaveField("ObjectMeta.OwnerReferences", ContainElement(metav1.OwnerReference{
-				APIVersion:         extensionsv1alpha1.SchemeGroupVersion.String(),
-				Kind:               "Infrastructure",
-				Name:               infra.Name,
-				UID:                infra.UID,
-				Controller:         pointer.Bool(true),
-				BlockOwnerDeletion: pointer.Bool(true),
-			})),
+			HaveField("ObjectMeta.Namespace", ns.Name),
+			HaveField("ObjectMeta.Name", generateResourceNameFromCluster(cluster)),
 		))
 
 		By("expecting a nat gateway being created")
@@ -107,14 +100,6 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		}
 
 		Eventually(Object(natGateway)).Should(SatisfyAll(
-			HaveField("ObjectMeta.OwnerReferences", ContainElement(metav1.OwnerReference{
-				APIVersion:         extensionsv1alpha1.SchemeGroupVersion.String(),
-				Kind:               "Infrastructure",
-				Name:               infra.Name,
-				UID:                infra.UID,
-				Controller:         pointer.Bool(true),
-				BlockOwnerDeletion: pointer.Bool(true),
-			})),
 			HaveField("Spec.Type", networkingv1alpha1.NATGatewayTypePublic),
 			HaveField("Spec.IPFamilies", []corev1.IPFamily{corev1.IPv4Protocol}),
 			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
@@ -140,14 +125,6 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		}
 
 		Eventually(Object(prefix)).Should(SatisfyAll(
-			HaveField("ObjectMeta.OwnerReferences", ContainElement(metav1.OwnerReference{
-				APIVersion:         extensionsv1alpha1.SchemeGroupVersion.String(),
-				Kind:               "Infrastructure",
-				Name:               infra.Name,
-				UID:                infra.UID,
-				Controller:         pointer.Bool(true),
-				BlockOwnerDeletion: pointer.Bool(true),
-			})),
 			HaveField("Spec.IPFamily", corev1.IPv4Protocol),
 			HaveField("Spec.Prefix", v1alpha12.MustParseNewIPPrefix("10.0.0.0/24")),
 		))

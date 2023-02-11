@@ -24,7 +24,5 @@ import (
 
 // Delete implements infrastructure.Actuator.
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
-	// The owner references on the infrastructure resources should trigger the garbage collection as soon
-	// as the extension.Infrastructure resource has been deleted.
 	return nil
 }

@@ -32,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -60,14 +59,9 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 	}
 
 	// get onmetal credentials from infrastructure config
-	onmetalClientCfg, err := a.getClientConfigForInfra(ctx, infra)
+	onmetalClient, namespace, err := a.getOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, infra)
 	if err != nil {
-		return fmt.Errorf("failed to extract credentials from infrastructure config for shoot %s/%s: %w", cluster.Shoot.Namespace, cluster.Shoot.Name, err)
-	}
-
-	onmetalClient, namespace, err := a.newClientFromConfig(onmetalClientCfg)
-	if err != nil {
-		return err
+		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
 	network, err := a.applyNetwork(ctx, onmetalClient, namespace, infra, config, cluster)
@@ -109,10 +103,6 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 
 	if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
 		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(pointer.StringDeref(nodeCIDR, ""))
-	}
-
-	if err := controllerutil.SetControllerReference(infra, prefix, a.Scheme()); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference on prefix %s: %w", client.ObjectKeyFromObject(prefix), err)
 	}
 
 	if err := onmetalClient.Patch(ctx, prefix, client.Apply, prefixFieldOwner); err != nil {
@@ -159,10 +149,6 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 		}
 	}
 
-	if err := controllerutil.SetControllerReference(infra, natGateway, a.Scheme()); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference on natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
-	}
-
 	if err := onmetalClient.Patch(ctx, natGateway, client.Apply, natGatewayFieldOwner); err != nil {
 		return nil, fmt.Errorf("failed to apply natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
 	}
@@ -179,10 +165,6 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 			Namespace: namespace,
 			Name:      generateResourceNameFromCluster(cluster),
 		},
-	}
-
-	if err := controllerutil.SetControllerReference(infra, network, a.Scheme()); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference on network %s: %w", client.ObjectKeyFromObject(network), err)
 	}
 
 	if err := onmetalClient.Patch(ctx, network, client.Apply, networkFieldOwner); err != nil {

@@ -20,12 +20,13 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
@@ -43,37 +44,35 @@ func init() {
 
 type actuator struct {
 	common.RESTConfigContext
-	clientConfigGetter auth.ClientConfigGetter
 }
 
-func (a *actuator) getClientConfigForInfra(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) (clientcmd.ClientConfig, error) {
-	secretKey := client.ObjectKey{Namespace: infra.Spec.SecretRef.Namespace, Name: infra.Spec.SecretRef.Name}
-	clientCfg, err := a.clientConfigGetter.GetClientConfig(ctx, infra.Spec.Region, secretKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get client config from infra secret %s: %w", secretKey, err)
+func (a *actuator) getOnmetalClientAndNamespaceFromCloudProviderSecret(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) (client.Client, string, error) {
+	secret := &corev1.Secret{}
+	secretKey := client.ObjectKey{Namespace: infra.Namespace, Name: v1beta1constants.SecretNameCloudProvider}
+	if err := a.Client().Get(ctx, secretKey, secret); err != nil {
+		return nil, "", fmt.Errorf("failed to get cloudprovider secret: %w", err)
 	}
-	return clientCfg, nil
-}
+	kubeconfig, ok := secret.Data["kubeconfig"]
+	if !ok {
+		return nil, "", fmt.Errorf("could not find a kubeconfig in the cloudprovider secret")
+	}
+	namespace, ok := secret.Data["namespace"]
+	if !ok {
+		return nil, "", fmt.Errorf("could not find a namespace in the cloudprovider secret")
+	}
+	clientCfg, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create rest config from cloudprovider secret: %w", err)
+	}
+	c, err := client.New(clientCfg, client.Options{Scheme: onmetalScheme})
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create client from cloudprovider secret: %w", err)
+	}
 
-func (a *actuator) newClientFromConfig(clientCfg clientcmd.ClientConfig) (client.Client, string, error) {
-	cfg, err := clientCfg.ClientConfig()
-	if err != nil {
-		return nil, "", fmt.Errorf("error getting client config: %w", err)
-	}
-	c, err := client.New(cfg, client.Options{Scheme: onmetalScheme})
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to create client: %w", err)
-	}
-	namespace, _, err := clientCfg.Namespace()
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to get namespace from client config: %w", err)
-	}
-	return c, namespace, nil
+	return c, string(namespace), nil
 }
 
 // NewActuator creates a new infrastructure.Actuator.
-func NewActuator(configGetter auth.ClientConfigGetter) infrastructure.Actuator {
-	return &actuator{
-		clientConfigGetter: configGetter,
-	}
+func NewActuator() infrastructure.Actuator {
+	return &actuator{}
 }
