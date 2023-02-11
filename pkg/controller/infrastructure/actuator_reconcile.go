@@ -51,7 +51,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, infra *extens
 }
 
 func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
-	log.V(2).Info("Reconciling infrastructure for Shoot", "Shoot", client.ObjectKeyFromObject(cluster.Shoot))
+	log.V(2).Info("Reconciling infrastructure")
 
 	config, err := helper.InfrastructureConfigFromInfrastructure(infra)
 	if err != nil {
@@ -79,7 +79,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return err
 	}
 
-	log.V(2).Info("Successfully reconciled infrastructure for Shoot", "Shoot", client.ObjectKeyFromObject(cluster.Shoot))
+	log.V(2).Info("Successfully reconciled infrastructure")
 
 	// update status
 	return a.updateProviderStatus(ctx, infra, network, natGateway, prefix)
