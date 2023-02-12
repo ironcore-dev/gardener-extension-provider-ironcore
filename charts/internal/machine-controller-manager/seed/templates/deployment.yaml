@@ -65,7 +65,7 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         resources:
-{{ toYaml .Values.resources.mcmProviderGCP | indent 10 }}
+{{ toYaml .Values.resources.mcmProviderOnmetal | indent 10 }}
         volumeMounts:
         - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
           name: kubeconfig
