@@ -4,4 +4,5 @@ metadata:
   name: cloud-provider-config
   namespace: {{ .Release.Namespace }}
 data:
-  networkName: {{ .Values.networkName }}
+  cloudprovider.conf: |
+    networkName: {{ .Values.networkName }}

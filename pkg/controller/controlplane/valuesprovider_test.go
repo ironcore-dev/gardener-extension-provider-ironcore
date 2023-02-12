@@ -30,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 )
 
@@ -95,9 +96,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					Name:      internal.CloudProviderSecretName,
 				},
 			}
-			Eventually(Object(config)).Should(SatisfyAll(
-				HaveField("Data", HaveKeyWithValue("networkName", "my-network"))),
-			)
+			Eventually(Get(config)).Should(Succeed())
+			Expect(config.Data).To(HaveKey("cloudprovider.conf"))
+			c := map[string]interface{}{}
+			Expect(yaml.Unmarshal([]byte(config.Data["cloudprovider.conf"]), &c)).NotTo(HaveOccurred())
+			Expect(c["networkName"]).To(Equal("my-network"))
 		})
 	})
 
