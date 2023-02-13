@@ -39,8 +39,6 @@ type ControllerConfiguration struct {
 	// or disable alpha/experimental features.
 	// Default: nil
 	FeatureGates map[string]bool
-	// Namespace where the onmetal region secrets are stored.
-	Namespace string
 }
 
 // ETCD is an etcd configuration.

@@ -54,7 +54,7 @@ func (w *workerDelegate) MachineClassList() client.ObjectList {
 
 // DeployMachineClasses generates and creates the onmetal specific machine classes.
 func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
-	machineClasses, machineClassSecrets, err := w.generateMachineClassAndSecrets(ctx)
+	machineClasses, machineClassSecrets, err := w.generateMachineClassAndSecrets()
 	if err != nil {
 		return fmt.Errorf("failed to generate machine classes and machine class secrets: %w", err)
 	}
@@ -112,7 +112,7 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 	return machineDeployments, nil
 }
 
-func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]*machinecontrollerv1alpha1.MachineClass, []*corev1.Secret, error) {
+func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv1alpha1.MachineClass, []*corev1.Secret, error) {
 	var (
 		machineClasses      []*machinecontrollerv1alpha1.MachineClass
 		machineClassSecrets []*corev1.Secret
@@ -136,13 +136,13 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 		}
 
 		machineClassProviderSpec := map[string]interface{}{
-			"image": machineImage,
+			onmetal.ImageFieldName: machineImage,
 		}
 
 		if pool.Volume != nil {
-			machineClassProviderSpec["rootDisk"] = map[string]interface{}{
-				"size":            pool.Volume.Size,
-				"volumeClassName": pool.Volume.Type,
+			machineClassProviderSpec[onmetal.RootDiskFieldName] = map[string]interface{}{
+				onmetal.SizeFieldName:        pool.Volume.Size,
+				onmetal.VolumeClassFieldName: pool.Volume.Type,
 			}
 		}
 
@@ -154,9 +154,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 
 			// Here we are going to create the necessary objects:
 			// 1. construct a MachineClass per zone containing the ProviderSpec needed by the MCM
-			// 2. construct a Secret for each MachineClass containing the user data to create a Kubernetes Node
-			// 3. construct a CredentialSecret where we inject the user token and construct an effective kubeconfig
-			//    for a given region
+			// 2. construct a Secret for each MachineClass containing the user-data
 
 			nodeTemplate := &machinecontrollerv1alpha1.NodeTemplate{}
 			if pool.NodeTemplate != nil {
@@ -168,9 +166,9 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 				}
 			}
 
-			machineClassProviderSpec["networkName"] = infrastructureStatus.NetworkRef.Name
-			machineClassProviderSpec["prefixName"] = infrastructureStatus.PrefixRef.Name
-			machineClassProviderSpec["labels"] = map[string]string{
+			machineClassProviderSpec[onmetal.NetworkFieldName] = infrastructureStatus.NetworkRef.Name
+			machineClassProviderSpec[onmetal.PrefixFieldName] = infrastructureStatus.PrefixRef.Name
+			machineClassProviderSpec[onmetal.LabelsFieldName] = map[string]string{
 				"shoot-name":      w.worker.Name,
 				"shoot-namespace": w.worker.Namespace,
 			}
@@ -212,7 +210,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 					},
 				},
 				Data: map[string][]byte{
-					"userData": pool.UserData,
+					onmetal.UserDataFieldName: pool.UserData,
 				},
 			}
 
