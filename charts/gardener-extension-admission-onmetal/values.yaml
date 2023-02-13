@@ -4,7 +4,7 @@ global:
     user:
       name: ""
   image:
-    repository: ghcr.io/onmetal/admission-onmetal
+    repository: ghcr.io/onmetal/gardener-extension-admission-onmetal
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1

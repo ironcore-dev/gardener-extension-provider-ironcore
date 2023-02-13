@@ -55,8 +55,22 @@ const (
 	KubeConfigFieldName = "kubeconfig"
 	// TokenFieldName is containing the token to access an onmetal cluster.
 	TokenFieldName = "token"
-	// NetworkName is the name of network
+	// NetworkFieldName is the name of network field
 	NetworkFieldName = "networkName"
+	// PrefixFieldName is the name of the prefix field
+	PrefixFieldName = "prefixName"
+	// LabelsFieldName is the name of the labels field
+	LabelsFieldName = "labels"
+	// UserDataFieldName is the name of the user data field
+	UserDataFieldName = "userData"
+	// ImageFieldName is the name of the image field
+	ImageFieldName = "image"
+	// RootDiskFieldName is the name of the root disk field
+	RootDiskFieldName = "rootDisk"
+	// SizeFieldName is the name of the size field
+	SizeFieldName = "size"
+	// VolumeClassFieldName is the name of the volume class field
+	VolumeClassFieldName = "volumeClassName"
 
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"

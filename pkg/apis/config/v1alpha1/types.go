@@ -43,8 +43,6 @@ type ControllerConfiguration struct {
 	// Default: nil
 	// +optional
 	FeatureGates map[string]bool `json:"featureGates,omitempty"`
-	// Namespace where the onmetal region secrets are stored.
-	Namespace string `json:"namespace"`
 }
 
 // ETCD is an etcd configuration.
