@@ -236,7 +236,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 	// Collect config chart values
 	return map[string]interface{}{
-		"networkName": infrastructureStatus.NetworkRef.Name,
+		onmetal.NetworkFieldName: infrastructureStatus.NetworkRef.Name,
 	}, nil
 }
 
