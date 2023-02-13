@@ -44,6 +44,7 @@ spec:
         imagePullPolicy: IfNotPresent
         command:
         - ./machine-controller
+        - --onmetal-kubeconfig=/etc/onmetal/kubeconfig
         - --control-kubeconfig=inClusterConfig
         - --machine-creation-timeout=20m
         - --machine-drain-timeout=2h
@@ -69,6 +70,9 @@ spec:
         volumeMounts:
         - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
           name: kubeconfig
+          readOnly: true
+        - mountPath: /etc/onmetal
+          name: cloudprovider
           readOnly: true
       - name: onmetal-machine-controller-manager
         image: {{ index .Values.images "machine-controller-manager" }}
@@ -111,6 +115,9 @@ spec:
           name: kubeconfig
           readOnly: true
       volumes:
+      - name: cloudprovider
+        secret:
+          secretName: cloudprovider
       - name: kubeconfig
         projected:
           defaultMode: 420
