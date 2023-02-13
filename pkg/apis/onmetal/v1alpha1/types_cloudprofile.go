@@ -28,6 +28,8 @@ type CloudProfileConfig struct {
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
 	MachineImages []MachineImages `json:"machineImages"`
+	// RegionConfigs is the list of supported regions.
+	RegionConfigs []RegionConfig `json:"regionConfigs,omitempty"`
 }
 
 // MachineImages is a mapping from logical names and versions to provider-specific identifiers.
@@ -36,6 +38,16 @@ type MachineImages struct {
 	Name string `json:"name"`
 	// Versions contains versions and a provider-specific identifier.
 	Versions []MachineImageVersion `json:"versions"`
+}
+
+// RegionConfig is the definition of a region.
+type RegionConfig struct {
+	// Name is the name of a region.
+	Name string `json:"name"`
+	// Server is the server endpoint of this region.
+	Server string `json:"server"`
+	// CertificateAuthorityData is the CA data of the region server.
+	CertificateAuthorityData []byte `json:"certificateAuthorityData"`
 }
 
 // MachineImageVersion contains a version and a provider-specific identifier.

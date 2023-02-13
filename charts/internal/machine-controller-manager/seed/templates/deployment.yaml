@@ -44,19 +44,20 @@ spec:
         imagePullPolicy: IfNotPresent
         command:
         - ./machine-controller
+        - --onmetal-kubeconfig=/etc/onmetal/kubeconfig
         - --control-kubeconfig=inClusterConfig
         - --machine-creation-timeout=20m
         - --machine-drain-timeout=2h
         - --machine-health-timeout=10m
         - --namespace={{ .Release.Namespace }}
-        - --port={{ .Values.metricsPortGCP }}
+        - --port={{ .Values.metricsPortOnmetal }}
         - --target-kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
         - --v=3
         livenessProbe:
           failureThreshold: 3
           httpGet:
             path: /healthz
-            port: {{ .Values.metricsPortGCP }}
+            port: {{ .Values.metricsPortOnmetal }}
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -65,10 +66,13 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         resources:
-{{ toYaml .Values.resources.mcmProviderGCP | indent 10 }}
+{{ toYaml .Values.resources.mcmProviderOnmetal | indent 10 }}
         volumeMounts:
         - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
           name: kubeconfig
+          readOnly: true
+        - mountPath: /etc/onmetal
+          name: cloudprovider
           readOnly: true
       - name: onmetal-machine-controller-manager
         image: {{ index .Values.images "machine-controller-manager" }}
@@ -111,6 +115,9 @@ spec:
           name: kubeconfig
           readOnly: true
       volumes:
+      - name: cloudprovider
+        secret:
+          secretName: cloudprovider
       - name: kubeconfig
         projected:
           defaultMode: 420

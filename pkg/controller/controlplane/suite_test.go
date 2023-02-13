@@ -23,7 +23,6 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -31,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -71,6 +69,7 @@ var _ = BeforeSuite(func() {
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
+			filepath.Join("..", "..", "..", "example", "20-crd-resources.gardener.cloud_managedresources.yaml"),
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_clusters.yaml"),
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_infrastructures.yaml"),
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_controlplanes.yaml"),
@@ -125,6 +124,9 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 				Name:      "foo",
 			},
 			Spec: v1beta1.ShootSpec{
+				Kubernetes: v1beta1.Kubernetes{
+					Version: "1.26.0",
+				},
 				Region: "foo",
 				Provider: v1beta1.Provider{
 					Workers: []v1beta1.Worker{
@@ -168,9 +170,6 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 		*kubeconfig, err = user.KubeConfig()
 		Expect(err).NotTo(HaveOccurred())
 
-		config, err := clientcmd.Load(*kubeconfig)
-		Expect(err).NotTo(HaveOccurred())
-
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespace.Name,
@@ -185,11 +184,6 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 
 		Expect(AddToManagerWithOptions(mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
-			NewRegistry: func(c client.Client) (auth.RegionStubRegistry, error) {
-				registry := auth.NewSimpleRegionStubRegistry()
-				registry.AddRegionStub("foo", *config)
-				return registry, nil
-			},
 		})).NotTo(HaveOccurred())
 
 		go func() {
@@ -197,10 +191,7 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 			Expect(mgr.Start(mgrCtx)).To(Succeed(), "failed to start manager")
 		}()
 
-		registry := auth.NewSimpleRegionStubRegistry()
-		registry.AddRegionStub("foo", *config)
-		clientConfigGetter := auth.NewClientConfigGetter(k8sClient, registry)
-		vp = NewValuesProvider(clientConfigGetter).(*valuesProvider)
+		vp = NewValuesProvider().(*valuesProvider)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

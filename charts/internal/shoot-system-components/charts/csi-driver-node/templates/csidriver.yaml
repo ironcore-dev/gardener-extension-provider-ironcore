@@ -1,7 +1,0 @@
-apiVersion: {{ include "csi-driver-node.storageversion" . }}
-kind: CSIDriver
-metadata:
-  name: {{ include "csi-driver-node.provisioner" . }}
-spec:
-  attachRequired: true
-  podInfoOnMount: false

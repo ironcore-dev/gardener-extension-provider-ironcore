@@ -2,8 +2,7 @@ images:
 - name: cloud-controller-manager
   sourceRepository: github.com/onmetal/cloud-provider-onmetal
   repository: ghcr.io/onmetal/cloud-provider-onmetal
-  tag: "v1.25.2"
-  targetVersion: ">= 1.25"
+  tag: "sha256:3f5f7ff4c9edf379fe2b30042caa4ba0d5acae71ff1d4fca7ea432d05b5fd8db"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:

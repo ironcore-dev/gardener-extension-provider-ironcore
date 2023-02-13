@@ -25,7 +25,6 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/onmetal/controller-utils/buildutils"
 	"github.com/onmetal/controller-utils/modutils"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/auth"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
@@ -39,7 +38,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -194,28 +192,21 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 		kubeconfig, err := user.KubeConfig()
 		Expect(err).NotTo(HaveOccurred())
 
-		config, err := clientcmd.Load(kubeconfig)
-		Expect(err).NotTo(HaveOccurred())
-
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespace.Name,
-				Name:      "my-infra-creds",
+				Name:      "cloudprovider",
 			},
 			Data: map[string][]byte{
-				"namespace": []byte(namespace.Name),
-				"token":     []byte("foo"),
+				"namespace":  []byte(namespace.Name),
+				"token":      []byte("foo"),
+				"kubeconfig": kubeconfig,
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
 		Expect(AddToManagerWithOptions(mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
-			NewRegistry: func(c client.Client) (auth.RegionStubRegistry, error) {
-				registry := auth.NewSimpleRegionStubRegistry()
-				registry.AddRegionStub("foo", *config)
-				return registry, nil
-			},
 		})).NotTo(HaveOccurred())
 
 		go func() {

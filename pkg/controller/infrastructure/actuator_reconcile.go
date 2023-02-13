@@ -32,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -52,7 +51,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, infra *extens
 }
 
 func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
-	log.V(2).Info("Reconciling infrastructure for Shoot", "Shoot", client.ObjectKeyFromObject(cluster.Shoot))
+	log.V(2).Info("Reconciling infrastructure")
 
 	config, err := helper.InfrastructureConfigFromInfrastructure(infra)
 	if err != nil {
@@ -60,14 +59,9 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 	}
 
 	// get onmetal credentials from infrastructure config
-	onmetalClientCfg, err := a.getClientConfigForInfra(ctx, infra)
+	onmetalClient, namespace, err := a.getOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, infra)
 	if err != nil {
-		return fmt.Errorf("failed to extract credentials from infrastructure config for shoot %s/%s: %w", cluster.Shoot.Namespace, cluster.Shoot.Name, err)
-	}
-
-	onmetalClient, namespace, err := a.newClientFromConfig(onmetalClientCfg)
-	if err != nil {
-		return err
+		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
 	network, err := a.applyNetwork(ctx, onmetalClient, namespace, infra, config, cluster)
@@ -85,7 +79,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return err
 	}
 
-	log.V(2).Info("Successfully reconciled infrastructure for Shoot", "Shoot", client.ObjectKeyFromObject(cluster.Shoot))
+	log.V(2).Info("Successfully reconciled infrastructure")
 
 	// update status
 	return a.updateProviderStatus(ctx, infra, network, natGateway, prefix)
@@ -109,10 +103,6 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 
 	if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
 		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(pointer.StringDeref(nodeCIDR, ""))
-	}
-
-	if err := controllerutil.SetControllerReference(infra, prefix, a.Scheme()); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference on prefix %s: %w", client.ObjectKeyFromObject(prefix), err)
 	}
 
 	if err := onmetalClient.Patch(ctx, prefix, client.Apply, prefixFieldOwner); err != nil {
@@ -159,10 +149,6 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 		}
 	}
 
-	if err := controllerutil.SetControllerReference(infra, natGateway, a.Scheme()); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference on natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
-	}
-
 	if err := onmetalClient.Patch(ctx, natGateway, client.Apply, natGatewayFieldOwner); err != nil {
 		return nil, fmt.Errorf("failed to apply natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
 	}
@@ -181,10 +167,6 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(infra, network, a.Scheme()); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference on network %s: %w", client.ObjectKeyFromObject(network), err)
-	}
-
 	if err := onmetalClient.Patch(ctx, network, client.Apply, networkFieldOwner); err != nil {
 		return nil, fmt.Errorf("failed to apply network %s: %w", client.ObjectKeyFromObject(network), err)
 	}
@@ -192,6 +174,8 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 }
 
 func generateResourceNameFromCluster(cluster *controller.Cluster) string {
+	// TODO: use cluster.Name
+	// alternatively shoot.status.technicalID
 	return fmt.Sprintf("%s--%s--%s", shootPrefix, cluster.Shoot.Namespace, cluster.Shoot.Name)
 }
 
@@ -202,6 +186,7 @@ func (a *actuator) updateProviderStatus(
 	natGateway *networkingv1alpha1.NATGateway,
 	prefix *ipamv1alpha1.Prefix,
 ) error {
+	// TODO: use api/infrastatus -> serialize
 	providerStatus := map[string]interface{}{
 		"networkRef": map[string]interface{}{
 			"name": network.Name,
