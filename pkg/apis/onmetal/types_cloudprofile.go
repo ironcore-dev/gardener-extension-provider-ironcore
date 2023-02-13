@@ -47,7 +47,7 @@ type RegionConfig struct {
 	// Server is the server endpoint of this region.
 	Server string
 	// CertificateAuthorityData is the CA data of the region server.
-	CertificateAuthorityData []byte `json:"certificateAuthorityData"`
+	CertificateAuthorityData []byte
 }
 
 // MachineImageVersion contains a version and a provider-specific identifier.
