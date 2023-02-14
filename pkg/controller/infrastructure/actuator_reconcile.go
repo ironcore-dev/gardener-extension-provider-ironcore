@@ -16,7 +16,6 @@ package infrastructure
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
@@ -24,6 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
+	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
@@ -186,28 +186,27 @@ func (a *actuator) updateProviderStatus(
 	natGateway *networkingv1alpha1.NATGateway,
 	prefix *ipamv1alpha1.Prefix,
 ) error {
-	// TODO: use api/infrastatus -> serialize
-	providerStatus := map[string]interface{}{
-		"networkRef": map[string]interface{}{
-			"name": network.Name,
-			"uid":  network.UID,
+	infraStatus := &apiv1alpha1.InfrastructureStatus{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: apiv1alpha1.SchemeGroupVersion.String(),
+			Kind:       "InfrastructureStatus",
 		},
-		"natGatewayRef": map[string]interface{}{
-			"name": natGateway.Name,
-			"uid":  natGateway.UID,
+		NetworkRef: v1alpha1.LocalUIDReference{
+			Name: network.Name,
+			UID:  network.UID,
 		},
-		"prefixRef": map[string]interface{}{
-			"name": prefix.Name,
-			"uid":  prefix.UID,
+		NATGatewayRef: v1alpha1.LocalUIDReference{
+			Name: natGateway.Name,
+			UID:  natGateway.UID,
 		},
-	}
-	providerStatusJSON, err := json.Marshal(providerStatus)
-	if err != nil {
-		return fmt.Errorf("failed to encode provider status for infra %s: %w", client.ObjectKeyFromObject(infra), err)
+		PrefixRef: v1alpha1.LocalUIDReference{
+			Name: prefix.Name,
+			UID:  prefix.UID,
+		},
 	}
 	infraBase := infra.DeepCopy()
 	infra.Status.ProviderStatus = &runtime.RawExtension{
-		Raw: providerStatusJSON,
+		Object: infraStatus,
 	}
 	return a.Client().Status().Patch(ctx, infra, client.MergeFrom(infraBase))
 }

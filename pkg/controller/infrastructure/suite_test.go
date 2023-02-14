@@ -25,6 +25,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/onmetal/controller-utils/buildutils"
 	"github.com/onmetal/controller-utils/modutils"
+	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
@@ -102,6 +103,7 @@ var _ = BeforeSuite(func() {
 	Expect(networkingv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(extensionsv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(corev1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(apiv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 
 	// Init package-level k8sClient
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})

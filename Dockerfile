@@ -31,6 +31,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot AS gardener-extension-provider-onmetal
 WORKDIR /
+COPY charts /charts
 COPY --from=builder /workspace/gardener-extension-provider-onmetal /gardener-extension-provider-onmetal
 USER 65532:65532
 
@@ -38,6 +39,7 @@ ENTRYPOINT ["/gardener-extension-provider-onmetal"]
 
 FROM gcr.io/distroless/static:nonroot AS gardener-extension-admission-onmetal
 WORKDIR /
+COPY charts /charts
 COPY --from=builder /workspace/gardener-extension-admission-onmetal /gardener-extension-admission-onmetal
 USER 65532:65532
 

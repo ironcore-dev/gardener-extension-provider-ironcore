@@ -20,6 +20,12 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -27,13 +33,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	v1alpha12 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Infrastructure Reconcile", func() {
@@ -125,11 +124,13 @@ var _ = Describe("Infrastructure Reconcile", func() {
 
 		Eventually(Object(prefix)).Should(SatisfyAll(
 			HaveField("Spec.IPFamily", corev1.IPv4Protocol),
-			HaveField("Spec.Prefix", v1alpha12.MustParseNewIPPrefix("10.0.0.0/24")),
+			HaveField("Spec.Prefix", commonv1alpha1.MustParseNewIPPrefix("10.0.0.0/24")),
 		))
 
 		By("ensuring that the infrastructure state contains the correct refs")
 		providerStatus := map[string]interface{}{
+			"apiVersion": "onmetal.provider.extensions.gardener.cloud/v1alpha1",
+			"kind":       "InfrastructureStatus",
 			"networkRef": map[string]interface{}{
 				"name": network.Name,
 				"uid":  network.UID,

@@ -4,7 +4,7 @@ regions:
       bar
 
 image:
-  repository: ghcr.io/onmetal/gardener-extensions-provider-onmetal
+  repository: ghcr.io/onmetal/gardener-extension-provider-onmetal
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -26,17 +26,9 @@ metricsPort: 8080
 healthPort: 8081
 
 controllers:
-  backupbucket:
-    concurrentSyncs: 5
-  backupentry:
-    concurrentSyncs: 5
-  bastion:
-    concurrentSyncs: 5
   controlplane:
     concurrentSyncs: 5
   csimigration:
-    concurrentSyncs: 5
-  dnsrecord:
     concurrentSyncs: 5
   healthcheck:
     concurrentSyncs: 5
