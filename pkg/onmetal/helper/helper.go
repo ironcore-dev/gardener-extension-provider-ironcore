@@ -44,7 +44,7 @@ func FindImageFromCloudProfile(cloudProfileConfig *api.CloudProfileConfig, image
 				continue
 			}
 			for _, version := range machineImage.Versions {
-				if imageVersion == version.Version && pointer.StringEqual(architecture, version.Architecture) {
+				if imageVersion == version.Version {
 					return version.Image, nil
 				}
 			}
