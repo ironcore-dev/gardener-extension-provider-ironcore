@@ -19,13 +19,11 @@ import (
 	"fmt"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal/helper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -34,17 +32,15 @@ import (
 func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	var machineImages []apiv1alpha1.MachineImage
 	for _, pool := range w.worker.Spec.Pools {
-		arch := pointer.StringDeref(pool.Architecture, v1beta1constants.ArchitectureAMD64)
-		machineImage, err := w.findMachineImage(pool.MachineImage.Name, pool.MachineImage.Version, &arch)
+		machineImage, err := w.findMachineImage(pool.MachineImage.Name, pool.MachineImage.Version)
 		if err != nil {
 			return err
 		}
 
 		machineImages = appendMachineImage(machineImages, apiv1alpha1.MachineImage{
-			Name:         pool.MachineImage.Name,
-			Version:      pool.MachineImage.Version,
-			Image:        machineImage,
-			Architecture: &arch,
+			Name:    pool.MachineImage.Name,
+			Version: pool.MachineImage.Version,
+			Image:   machineImage,
 		})
 	}
 
@@ -62,8 +58,8 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	return nil
 }
 
-func (w *workerDelegate) findMachineImage(name, version string, architecture *string) (string, error) {
-	machineImage, err := helper.FindImageFromCloudProfile(w.cloudProfileConfig, name, version, architecture)
+func (w *workerDelegate) findMachineImage(name, version string) (string, error) {
+	machineImage, err := helper.FindImageFromCloudProfile(w.cloudProfileConfig, name, version)
 	if err == nil {
 		return machineImage, nil
 	}
@@ -75,19 +71,19 @@ func (w *workerDelegate) findMachineImage(name, version string, architecture *st
 			return "", fmt.Errorf("could not decode worker status of worker '%s': %w", kutil.ObjectName(w.worker), err)
 		}
 
-		machineImage, err := helper.FindMachineImage(workerStatus.MachineImages, name, version, architecture)
+		machineImage, err := helper.FindMachineImage(workerStatus.MachineImages, name, version)
 		if err != nil {
-			return "", worker.ErrorMachineImageNotFound(name, version, *architecture)
+			return "", worker.ErrorMachineImageNotFound(name, version)
 		}
 
 		return machineImage.Image, nil
 	}
 
-	return "", worker.ErrorMachineImageNotFound(name, version, *architecture)
+	return "", worker.ErrorMachineImageNotFound(name, version)
 }
 
 func appendMachineImage(machineImages []apiv1alpha1.MachineImage, machineImage apiv1alpha1.MachineImage) []apiv1alpha1.MachineImage {
-	if _, err := helper.FindMachineImage(machineImages, machineImage.Name, machineImage.Version, machineImage.Architecture); err != nil {
+	if _, err := helper.FindMachineImage(machineImages, machineImage.Name, machineImage.Version); err != nil {
 		return append(machineImages, machineImage)
 	}
 	return machineImages
@@ -115,8 +111,8 @@ func (w *workerDelegate) updateWorkerProviderStatus(ctx context.Context, workerS
 	}
 
 	status.TypeMeta = metav1.TypeMeta{
-		Kind:       "WorkerStatus",
 		APIVersion: apiv1alpha1.SchemeGroupVersion.String(),
+		Kind:       "WorkerStatus",
 	}
 
 	patch := client.MergeFrom(w.worker.DeepCopy())

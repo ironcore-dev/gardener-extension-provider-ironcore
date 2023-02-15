@@ -249,7 +249,6 @@ func autoConvert_v1alpha1_MachineImage_To_onmetal_MachineImage(in *MachineImage,
 	out.Name = in.Name
 	out.Version = in.Version
 	out.Image = in.Image
-	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -262,7 +261,6 @@ func autoConvert_onmetal_MachineImage_To_v1alpha1_MachineImage(in *onmetal.Machi
 	out.Name = in.Name
 	out.Version = in.Version
 	out.Image = in.Image
-	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 

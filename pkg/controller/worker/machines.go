@@ -24,14 +24,13 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
@@ -118,19 +117,18 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 		machineClassSecrets []*corev1.Secret
 	)
 
-	infrastructureStatus := &apisonmetal.InfrastructureStatus{}
+	infrastructureStatus := &onmetalextensionv1alpha1.InfrastructureStatus{}
 	if _, _, err := w.Decoder().Decode(w.worker.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to decode infra status: %w", err)
 	}
 
 	for _, pool := range w.worker.Spec.Pools {
 		workerPoolHash, err := w.generateHashForWorkerPool(pool)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("failed to generate hash for worker pool %s: %w", pool.Name, err)
 		}
-		arch := pointer.StringDeref(pool.Architecture, v1beta1constants.ArchitectureAMD64)
 
-		machineImage, err := w.findMachineImage(pool.MachineImage.Name, pool.MachineImage.Version, &arch)
+		machineImage, err := w.findMachineImage(pool.MachineImage.Name, pool.MachineImage.Version)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -169,8 +167,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 			machineClassProviderSpec[onmetal.NetworkFieldName] = infrastructureStatus.NetworkRef.Name
 			machineClassProviderSpec[onmetal.PrefixFieldName] = infrastructureStatus.PrefixRef.Name
 			machineClassProviderSpec[onmetal.LabelsFieldName] = map[string]string{
-				"shoot-name":      w.worker.Name,
-				"shoot-namespace": w.worker.Namespace,
+				onmetal.ClusterNameFieldName: w.cluster.ObjectMeta.Name,
 			}
 
 			machineClassProviderSpecJSON, err := json.Marshal(machineClassProviderSpec)
