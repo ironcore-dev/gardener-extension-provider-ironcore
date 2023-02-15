@@ -71,6 +71,8 @@ const (
 	SizeFieldName = "size"
 	// VolumeClassFieldName is the name of the volume class field
 	VolumeClassFieldName = "volumeClassName"
+	// ClusterNameFieldName is the name is the label key of the cluster name
+	ClusterNameFieldName = "cluster-name"
 
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"

@@ -24,6 +24,7 @@ import (
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
@@ -35,8 +36,7 @@ import (
 )
 
 const (
-	workerNameKey = "worker-name"
-	shootPrefix   = "shoot"
+	shootPrefix = "shoot"
 )
 
 var (
@@ -64,17 +64,17 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
-	network, err := a.applyNetwork(ctx, onmetalClient, namespace, infra, config, cluster)
+	network, err := a.applyNetwork(ctx, onmetalClient, namespace, config, cluster)
 	if err != nil {
 		return err
 	}
 
-	natGateway, err := a.applyNATGateway(ctx, onmetalClient, namespace, infra, cluster, network)
+	natGateway, err := a.applyNATGateway(ctx, onmetalClient, namespace, cluster, network)
 	if err != nil {
 		return err
 	}
 
-	prefix, err := a.applyPrefix(ctx, onmetalClient, namespace, infra, cluster)
+	prefix, err := a.applyPrefix(ctx, onmetalClient, namespace, cluster)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 	return a.updateProviderStatus(ctx, infra, network, natGateway, prefix)
 }
 
-func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client, namespace string, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) (*ipamv1alpha1.Prefix, error) {
+func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client, namespace string, cluster *controller.Cluster) (*ipamv1alpha1.Prefix, error) {
 	prefix := &ipamv1alpha1.Prefix{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Prefix",
@@ -111,13 +111,7 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 	return prefix, nil
 }
 
-func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Client, namespace string, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
-	// find all worker names to use them as a label selector for the NATGateway
-	workerNames := make([]string, 0, len(cluster.Shoot.Spec.Provider.Workers))
-	for _, w := range cluster.Shoot.Spec.Provider.Workers {
-		workerNames = append(workerNames, w.Name)
-	}
-
+func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
 	natGateway := &networkingv1alpha1.NATGateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "NATGateway",
@@ -137,16 +131,10 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 		},
 	}
 
-	if len(workerNames) > 0 {
-		natGateway.Spec.NetworkInterfaceSelector = &metav1.LabelSelector{
-			MatchExpressions: []metav1.LabelSelectorRequirement{
-				{
-					Key:      workerNameKey,
-					Operator: metav1.LabelSelectorOpIn,
-					Values:   workerNames,
-				},
-			},
-		}
+	natGateway.Spec.NetworkInterfaceSelector = &metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			onmetal.ClusterNameFieldName: cluster.ObjectMeta.Name,
+		},
 	}
 
 	if err := onmetalClient.Patch(ctx, natGateway, client.Apply, natGatewayFieldOwner); err != nil {
@@ -155,7 +143,16 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 	return natGateway, nil
 }
 
-func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client, namespace string, infra *extensionsv1alpha1.Infrastructure, config *api.InfrastructureConfig, cluster *controller.Cluster) (*networkingv1alpha1.Network, error) {
+func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client, namespace string, config *api.InfrastructureConfig, cluster *controller.Cluster) (*networkingv1alpha1.Network, error) {
+	if config != nil && config.NetworkRef != nil {
+		network := &networkingv1alpha1.Network{}
+		networkKey := client.ObjectKey{Namespace: namespace, Name: config.NetworkRef.Name}
+		if err := onmetalClient.Get(ctx, networkKey, network); err != nil {
+			return nil, fmt.Errorf("failed to get network %s: %w", networkKey, err)
+		}
+		return network, nil
+	}
+
 	network := &networkingv1alpha1.Network{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Network",

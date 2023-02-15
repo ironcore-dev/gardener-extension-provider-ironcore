@@ -23,19 +23,17 @@ import (
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
+	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 )
 
 var _ = Describe("Machines", func() {
@@ -62,10 +60,10 @@ var _ = Describe("Machines", func() {
 
 	It("should create the expected machine class for a multi zone cluster", func() {
 		By("defining and setting infrastructure status for worker")
-		infraStatus := &api.InfrastructureStatus{
+		infraStatus := &onmetalextensionv1alpha1.InfrastructureStatus{
 			TypeMeta: metav1.TypeMeta{
+				APIVersion: onmetalextensionv1alpha1.SchemeGroupVersion.String(),
 				Kind:       "InfrastructureStatus",
-				APIVersion: "onmetal.provider.extensions.gardener.cloud/v1alpha1",
 			},
 			NetworkRef: commonv1alpha1.LocalUIDReference{
 				Name: "my-network",
@@ -94,63 +92,61 @@ var _ = Describe("Machines", func() {
 			deploymentName = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, ns.Name, "pool", 1)
 			className      = fmt.Sprintf("%s--%s", deploymentName, workerPoolHash)
 		)
-		Eventually(func(g Gomega) {
-			machineClass := &machinecontrollerv1alpha1.MachineClass{}
-			machineClassKey := types.NamespacedName{Namespace: ns.Name, Name: className}
-			err := k8sClient.Get(ctx, machineClassKey, machineClass)
-			Expect(client.IgnoreNotFound(err)).To(Succeed())
-			g.Expect(err).NotTo(HaveOccurred())
 
-			machineClassProviderSpec := map[string]interface{}{
-				"image": "registry/my-os",
-				"rootDisk": map[string]interface{}{
-					"size":            pool.Volume.Size,
-					"volumeClassName": pool.Volume.Type,
-				},
-				"networkName": infraStatus.NetworkRef.Name,
-				"prefixName":  infraStatus.PrefixRef.Name,
-				"labels": map[string]interface{}{
-					"shoot-name":      w.Name,
-					"shoot-namespace": w.Namespace,
-				},
-			}
+		machineClass := &machinecontrollerv1alpha1.MachineClass{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      className,
+			},
+		}
 
-			g.Expect(machineClass).Should(SatisfyAll(
-				HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
-				HaveField("CredentialsSecretRef", &corev1.SecretReference{
-					Namespace: w.Spec.SecretRef.Namespace,
-					Name:      w.Spec.SecretRef.Name,
-				}),
-				HaveField("SecretRef", &corev1.SecretReference{
-					Namespace: ns.Name,
-					Name:      className,
-				}),
-				HaveField("Provider", onmetal.ProviderName),
-				HaveField("NodeTemplate", &machinecontrollerv1alpha1.NodeTemplate{
-					Capacity:     pool.NodeTemplate.Capacity,
-					InstanceType: pool.MachineType,
-					Region:       w.Spec.Region,
-					Zone:         "zone1",
-				}),
-				HaveField("ProviderSpec", runtime.RawExtension{
-					Raw: encodeMap(machineClassProviderSpec),
-				}),
-			))
-		}).Should(Succeed())
+		machineClassProviderSpec := map[string]interface{}{
+			"image": "registry/my-os",
+			"rootDisk": map[string]interface{}{
+				"size":            pool.Volume.Size,
+				"volumeClassName": pool.Volume.Type,
+			},
+			"networkName": infraStatus.NetworkRef.Name,
+			"prefixName":  infraStatus.PrefixRef.Name,
+			"labels": map[string]interface{}{
+				"cluster-name": cluster.ObjectMeta.Name,
+			},
+		}
+
+		Eventually(Object(machineClass)).Should(SatisfyAll(
+			HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
+			HaveField("CredentialsSecretRef", &corev1.SecretReference{
+				Namespace: w.Spec.SecretRef.Namespace,
+				Name:      w.Spec.SecretRef.Name,
+			}),
+			HaveField("SecretRef", &corev1.SecretReference{
+				Namespace: ns.Name,
+				Name:      className,
+			}),
+			HaveField("Provider", onmetal.ProviderName),
+			HaveField("NodeTemplate", &machinecontrollerv1alpha1.NodeTemplate{
+				Capacity:     pool.NodeTemplate.Capacity,
+				InstanceType: pool.MachineType,
+				Region:       w.Spec.Region,
+				Zone:         "zone1",
+			}),
+			HaveField("ProviderSpec", runtime.RawExtension{
+				Raw: encodeMap(machineClassProviderSpec),
+			}),
+		))
 
 		By("ensuring that the machine class secret have been applied")
-		Eventually(func(g Gomega) {
-			machineClassSecret := &corev1.Secret{}
-			machineClassSecretKey := types.NamespacedName{Namespace: ns.Name, Name: className}
-			err := k8sClient.Get(ctx, machineClassSecretKey, machineClassSecret)
-			Expect(client.IgnoreNotFound(err)).To(Succeed())
-			g.Expect(err).NotTo(HaveOccurred())
+		machineClassSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      className,
+			},
+		}
 
-			g.Expect(machineClassSecret).Should(SatisfyAll(
-				HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
-				HaveField("Data", HaveKeyWithValue("userData", []byte("some-data"))),
-			))
-		}).Should(Succeed())
+		Eventually(Object(machineClassSecret)).Should(SatisfyAll(
+			HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
+			HaveField("Data", HaveKeyWithValue("userData", []byte("some-data"))),
+		))
 	})
 
 	It("should generate the machine deployments", func() {

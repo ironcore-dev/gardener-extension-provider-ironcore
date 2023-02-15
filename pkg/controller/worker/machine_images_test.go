@@ -16,8 +16,6 @@ package worker
 
 import (
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
-	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	testutils "github.com/onmetal/onmetal-api/utils/testing"
@@ -27,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -37,17 +34,17 @@ var _ = Describe("MachinesImages", func() {
 
 	It("should update the worker status", func() {
 		By("defining and setting infrastructure status for worker")
-		infraStatus := &api.InfrastructureStatus{
+		infraStatus := &apiv1alpha1.InfrastructureStatus{
 			TypeMeta: metav1.TypeMeta{
+				APIVersion: apiv1alpha1.SchemeGroupVersion.String(),
 				Kind:       "InfrastructureStatus",
-				APIVersion: "onmetal.provider.extensions.gardener.cloud/v1alpha1",
 			},
 			NetworkRef: commonv1alpha1.LocalUIDReference{
 				Name: "my-network",
 				UID:  "1234",
 			},
 		}
-		w.Spec.InfrastructureProviderStatus = &runtime.RawExtension{Raw: encodeObject(infraStatus)}
+		w.Spec.InfrastructureProviderStatus = &runtime.RawExtension{Object: infraStatus}
 
 		By("creating the worker")
 		Expect(k8sClient.Create(ctx, w)).To(Succeed())
@@ -75,10 +72,9 @@ var _ = Describe("MachinesImages", func() {
 				},
 				MachineImages: []apiv1alpha1.MachineImage{
 					{
-						Name:         "my-os",
-						Version:      "1.0",
-						Image:        "registry/my-os",
-						Architecture: pointer.String(constants.ArchitectureAMD64),
+						Name:    "my-os",
+						Version: "1.0",
+						Image:   "registry/my-os",
 					},
 				},
 			}
