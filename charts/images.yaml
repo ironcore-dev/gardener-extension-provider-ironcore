@@ -2,7 +2,7 @@ images:
 - name: cloud-controller-manager
   sourceRepository: github.com/onmetal/cloud-provider-onmetal
   repository: ghcr.io/onmetal/cloud-provider-onmetal
-  tag: "sha-a7a7c29"
+  tag: "sha-20853e8"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -20,7 +20,7 @@ images:
 - name: machine-controller-manager-provider-onmetal
   sourceRepository: github.com/onmetal/machine-controller-manager-provider-onmetal
   repository: ghcr.io/onmetal/machine-controller-manager-provider-onmetal
-  tag: "sha-a37bd94"
+  tag: "sha-238bfeb"
 
 - name: csi-driver-onmetal
   sourceRepository: github.com/onmetal/onmetal-csi-driver
