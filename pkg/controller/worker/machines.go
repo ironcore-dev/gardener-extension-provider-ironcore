@@ -34,8 +34,6 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
-const shootPrefix = "shoot"
-
 // MachineClassKind yields the name of the machine class kind used by onmetal provider.
 func (w *workerDelegate) MachineClassKind() string {
 	return "MachineClass"
@@ -146,8 +144,8 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 
 		for zoneIndex, zone := range pool.Zones {
 			var (
-				deploymentName = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, w.worker.Namespace, pool.Name, zoneIndex+1)
-				className      = fmt.Sprintf("%s--%s", deploymentName, workerPoolHash)
+				deploymentName = fmt.Sprintf("%s-%s-z%d", w.worker.Namespace, pool.Name, zoneIndex+1)
+				className      = fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
 			)
 
 			// Here we are going to create the necessary objects:

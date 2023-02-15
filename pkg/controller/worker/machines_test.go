@@ -89,8 +89,8 @@ var _ = Describe("Machines", func() {
 
 		By("ensuring that the machine class for each pool has been deployed")
 		var (
-			deploymentName = fmt.Sprintf("%s--%s--%s--z%d", shootPrefix, ns.Name, "pool", 1)
-			className      = fmt.Sprintf("%s--%s", deploymentName, workerPoolHash)
+			deploymentName = fmt.Sprintf("%s-%s-z%d", ns.Name, pool.Name, 1)
+			className      = fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
 		)
 
 		machineClass := &machinecontrollerv1alpha1.MachineClass{
