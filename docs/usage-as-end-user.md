@@ -7,107 +7,47 @@ This document describes the configurable options for onmetal and provides an exa
 ## onmetal Provider Credentials
 
 In order for Gardener to create a Kubernetes cluster using onmetal infrastructure components, a Shoot has to provide credentials with sufficient permissions to the desired onmetal project.
-Every shoot cluster references a `SecretBinding` which itself references a `Secret`, and this `Secret` contains the provider credentials of the onmetal project.
-The `SecretBinding` is configurable in the [Shoot cluster](https://github.com/gardener/gardener/blob/master/example/90-shoot.yaml) with the field `secretBindingName`.
 
-The required credentials for the onmetal project are a [Service Account Key](https://cloud.google.com/iam/docs/service-accounts#service_account_keys) to authenticate as a [onmetal Service Account](https://cloud.google.com/compute/docs/access/service-accounts).
-A service account is a special account that can be used by services and applications to interact with Google Cloud Platform APIs. 
-Applications can use service account credentials to authorize themselves to a set of APIs and perform actions within the permissions granted to the service account.
-
-Make sure to [enable the Google Identity and Access Management (IAM) API](https://cloud.google.com/service-usage/docs/enable-disable).
-[Create a Service Account](https://cloud.google.com/iam/docs/creating-managing-service-accounts) that shall be used for the Shoot cluster.
-[Grant at least the following IAM roles](https://cloud.google.com/iam/docs/granting-changing-revoking-access) to the Service Account.
-- Service Account Admin
-- Service Account Token Creator
-- Service Account User
-- Compute Admin
-
-Create a [JSON Service Account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys#creating_service_account_keys) for the Service Account.
-Provide it in the `Secret` (base64 encoded for field `serviceaccount.json`), that is being referenced by the `SecretBinding` in the Shoot cluster configuration.
-
-This `Secret` must look as follows:
+In Onmetal provider extension, `kubeconfig` is generated from user data. And a secret named `cloudProvider` is created with `kubeconfig`, `token` and `namespace` as data keys of the secret. A sample file below
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: core-gcp
+  name: cloudProvider
   namespace: garden-dev
 type: Opaque
 data:
-  serviceaccount.json: base64(serviceaccount-json)
+  namespace: "garden-dev"
+  token: "foo"
+  kubeconfig: SDer!45skdjfrtYHTL#^GY            // kubeconfig content base64 encoded
 ```
-
-⚠️ Depending on your API usage it can be problematic to reuse the same Service Account Key for different Shoot clusters due to rate limits.
-Please consider spreading your Shoots over multiple Service Accounts on different GCP projects if you are hitting those limits, see https://cloud.google.com/compute/docs/api-rate-limits.
 
 ## `InfrastructureConfig`
 
 The infrastructure configuration mainly describes how the network layout looks like in order to create the shoot worker nodes in a later step, thus, prepares everything relevant to create VMs, load balancers, volumes, etc.
 
-An example `InfrastructureConfig` for the GCP extension looks as follows:
+An example `InfrastructureConfig` for the Onmetal extension looks as follows:
 
 ```yaml
-apiVersion: gcp.provider.extensions.gardener.cloud/v1alpha1
+apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
 kind: InfrastructureConfig
-networks:
-# vpc:
-#   name: my-vpc
-#   cloudRouter:
-#     name: my-cloudrouter
-  workers: 10.250.0.0/16
-# internal: 10.251.0.0/16
-# cloudNAT:
-#   minPortsPerVM: 2048
-#   natIPNames:
-#   - name: manualnat1
-#   - name: manualnat2
-# flowLogs:
-#   aggregationInterval: INTERVAL_5_SEC
-#   flowSampling: 0.2
-#   metadata: INCLUDE_ALL_METADATA
+networkRef:
+  name: "my-network"
 ```
 
-The `networks.vpc` section describes whether you want to create the shoot cluster in an already existing VPC or whether to create a new one:
+`networkRef` NetworkRef references the network to use for the Shoot creation.
 
-* If `networks.vpc.name` is given then you have to specify the VPC name of the existing VPC that was created by other means (manually, other tooling, ...).
-If you want to get a fresh VPC for the shoot then just omit the `networks.vpc` field.
-
-* If a VPC name is not given then we will create the cloud router + NAT gateway to ensure that worker nodes don't get external IPs.
-
-* If a VPC name is given then a cloud router name must also be given, failure to do so would result in validation errors
-and possibly clusters without egress connectivity.
-
-The `networks.workers` section describes the CIDR for a subnet that is used for all shoot worker nodes, i.e., VMs which later run your applications.
-
-The `networks.internal` section is optional and can describe a CIDR for a subnet that is used for [internal load balancers](https://cloud.google.com/load-balancing/docs/internal/),
-
-The `networks.cloudNAT.minPortsPerVM` is optional and is used to define the [minimum number of ports allocated to a VM for the CloudNAT](https://cloud.google.com/nat/docs/overview#number_of_nat_ports_and_connections)
-
-The `networks.cloudNAT.natIPNames` is optional and is used to specify the names of the manual ip addresses which should be used by the nat gateway
-
-The specified CIDR ranges must be contained in the VPC CIDR specified above, or the VPC CIDR of your already existing VPC.
-You can freely choose these CIDRs and it is your responsibility to properly design the network layout to suit your needs.
-
-The `networks.flowLogs` section describes the configuration for the VPC flow logs. In order to enable the VPC flow logs at least one of the following parameters needs to be specified in the flow log section:
-
-* `networks.flowLogs.aggregationInterval` an optional parameter describing the aggregation interval for collecting flow logs. For more details, see [aggregation_interval reference](https://www.terraform.io/docs/providers/google/r/compute_subnetwork.html#aggregation_interval).
-
-* `networks.flowLogs.flowSampling` an optional parameter describing the sampling rate of VPC flow logs within the subnetwork where 1.0 means all collected logs are reported and 0.0 means no logs are reported. For more details, see [flow_sampling reference](https://www.terraform.io/docs/providers/google/r/compute_subnetwork.html#flow_sampling).
-
-* `networks.flowLogs.metadata` an optional parameter describing whether metadata fields should be added to the reported VPC flow logs. For more details, see [metadata reference](https://www.terraform.io/docs/providers/google/r/compute_subnetwork.html#metadata).
-
-Apart from the VPC and the subnets the GCP extension will also create a dedicated service account for this shoot, and firewall rules.
 
 ## `ControlPlaneConfig`
 
-The control plane configuration mainly contains values for the GCP-specific control plane components.
-Today, the only component deployed by the GCP extension is the `cloud-controller-manager`.
+The control plane configuration mainly contains values for the Onmetal-specific control plane components.
+Today, the only component deployed by the Onmetal extension is the `cloud-controller-manager`.
 
-An example `ControlPlaneConfig` for the GCP extension looks as follows:
+An example `ControlPlaneConfig` for the Onmetal extension looks as follows:
 
 ```yaml
-apiVersion: gcp.provider.extensions.gardener.cloud/v1alpha1
+apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
 kind: ControlPlaneConfig
 zone: europe-west1-b
 cloudControllerManager:
@@ -161,68 +101,12 @@ gpu:
 ```
 ## Example `Shoot` manifest
 
-Please find below an example `Shoot` manifest:
-
-```yaml
-apiVersion: core.gardener.cloud/v1beta1
-kind: Shoot
-metadata:
-  name: johndoe-gcp
-  namespace: garden-dev
-spec:
-  cloudProfileName: gcp
-  region: europe-west1
-  secretBindingName: core-gcp
-  provider:
-    type: gcp
-    infrastructureConfig:
-      apiVersion: gcp.provider.extensions.gardener.cloud/v1alpha1
-      kind: InfrastructureConfig
-      networks:
-        workers: 10.250.0.0/16
-    controlPlaneConfig:
-      apiVersion: gcp.provider.extensions.gardener.cloud/v1alpha1
-      kind: ControlPlaneConfig
-      zone: europe-west1-b
-    workers:
-    - name: worker-xoluy
-      machine:
-        type: n1-standard-4
-      minimum: 2
-      maximum: 2
-      volume:
-        size: 50Gi
-        type: pd-standard
-      zones:
-      - europe-west1-b
-  networking:
-    nodes: 10.250.0.0/16
-    type: calico
-  kubernetes:
-    version: 1.24.3
-  maintenance:
-    autoUpdate:
-      kubernetesVersion: true
-      machineImageVersion: true
-  addons:
-    kubernetesDashboard:
-      enabled: true
-    nginxIngress:
-      enabled: true
-```
+ An example to a `Shoot` manifest [here](https://github.com/onmetal/gardener-extension-provider-onmetal/blob/doc/usage-as-operator/docs/usage-as-operator.md):
 
 ## CSI volume provisioners
 
-Every GCP shoot cluster that has at least Kubernetes v1.18 will be deployed with the GCP PD CSI driver.
-It is compatible with the legacy in-tree volume provisioner that was deprecated by the Kubernetes community and will be removed in future versions of Kubernetes.
-End-users might want to update their custom `StorageClass`es to the new `pd.csi.storage.gke.io` provisioner.
-Shoot clusters with Kubernetes v1.17 or less will use the in-tree `kubernetes.io/gce-pd` volume provisioner in the kube-controller-manager and the kubelet.
+Every Onmetal shoot cluster that has at least Kubernetes v1.24 will be deployed with the `onmetal-csi-driver`.
 
-## Kubernetes Versions per Worker Pool
+End-users might want to update their custom `StorageClass`es to the new `onmetal-csi-driver` provisioner.
 
-This extension supports `gardener/gardener`'s `WorkerPoolKubernetesVersion` feature gate, i.e., having [worker pools with overridden Kubernetes versions](https://github.com/gardener/gardener/blob/8a9c88866ec5fce59b5acf57d4227eeeb73669d7/example/90-shoot.yaml#L69-L70) since `gardener-extension-provider-gcp@v1.21`.
-Note that this feature is only usable for `Shoot`s whose `.spec.kubernetes.version` is greater or equal than the CSI migration version (`1.18`).
 
-## Shoot CA Certificate and `ServiceAccount` Signing Key Rotation
-
-This extension supports `gardener/gardener`'s `ShootCARotation` and `ShootSARotation` feature gates since `gardener-extension-provider-gcp@v1.23`.
