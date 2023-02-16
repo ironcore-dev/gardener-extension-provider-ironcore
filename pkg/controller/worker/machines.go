@@ -189,7 +189,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 				ProviderSpec: runtime.RawExtension{
 					Raw: machineClassProviderSpecJSON,
 				},
-				Provider: onmetal.ProviderName,
+				Provider: onmetal.Type,
 				SecretRef: &corev1.SecretReference{
 					Name:      className,
 					Namespace: w.worker.Namespace,
@@ -218,9 +218,6 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 }
 
 func (w *workerDelegate) generateHashForWorkerPool(pool v1alpha1.WorkerPool) (string, error) {
-	workerPoolHash, err := worker.WorkerPoolHash(pool, w.cluster)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate hash for worke pool %s: %w", pool.Name, err)
-	}
-	return workerPoolHash, err
+	// Generate the worker pool hash.
+	return worker.WorkerPoolHash(pool, w.cluster)
 }
