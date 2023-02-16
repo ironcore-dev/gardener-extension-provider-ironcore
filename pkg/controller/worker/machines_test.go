@@ -24,7 +24,6 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
@@ -123,7 +122,7 @@ var _ = Describe("Machines", func() {
 				Namespace: ns.Name,
 				Name:      className,
 			}),
-			HaveField("Provider", onmetal.ProviderName),
+			HaveField("Provider", "onmetal"),
 			HaveField("NodeTemplate", &machinecontrollerv1alpha1.NodeTemplate{
 				Capacity:     pool.NodeTemplate.Capacity,
 				InstanceType: pool.MachineType,
