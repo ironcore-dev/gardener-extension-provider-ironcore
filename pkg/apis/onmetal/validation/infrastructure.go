@@ -15,19 +15,19 @@
 package validation
 
 import (
-	apisgcp "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 // ValidateInfrastructureConfig validates a InfrastructureConfig object.
-func ValidateInfrastructureConfig(infra *apisgcp.InfrastructureConfig, nodesCIDR, podsCIDR, servicesCIDR *string, fldPath *field.Path) field.ErrorList {
+func ValidateInfrastructureConfig(infra *apisonmetal.InfrastructureConfig, nodesCIDR, podsCIDR, servicesCIDR *string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	return allErrs
 }
 
 // ValidateInfrastructureConfigUpdate validates a InfrastructureConfig object.
-func ValidateInfrastructureConfigUpdate(oldConfig, newConfig *apisgcp.InfrastructureConfig, fldPath *field.Path) field.ErrorList {
+func ValidateInfrastructureConfigUpdate(oldConfig, newConfig *apisonmetal.InfrastructureConfig, fldPath *field.Path) field.ErrorList {
 	var (
 		allErrs = field.ErrorList{}
 	)

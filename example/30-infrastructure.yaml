@@ -16,7 +16,7 @@ data:
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
 metadata:
-  name: shoot--foobar--gcp
+  name: shoot--foobar--onmetal
 spec:
   cloudProfile:
     apiVersion: core.gardener.cloud/v1beta1
@@ -39,30 +39,16 @@ spec:
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Infrastructure
 metadata:
-  name: gcp-infra
-  namespace: shoot--foobar--gcp
+  name: onmetal-infra
+  namespace: shoot--foobar--onmetal
 spec:
-  type: gcp
+  type: onmetal
   region: europe-west1
   secretRef:
-    namespace: shoot--foobar--gcp
-    name: core-gcp
+    namespace: shoot--foobar--onmetal
+    name: core-onmetal
   providerConfig:
-    apiVersion: gcp.provider.extensions.gardener.cloud/v1alpha1
+    apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureConfig
     networks:
-    # vpc:
-    #   name: my-vpc
-    #   cloudRouter:
-    #     name: my-cloudrouter
-      workers: 10.242.0.0/19
-    # internal: 10.243.0.0/19
-    # cloudNAT:
-    #   minPortsPerVM: 2048
-    #   natIPNames:
-    #   - name: manualnat1
-    #   - name: manualnat2
-    # flowLogs:
-    #   aggregationInterval: INTERVAL_5_SEC
-    #   flowSampling: 0.2
-    #   metadata: INCLUDE_ALL_METADATA
+      # networkName: my-network
