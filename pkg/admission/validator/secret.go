@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	gcpvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
+	onmetalvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
 
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	corev1 "k8s.io/api/core/v1"
@@ -51,5 +51,5 @@ func (s *secret) Validate(ctx context.Context, newObj, oldObj client.Object) err
 		}
 	}
 
-	return gcpvalidation.ValidateCloudProviderSecret(secret)
+	return onmetalvalidation.ValidateCloudProviderSecret(secret)
 }

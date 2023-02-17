@@ -15,7 +15,7 @@
 package validation
 
 import (
-	apisgcp "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -25,12 +25,12 @@ import (
 
 var _ = Describe("ControlPlaneConfig validation", func() {
 	var (
-		controlPlane *apisgcp.ControlPlaneConfig
+		controlPlane *apisonmetal.ControlPlaneConfig
 		fldPath      *field.Path
 	)
 
 	BeforeEach(func() {
-		controlPlane = &apisgcp.ControlPlaneConfig{}
+		controlPlane = &apisonmetal.ControlPlaneConfig{}
 	})
 
 	Describe("#ValidateControlPlaneConfig", func() {
@@ -39,7 +39,7 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 		})
 
 		It("should fail with invalid CCM feature gates", func() {
-			controlPlane.CloudControllerManager = &apisgcp.CloudControllerManagerConfig{
+			controlPlane.CloudControllerManager = &apisonmetal.CloudControllerManagerConfig{
 				FeatureGates: map[string]bool{
 					"AnyVolumeDataSource":      true,
 					"CustomResourceValidation": true,

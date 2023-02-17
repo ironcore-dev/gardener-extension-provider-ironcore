@@ -24,7 +24,7 @@ spec:
         - name: coreos
           versions:
           - version: 2135.6.0
-            image: gcpimageid
+            image: registry/image:tag
   seed:
     apiVersion: core.gardener.cloud/v1beta1
     kind: Seed

@@ -15,14 +15,14 @@
 package validation
 
 import (
-	apisgcp "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 
 	featurevalidation "github.com/gardener/gardener/pkg/utils/validation/features"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 // ValidateControlPlaneConfig validates a ControlPlaneConfig object.
-func ValidateControlPlaneConfig(controlPlaneConfig *apisgcp.ControlPlaneConfig, version string, fldPath *field.Path) field.ErrorList {
+func ValidateControlPlaneConfig(controlPlaneConfig *apisonmetal.ControlPlaneConfig, version string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	if controlPlaneConfig.CloudControllerManager != nil {
@@ -33,7 +33,7 @@ func ValidateControlPlaneConfig(controlPlaneConfig *apisgcp.ControlPlaneConfig, 
 }
 
 // ValidateControlPlaneConfigUpdate validates a ControlPlaneConfig object.
-func ValidateControlPlaneConfigUpdate(oldConfig, newConfig *apisgcp.ControlPlaneConfig, fldPath *field.Path) field.ErrorList {
+func ValidateControlPlaneConfigUpdate(oldConfig, newConfig *apisonmetal.ControlPlaneConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	return allErrs
