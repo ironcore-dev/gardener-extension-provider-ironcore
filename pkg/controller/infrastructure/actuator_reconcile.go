@@ -125,6 +125,11 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 			Type: networkingv1alpha1.NATGatewayTypePublic,
 			// TODO: for now we only support IPv4 until Gardener has support for IPv6 based Shoots
 			IPFamilies: []corev1.IPFamily{corev1.IPv4Protocol},
+			IPs: []networkingv1alpha1.NATGatewayIP{
+				{
+					Name: "primary",
+				},
+			},
 			NetworkRef: corev1.LocalObjectReference{
 				Name: network.Name,
 			},
@@ -133,7 +138,7 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 
 	natGateway.Spec.NetworkInterfaceSelector = &metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			onmetal.ClusterNameFieldName: cluster.ObjectMeta.Name,
+			onmetal.ClusterNameLabel: cluster.ObjectMeta.Name,
 		},
 	}
 
