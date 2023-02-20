@@ -14,8 +14,8 @@ require (
 	github.com/onmetal/controller-utils v0.7.0
 	github.com/onmetal/onmetal-api v0.0.13-0.20230209150448-b34e9ebc560c
 	github.com/onmetal/vgopath v0.0.4
-	github.com/onsi/ginkgo/v2 v2.8.1
-	github.com/onsi/gomega v1.26.0
+	github.com/onsi/ginkgo/v2 v2.8.3
+	github.com/onsi/gomega v1.27.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	go.uber.org/zap v1.24.0
@@ -52,6 +52,7 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.1 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -59,6 +60,7 @@ require (
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
+	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -89,7 +91,7 @@ require (
 	go4.org/netipx v0.0.0-20220812043211-3cc044ffd68d // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
