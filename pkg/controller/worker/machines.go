@@ -165,7 +165,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 			machineClassProviderSpec[onmetal.NetworkFieldName] = infrastructureStatus.NetworkRef.Name
 			machineClassProviderSpec[onmetal.PrefixFieldName] = infrastructureStatus.PrefixRef.Name
 			machineClassProviderSpec[onmetal.LabelsFieldName] = map[string]string{
-				onmetal.ClusterNameFieldName: w.cluster.ObjectMeta.Name,
+				onmetal.ClusterNameLabel: w.cluster.ObjectMeta.Name,
 			}
 
 			machineClassProviderSpecJSON, err := json.Marshal(machineClassProviderSpec)

@@ -24,6 +24,7 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
@@ -108,7 +109,7 @@ var _ = Describe("Machines", func() {
 			"networkName": infraStatus.NetworkRef.Name,
 			"prefixName":  infraStatus.PrefixRef.Name,
 			"labels": map[string]interface{}{
-				"cluster-name": cluster.ObjectMeta.Name,
+				onmetal.ClusterNameLabel: cluster.ObjectMeta.Name,
 			},
 		}
 
