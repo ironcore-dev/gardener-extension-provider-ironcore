@@ -33,16 +33,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
 	shootPrefix = "shoot"
-)
-
-var (
-	networkFieldOwner    = client.FieldOwner("extension.gardener.onmetal.de/network")
-	natGatewayFieldOwner = client.FieldOwner("extension.gardener.onmetal.de/natgateway")
-	prefixFieldOwner     = client.FieldOwner("extension.gardener.onmetal.de/prefix")
 )
 
 // Reconcile implements infrastructure.Actuator.
@@ -105,9 +100,10 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(pointer.StringDeref(nodeCIDR, ""))
 	}
 
-	if err := onmetalClient.Patch(ctx, prefix, client.Apply, prefixFieldOwner, client.ForceOwnership); err != nil {
+	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, prefix, nil); err != nil {
 		return nil, fmt.Errorf("failed to apply prefix %s: %w", client.ObjectKeyFromObject(prefix), err)
 	}
+
 	return prefix, nil
 }
 
@@ -142,7 +138,7 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 		},
 	}
 
-	if err := onmetalClient.Patch(ctx, natGateway, client.Apply, natGatewayFieldOwner, client.ForceOwnership); err != nil {
+	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, natGateway, nil); err != nil {
 		return nil, fmt.Errorf("failed to apply natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
 	}
 	return natGateway, nil
@@ -169,7 +165,7 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 		},
 	}
 
-	if err := onmetalClient.Patch(ctx, network, client.Apply, networkFieldOwner, client.ForceOwnership); err != nil {
+	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, network, nil); err != nil {
 		return nil, fmt.Errorf("failed to apply network %s: %w", client.ObjectKeyFromObject(network), err)
 	}
 	return network, nil
