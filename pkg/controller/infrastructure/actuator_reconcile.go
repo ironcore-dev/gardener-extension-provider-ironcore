@@ -105,7 +105,7 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(pointer.StringDeref(nodeCIDR, ""))
 	}
 
-	if err := onmetalClient.Patch(ctx, prefix, client.Apply, prefixFieldOwner); err != nil {
+	if err := onmetalClient.Patch(ctx, prefix, client.Apply, prefixFieldOwner, client.ForceOwnership); err != nil {
 		return nil, fmt.Errorf("failed to apply prefix %s: %w", client.ObjectKeyFromObject(prefix), err)
 	}
 	return prefix, nil
@@ -142,7 +142,7 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 		},
 	}
 
-	if err := onmetalClient.Patch(ctx, natGateway, client.Apply, natGatewayFieldOwner); err != nil {
+	if err := onmetalClient.Patch(ctx, natGateway, client.Apply, natGatewayFieldOwner, client.ForceOwnership); err != nil {
 		return nil, fmt.Errorf("failed to apply natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
 	}
 	return natGateway, nil
@@ -169,7 +169,7 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 		},
 	}
 
-	if err := onmetalClient.Patch(ctx, network, client.Apply, networkFieldOwner); err != nil {
+	if err := onmetalClient.Patch(ctx, network, client.Apply, networkFieldOwner, client.ForceOwnership); err != nil {
 		return nil, fmt.Errorf("failed to apply network %s: %w", client.ObjectKeyFromObject(network), err)
 	}
 	return network, nil
