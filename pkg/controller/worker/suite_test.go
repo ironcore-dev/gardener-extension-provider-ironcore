@@ -191,8 +191,9 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) 
 					Name: "my-os",
 					Versions: []apiv1alpha1.MachineImageVersion{
 						{
-							Version: "1.0",
-							Image:   "registry/my-os",
+							Version:      "1.0",
+							Image:        "registry/my-os",
+							Architecture: pointer.String("amd64"),
 						},
 					},
 				},

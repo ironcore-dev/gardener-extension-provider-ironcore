@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -72,9 +73,10 @@ var _ = Describe("MachinesImages", func() {
 				},
 				MachineImages: []apiv1alpha1.MachineImage{
 					{
-						Name:    "my-os",
-						Version: "1.0",
-						Image:   "registry/my-os",
+						Name:         "my-os",
+						Version:      "1.0",
+						Image:        "registry/my-os",
+						Architecture: pointer.String("amd64"),
 					},
 				},
 			}
