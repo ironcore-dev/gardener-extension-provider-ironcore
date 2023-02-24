@@ -17,14 +17,16 @@ package validation
 import (
 	"fmt"
 
-	"github.com/gardener/gardener/pkg/apis/core"
-	"github.com/gardener/gardener/pkg/apis/core/helper"
+	gardenercore "github.com/gardener/gardener/pkg/apis/core"
+	gardenercorehelper "github.com/gardener/gardener/pkg/apis/core/helper"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/utils/strings/slices"
 )
 
 // ValidateCloudProfileConfig validates a CloudProfileConfig object.
-func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machineImages []core.MachineImage, fldPath *field.Path) field.ErrorList {
+func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machineImages []gardenercore.MachineImage, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 	machineImagesPath := fldPath.Child("machineImages")
 
@@ -32,7 +34,7 @@ func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machin
 		var processed bool
 		for i, imageConfig := range cpConfig.MachineImages {
 			if image.Name == imageConfig.Name {
-				allErrs = append(allErrs, validateVersions(imageConfig.Versions, helper.ToExpirableVersions(image.Versions), machineImagesPath.Index(i).Child("versions"))...)
+				allErrs = append(allErrs, validateVersions(imageConfig.Versions, gardenercorehelper.ToExpirableVersions(image.Versions), machineImagesPath.Index(i).Child("versions"))...)
 				processed = true
 				break
 			}
@@ -45,7 +47,7 @@ func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machin
 	return allErrs
 }
 
-func validateVersions(versionsConfig []apisonmetal.MachineImageVersion, versions []core.ExpirableVersion, fldPath *field.Path) field.ErrorList {
+func validateVersions(versionsConfig []apisonmetal.MachineImageVersion, versions []gardenercore.ExpirableVersion, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	for _, version := range versions {
@@ -55,6 +57,9 @@ func validateVersions(versionsConfig []apisonmetal.MachineImageVersion, versions
 			if version.Version == versionConfig.Version {
 				if len(versionConfig.Image) == 0 {
 					allErrs = append(allErrs, field.Required(jdxPath.Child("image"), "must provide an image"))
+				}
+				if !slices.Contains(v1beta1constants.ValidArchitectures, *versionConfig.Architecture) {
+					allErrs = append(allErrs, field.NotSupported(jdxPath.Child("architecture"), *versionConfig.Architecture, v1beta1constants.ValidArchitectures))
 				}
 				processed = true
 				break

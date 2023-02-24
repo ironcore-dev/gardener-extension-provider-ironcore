@@ -19,14 +19,15 @@ import (
 
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"k8s.io/utils/pointer"
 )
 
 // FindMachineImage takes a list of machine images and tries to find the first entry
 // whose name, version, architecture and zone matches with the given name, version, and zone. If no such entry is
 // found then an error will be returned.
-func FindMachineImage(machineImages []apiv1alpha1.MachineImage, name, version string) (*apiv1alpha1.MachineImage, error) {
+func FindMachineImage(machineImages []apiv1alpha1.MachineImage, name, version string, architecture *string) (*apiv1alpha1.MachineImage, error) {
 	for _, machineImage := range machineImages {
-		if machineImage.Name == name && machineImage.Version == version {
+		if machineImage.Name == name && machineImage.Version == version && pointer.StringEqual(architecture, machineImage.Architecture) {
 			return &machineImage, nil
 		}
 	}
@@ -36,14 +37,14 @@ func FindMachineImage(machineImages []apiv1alpha1.MachineImage, name, version st
 // FindImageFromCloudProfile takes a list of machine images, and the desired image name and version. It tries
 // to find the image with the given name, architecture and version in the desired cloud profile. If it cannot be found then an error
 // is returned.
-func FindImageFromCloudProfile(cloudProfileConfig *api.CloudProfileConfig, imageName, imageVersion string) (string, error) {
+func FindImageFromCloudProfile(cloudProfileConfig *api.CloudProfileConfig, imageName, imageVersion string, architecture *string) (string, error) {
 	if cloudProfileConfig != nil {
 		for _, machineImage := range cloudProfileConfig.MachineImages {
 			if machineImage.Name != imageName {
 				continue
 			}
 			for _, version := range machineImage.Versions {
-				if imageVersion == version.Version {
+				if imageVersion == version.Version && pointer.StringEqual(architecture, version.Architecture) {
 					return version.Image, nil
 				}
 			}

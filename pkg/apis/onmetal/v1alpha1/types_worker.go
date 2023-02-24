@@ -41,4 +41,7 @@ type MachineImage struct {
 	Version string `json:"version"`
 	// Image is the path to the image.
 	Image string `json:"image"`
+	// Architecture is the CPU architecture of the machine image.
+	// +optional
+	Architecture *string `json:"architecture,omitempty"`
 }

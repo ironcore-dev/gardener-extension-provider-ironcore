@@ -249,6 +249,7 @@ func autoConvert_v1alpha1_MachineImage_To_onmetal_MachineImage(in *MachineImage,
 	out.Name = in.Name
 	out.Version = in.Version
 	out.Image = in.Image
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -261,6 +262,7 @@ func autoConvert_onmetal_MachineImage_To_v1alpha1_MachineImage(in *onmetal.Machi
 	out.Name = in.Name
 	out.Version = in.Version
 	out.Image = in.Image
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -272,6 +274,7 @@ func Convert_onmetal_MachineImage_To_v1alpha1_MachineImage(in *onmetal.MachineIm
 func autoConvert_v1alpha1_MachineImageVersion_To_onmetal_MachineImageVersion(in *MachineImageVersion, out *onmetal.MachineImageVersion, s conversion.Scope) error {
 	out.Version = in.Version
 	out.Image = in.Image
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -283,6 +286,7 @@ func Convert_v1alpha1_MachineImageVersion_To_onmetal_MachineImageVersion(in *Mac
 func autoConvert_onmetal_MachineImageVersion_To_v1alpha1_MachineImageVersion(in *onmetal.MachineImageVersion, out *MachineImageVersion, s conversion.Scope) error {
 	out.Version = in.Version
 	out.Image = in.Image
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
