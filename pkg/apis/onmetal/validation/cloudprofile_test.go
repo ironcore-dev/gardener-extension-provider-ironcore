@@ -50,6 +50,17 @@ var _ = Describe("CloudProfileConfig validation", func() {
 						},
 					},
 				},
+				StorageClasses: []apisonmetal.StorageClassDefinition{
+					{
+						Name:    "foo",
+						Default: pointer.Bool(true),
+						Type:    "fooType",
+					},
+					{
+						Name: "bar",
+						Type: "barType",
+					},
+				},
 			}
 			machineImages = []core.MachineImage{
 				{
@@ -63,10 +74,9 @@ var _ = Describe("CloudProfileConfig validation", func() {
 			}
 		})
 
-		Context("machine image validation", func() {
+		Describe("machine image validation", func() {
 			It("should pass validation", func() {
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
-
 				Expect(errorList).To(BeEmpty())
 			})
 
@@ -76,7 +86,6 @@ var _ = Describe("CloudProfileConfig validation", func() {
 					Versions: nil,
 				})
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
-
 				Expect(errorList).To(BeEmpty())
 			})
 
@@ -92,7 +101,6 @@ var _ = Describe("CloudProfileConfig validation", func() {
 					},
 				})
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
-
 				Expect(errorList).To(ConsistOf(
 					PointTo(MatchFields(IgnoreExtras, Fields{
 						"Type":  Equal(field.ErrorTypeRequired),
@@ -119,6 +127,20 @@ var _ = Describe("CloudProfileConfig validation", func() {
 					PointTo(MatchFields(IgnoreExtras, Fields{
 						"Type":  Equal(field.ErrorTypeNotSupported),
 						"Field": Equal("machineImages[0].versions[0].architecture"),
+					})),
+				))
+			})
+		})
+
+		Describe("should validate storage classes", func() {
+			It("should forbid more than one default storage class", func() {
+				cloudProfileConfig.StorageClasses[1].Default = pointer.Bool(true)
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
+
+				Expect(errorList).To(ConsistOf(
+					PointTo(MatchFields(IgnoreExtras, Fields{
+						"Type":  Equal(field.ErrorTypeInvalid),
+						"Field": Equal("storageClasses[1].default"),
 					})),
 				))
 			})

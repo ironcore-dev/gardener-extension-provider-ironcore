@@ -289,10 +289,34 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 // GetStorageClassesChartValues returns the values for the storage classes chart applied by the generic actuator.
 func (vp *valuesProvider) GetStorageClassesChartValues(
 	_ context.Context,
-	_ *extensionsv1alpha1.ControlPlane,
+	controlPlane *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	return map[string]interface{}{}, nil
+	providerConfig := apisonmetal.CloudProfileConfig{}
+	if config := cluster.CloudProfile.Spec.ProviderConfig; config != nil {
+		if _, _, err := vp.Decoder().Decode(config.Raw, nil, &providerConfig); err != nil {
+			return nil, fmt.Errorf("could not decode cloudprofile providerConfig for controlplane '%s': %w", kutil.ObjectName(controlPlane), err)
+		}
+	}
+	values := make(map[string]interface{})
+	if providerConfig.StorageClasses != nil && len(providerConfig.StorageClasses) != 0 {
+		allSc := make([]map[string]interface{}, len(providerConfig.StorageClasses))
+		for i, sc := range providerConfig.StorageClasses {
+			var storageClassValues = map[string]interface{}{
+				"name": sc.Name,
+				"type": sc.Type,
+			}
+
+			if sc.Default != nil && *sc.Default {
+				storageClassValues["default"] = true
+			}
+
+			allSc[i] = storageClassValues
+		}
+		values["storageClasses"] = allSc
+	}
+
+	return values, nil
 }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
