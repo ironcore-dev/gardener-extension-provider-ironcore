@@ -22,6 +22,7 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/utils/pointer"
 	"k8s.io/utils/strings/slices"
 )
 
@@ -41,6 +42,17 @@ func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machin
 		}
 		if !processed && len(image.Versions) > 0 {
 			allErrs = append(allErrs, field.Required(machineImagesPath, fmt.Sprintf("must provide an image mapping for image %q", image.Name)))
+		}
+	}
+
+	var foundDefaultStorageClass bool
+	for _, sc := range cpConfig.StorageClasses {
+		if pointer.BoolDeref(sc.Default, false) && !foundDefaultStorageClass {
+			foundDefaultStorageClass = true
+			continue
+		}
+		if pointer.BoolDeref(sc.Default, false) && foundDefaultStorageClass {
+			allErrs = append(allErrs, field.Invalid(fldPath.Child("storageClasses").Index(1).Child("default"), sc.Default, "only one default storage class is allowed"))
 		}
 	}
 

@@ -23,6 +23,7 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -82,6 +83,7 @@ var _ = BeforeSuite(func() {
 	Expect(cfg).NotTo(BeNil())
 
 	Expect(extensionsv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(onmetalextensionv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(corev1.AddToScheme(scheme.Scheme)).To(Succeed())
 
 	// Init package-level k8sClient
@@ -98,13 +100,12 @@ var _ = AfterSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider) {
+func SetupTest(ctx context.Context) (*corev1.Namespace, *valuesProvider) {
 	var (
-		cancel     context.CancelFunc
-		namespace  = &corev1.Namespace{}
-		cluster    = &extensionsv1alpha1.Cluster{}
-		kubeconfig = &[]byte{}
-		vp         = &valuesProvider{}
+		cancel    context.CancelFunc
+		namespace = &corev1.Namespace{}
+		cluster   = &extensionsv1alpha1.Cluster{}
+		vp        = &valuesProvider{}
 	)
 
 	BeforeEach(func() {
@@ -161,15 +162,6 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		user, err := testEnv.AddUser(envtest.User{
-			Name:   "dummy",
-			Groups: []string{"system:authenticated", "system:masters"},
-		}, cfg)
-		Expect(err).NotTo(HaveOccurred())
-
-		*kubeconfig, err = user.KubeConfig()
-		Expect(err).NotTo(HaveOccurred())
-
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespace.Name,
@@ -186,13 +178,14 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 			IgnoreOperationAnnotation: true,
 		})).NotTo(HaveOccurred())
 
+		*vp = valuesProvider{}
+		Expect(vp.InjectScheme(scheme.Scheme)).NotTo(HaveOccurred())
+		Expect(vp.InjectClient(k8sClient)).NotTo(HaveOccurred())
+
 		go func() {
 			defer GinkgoRecover()
 			Expect(mgr.Start(mgrCtx)).To(Succeed(), "failed to start manager")
 		}()
-
-		vp = NewValuesProvider().(*valuesProvider)
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -201,5 +194,5 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *[]byte, *valuesProvider
 		Expect(k8sClient.Delete(ctx, cluster)).To(Succeed(), "failed to delete cluster")
 	})
 
-	return namespace, kubeconfig, vp
+	return namespace, vp
 }

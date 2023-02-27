@@ -1,2 +1,7 @@
-useLegacyProvisioner: true
-volumeClassName: fast
+# storageClasses:
+#  - name: default
+#    type: general-purpose
+#    default: true
+#  - name: default-sample
+#    type: sample
+#    default: false

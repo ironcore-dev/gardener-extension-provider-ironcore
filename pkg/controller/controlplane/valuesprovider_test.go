@@ -18,6 +18,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gardener/gardener/extensions/pkg/controller"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
@@ -31,18 +34,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/utils/pointer"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
 	ctx := testutils.SetupContext()
-	ns, _, _ := SetupTest(ctx)
-
-	var (
-	//fakeClient         client.Client
-	//fakeSecretsManager = fakesecretsmanager.New(fakeClient, ns.Name)
-	//enabledTrue        = map[string]interface{}{"enabled": true}
-	)
+	ns, vp := SetupTest(ctx)
 
 	BeforeEach(func() {
 		curDir, err := os.Getwd()
@@ -86,7 +84,6 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					},
 				},
 			}
-
 			Expect(k8sClient.Create(ctx, cp)).To(Succeed())
 
 			By("ensuring that the provider secret has been created")
@@ -98,121 +95,84 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 			Eventually(Get(config)).Should(Succeed())
 			Expect(config.Data).To(HaveKey("cloudprovider.conf"))
-			c := map[string]interface{}{}
-			Expect(yaml.Unmarshal([]byte(config.Data["cloudprovider.conf"]), &c)).NotTo(HaveOccurred())
-			Expect(c["networkName"]).To(Equal("my-network"))
+			cloudProviderConfig := map[string]interface{}{}
+			Expect(yaml.Unmarshal([]byte(config.Data["cloudprovider.conf"]), &cloudProviderConfig)).NotTo(HaveOccurred())
+			Expect(cloudProviderConfig["networkName"]).To(Equal("my-network"))
 		})
 	})
 
-	//Describe("#GetControlPlaneShootChartValues", func() {
-	//	cp := &extensionsv1alpha1.ControlPlane{}
-	//
-	//	It("should return correct control plane shoot chart values when PodSecurityPolicy admission plugin is not disabled in the shoot", func() {
-	//
-	//		cluster := &extensionscontroller.Cluster{
-	//			Shoot: &gardencorev1beta1.Shoot{
-	//				Spec: gardencorev1beta1.ShootSpec{
-	//					Kubernetes: gardencorev1beta1.Kubernetes{
-	//						Version: "1.24.0",
-	//						VerticalPodAutoscaler: &gardencorev1beta1.VerticalPodAutoscaler{
-	//							Enabled: true,
-	//						},
-	//						KubeAPIServer: &gardencorev1beta1.KubeAPIServerConfig{
-	//							AdmissionPlugins: []gardencorev1beta1.AdmissionPlugin{
-	//								{
-	//									Name: "PodSecurityPolicy",
-	//								},
-	//							},
-	//						},
-	//					},
-	//				},
-	//			},
-	//		}
-	//
-	//		values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
-	//		Expect(err).NotTo(HaveOccurred())
-	//		Expect(values).To(Equal(map[string]interface{}{
-	//			onmetal.CloudControllerManagerName: enabledTrue,
-	//			onmetal.CSINodeName: utils.MergeMaps(enabledTrue, map[string]interface{}{
-	//				"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-	//				"vpaEnabled":        true,
-	//				"pspDisabled":       false,
-	//			}),
-	//		}))
-	//	})
-	//
-	//	It("should return correct control plane shoot chart values when PodSecurityPolicy admission plugin is disabled in the shoot", func() {
-	//
-	//		cluster := &extensionscontroller.Cluster{
-	//			Shoot: &gardencorev1beta1.Shoot{
-	//				Spec: gardencorev1beta1.ShootSpec{
-	//					Kubernetes: gardencorev1beta1.Kubernetes{
-	//						Version: "1.24.0",
-	//						VerticalPodAutoscaler: &gardencorev1beta1.VerticalPodAutoscaler{
-	//							Enabled: true,
-	//						},
-	//						KubeAPIServer: &gardencorev1beta1.KubeAPIServerConfig{
-	//							AdmissionPlugins: []gardencorev1beta1.AdmissionPlugin{
-	//								{
-	//									Name:     "PodSecurityPolicy",
-	//									Disabled: pointer.Bool(true),
-	//								},
-	//							},
-	//						},
-	//					},
-	//				},
-	//			},
-	//		}
-	//
-	//		values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
-	//		Expect(err).NotTo(HaveOccurred())
-	//		Expect(values).To(Equal(map[string]interface{}{
-	//			onmetal.CloudControllerManagerName: enabledTrue,
-	//			onmetal.CSINodeName: utils.MergeMaps(enabledTrue, map[string]interface{}{
-	//				"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-	//				"vpaEnabled":        true,
-	//				"pspDisabled":       true,
-	//			}),
-	//		}))
-	//	})
-	//
-	//	It("should return correct control plane shoot chart values when VerticalPodAutoscaler and PodSecurityPolicy admission plugin are disabled in the shoot", func() {
-	//
-	//		cluster := &extensionscontroller.Cluster{
-	//			Shoot: &gardencorev1beta1.Shoot{
-	//				Spec: gardencorev1beta1.ShootSpec{
-	//					Kubernetes: gardencorev1beta1.Kubernetes{
-	//						Version: "1.24.0",
-	//						VerticalPodAutoscaler: &gardencorev1beta1.VerticalPodAutoscaler{
-	//							Enabled: false,
-	//						},
-	//						KubeAPIServer: &gardencorev1beta1.KubeAPIServerConfig{
-	//							AdmissionPlugins: []gardencorev1beta1.AdmissionPlugin{
-	//								{
-	//									Name: "PodSecurityPolicy",
-	//								},
-	//							},
-	//						},
-	//					},
-	//				},
-	//			},
-	//		}
-	//
-	//		values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, map[string]string{})
-	//		Expect(err).NotTo(HaveOccurred())
-	//		Expect(values).To(Equal(map[string]interface{}{
-	//			onmetal.CloudControllerManagerName: enabledTrue,
-	//			onmetal.CSINodeName: utils.MergeMaps(enabledTrue, map[string]interface{}{
-	//				"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-	//				"vpaEnabled":        false,
-	//				"pspDisabled":       false,
-	//			}),
-	//		}))
-	//	})
-	//})
+	Describe("GetStorageClassesChartValues", func() {
+		It("should return correct config chart values", func() {
+			providerCloudProfile := &apisonmetal.CloudProfileConfig{
+				StorageClasses: []apisonmetal.StorageClassDefinition{
+					{
+						Name:    "foo",
+						Type:    "volumeTypeFoo",
+						Default: pointer.Bool(true),
+					},
+					{
+						Name: "bar",
+						Type: "volumeTypeBar",
+					},
+				},
+			}
+			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
+			Expect(err).NotTo(HaveOccurred())
+
+			cluster := &controller.Cluster{
+				CloudProfile: &gardencorev1beta1.CloudProfile{
+					Spec: gardencorev1beta1.CloudProfileSpec{
+						ProviderConfig: &runtime.RawExtension{
+							Raw: providerCloudProfileJson,
+						},
+					},
+				},
+			}
+
+			values, err := vp.GetStorageClassesChartValues(ctx, controlPlane(ns.Name), cluster)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(values).To(Equal(map[string]interface{}{
+				"storageClasses": []map[string]interface{}{
+					{
+						"name":    "foo",
+						"type":    "volumeTypeFoo",
+						"default": true,
+					},
+					{
+						"name": "bar",
+						"type": "volumeTypeBar",
+					},
+				},
+			}))
+		})
+	})
 })
 
 func encode(obj runtime.Object) []byte {
 	data, _ := json.Marshal(obj)
 	return data
+}
+
+func controlPlane(namespace string) *extensionsv1alpha1.ControlPlane {
+	return &extensionsv1alpha1.ControlPlane{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "control-plane",
+			Namespace: namespace,
+		},
+		Spec: extensionsv1alpha1.ControlPlaneSpec{
+			SecretRef: corev1.SecretReference{
+				Name:      v1beta1constants.SecretNameCloudProvider,
+				Namespace: namespace,
+			},
+			DefaultSpec: extensionsv1alpha1.DefaultSpec{
+				ProviderConfig: &runtime.RawExtension{
+					Raw: []byte("{}"),
+				},
+			},
+			Region: "foo",
+			InfrastructureProviderStatus: &runtime.RawExtension{
+				Raw: []byte("{}"),
+			},
+		},
+	}
 }

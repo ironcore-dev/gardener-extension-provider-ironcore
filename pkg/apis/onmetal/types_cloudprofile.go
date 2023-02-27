@@ -30,6 +30,18 @@ type CloudProfileConfig struct {
 	MachineImages []MachineImages
 	// RegionConfigs is the list of supported regions.
 	RegionConfigs []RegionConfig
+	// StorageClasses defines the storage classes for the shoot
+	StorageClasses []StorageClassDefinition
+}
+
+// StorageClassDefinition is a definition of a storageClass
+type StorageClassDefinition struct {
+	// Name is the name of the storageclass
+	Name string
+	// Default set the storageclass to the default one
+	Default *bool
+	// Type is referring to the VolumeClass to use for this StorageClass
+	Type string
 }
 
 // MachineImages is a mapping from logical names and versions to provider-specific identifiers.
