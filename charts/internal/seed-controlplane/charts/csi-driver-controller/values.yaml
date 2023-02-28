@@ -1,0 +1,69 @@
+replicas: 1
+podAnnotations: {}
+
+images:
+  csi-driver: image-repository:image-tag
+  csi-provisioner: image-repository:image-tag
+  csi-attacher: image-repository:image-tag
+  csi-snapshotter: image-repository:image-tag
+  csi-resizer: image-repository:image-tag
+  csi-liveness-probe: image-repository:image-tag
+
+socketPath: /var/lib/csi/sockets/pluginproxy
+projectID: foo
+zone: bar
+
+resources:
+  driver:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 210Mi
+  provisioner:
+    requests:
+      cpu: 11m
+      memory: 32Mi
+    limits:
+      memory: 200Mi
+  attacher:
+    requests:
+      cpu: 10m
+      memory: 50Mi
+    limits:
+      memory: 210Mi
+  resizer:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 200Mi
+  livenessProbe:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 110Mi
+
+vpa:
+  resourcePolicy:
+    driver:
+      maxAllowed:
+        cpu: 800m
+        memory: 4G
+    provisioner:
+      maxAllowed:
+        cpu: 800m
+        memory: 4G
+    attacher:
+      maxAllowed:
+        cpu: 500m
+        memory: 4G
+    resizer:
+      maxAllowed:
+        cpu: 700m
+        memory: 3G
+    livenessProbe:
+      maxAllowed:
+        cpu: 500m
+        memory: 2G

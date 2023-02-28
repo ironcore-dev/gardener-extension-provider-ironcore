@@ -74,6 +74,8 @@ const (
 	// ClusterNameLabel is the name is the label key of the cluster name
 	ClusterNameLabel = "extension.api.onmetal.de/cluster-name"
 
+	// CloudProviderConfigName is the name of the secret containing the cloud provider config.
+	CloudProviderConfigName = "cloud-provider-config"
 	// CloudControllerManagerName is a constant for the name of the CloudController deployed by the worker controller.
 	CloudControllerManagerName = "cloud-controller-manager"
 	// CSIControllerName is a constant for the name of the CSI controller deployment in the seed.
