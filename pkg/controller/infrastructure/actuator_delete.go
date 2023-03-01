@@ -37,15 +37,15 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extension
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
-	if err := a.deletePrefix(ctx, onmetalClient, namespace, cluster); err != nil {
+	if err := a.deletePrefix(ctx, onmetalClient, namespace, cluster); client.IgnoreNotFound(err) != nil {
 		return fmt.Errorf("failed to delete infrastructure: %w", err)
 	}
 
-	if err := a.deleteNATGateway(ctx, onmetalClient, namespace, cluster); err != nil {
+	if err := a.deleteNATGateway(ctx, onmetalClient, namespace, cluster); client.IgnoreNotFound(err) != nil {
 		return fmt.Errorf("failed to delete infrastructure: %w", err)
 	}
 
-	if err := a.deleteNetwork(ctx, onmetalClient, namespace, cluster); err != nil {
+	if err := a.deleteNetwork(ctx, onmetalClient, namespace, cluster); client.IgnoreNotFound(err) != nil {
 		return fmt.Errorf("failed to delete infrastructure: %w", err)
 	}
 
