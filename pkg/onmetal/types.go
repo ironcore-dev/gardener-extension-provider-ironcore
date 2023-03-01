@@ -32,18 +32,12 @@ const (
 	CSIProvisionerImageName = "csi-provisioner"
 	// CSIAttacherImageName is the name of the csi-attacher image.
 	CSIAttacherImageName = "csi-attacher"
-	// CSISnapshotterImageName is the name of the csi-snapshotter image.
-	CSISnapshotterImageName = "csi-snapshotter"
 	// CSIResizerImageName is the name of the csi-resizer image.
 	CSIResizerImageName = "csi-resizer"
-	// CSISnapshotControllerImageName is the name of the csi-snapshot-controller image.
-	CSISnapshotControllerImageName = "csi-snapshot-controller"
 	// CSINodeDriverRegistrarImageName is the name of the csi-node-driver-registrar image.
 	CSINodeDriverRegistrarImageName = "csi-node-driver-registrar"
 	// CSILivenessProbeImageName is the name of the csi-liveness-probe image.
 	CSILivenessProbeImageName = "csi-liveness-probe"
-	// CSISnapshotValidationWebhookImageName is the name of the csi-snapshot-validation-webhook image.
-	CSISnapshotValidationWebhookImageName = "csi-snapshot-validation-webhook"
 	// MachineControllerManagerImageName is the name of the MachineControllerManager image.
 	MachineControllerManagerImageName = "machine-controller-manager"
 	// MachineControllerManagerProviderOnmetalImageName is the name of the MachineController onmetal image.
@@ -94,18 +88,12 @@ const (
 	CSIProvisionerName = "csi-provisioner"
 	// CSIAttacherName is a constant for the name of the csi-attacher component.
 	CSIAttacherName = "csi-attacher"
-	// CSISnapshotterName is a constant for the name of the csi-snapshotter component.
-	CSISnapshotterName = "csi-snapshotter"
 	// CSIResizerName is a constant for the name of the csi-resizer component.
 	CSIResizerName = "csi-resizer"
-	// CSISnapshotControllerName is a constant for the name of the csi-snapshot-controller component.
-	CSISnapshotControllerName = "csi-snapshot-controller"
 	// CSINodeDriverRegistrarName is a constant for the name of the csi-node-driver-registrar component.
 	CSINodeDriverRegistrarName = "csi-node-driver-registrar"
 	// CSILivenessProbeName is a constant for the name of the csi-liveness-probe component.
 	CSILivenessProbeName = "csi-liveness-probe"
-	// CSISnapshotValidation is the constant for the name of the csi-snapshot-validation-webhook component.
-	CSISnapshotValidation = "csi-snapshot-validation"
 	// CSIStorageProvisioner is a constant with the storage provisioner name which is used in storageclasses.
 	CSIStorageProvisioner = "onmetal-csi-driver"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
