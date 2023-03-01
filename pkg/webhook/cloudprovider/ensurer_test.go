@@ -93,6 +93,7 @@ var _ = Describe("Ensurer", func() {
 			secret                 *corev1.Secret
 			secretWithoutToken     *corev1.Secret
 			secretWithoutNamespace *corev1.Secret
+			secretWithoutUsername  *corev1.Secret
 			ensurer                cloudprovider.Ensurer
 		)
 
@@ -108,6 +109,7 @@ var _ = Describe("Ensurer", func() {
 				Data: map[string][]byte{
 					"namespace": []byte("foo"),
 					"token":     []byte("bar"),
+					"username":  []byte("admin"),
 				},
 			}
 
@@ -117,7 +119,8 @@ var _ = Describe("Ensurer", func() {
 					Name:      "cloudprovider",
 				},
 				Data: map[string][]byte{
-					"token": []byte("bar"),
+					"token":    []byte("bar"),
+					"username": []byte("admin"),
 				},
 			}
 
@@ -128,6 +131,18 @@ var _ = Describe("Ensurer", func() {
 				},
 				Data: map[string][]byte{
 					"namespace": []byte("foo"),
+					"username":  []byte("admin"),
+				},
+			}
+
+			secretWithoutUsername = &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: namespace,
+					Name:      "cloudprovider",
+				},
+				Data: map[string][]byte{
+					"namespace": []byte("foo"),
+					"token":     []byte("bar"),
 				},
 			}
 
@@ -145,7 +160,7 @@ var _ = Describe("Ensurer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config.Clusters[config.CurrentContext].Server).To(Equal("https://localhost"))
 			Expect(config.Clusters[config.CurrentContext].CertificateAuthorityData).To(Equal([]byte("abcd1234")))
-			Expect(config.AuthInfos[config.CurrentContext].Token).To(Equal("bar"))
+			Expect(config.AuthInfos["admin"].Token).To(Equal("bar"))
 		})
 
 		It("should fail if the cloudprovider secret has no token", func() {
@@ -155,6 +170,11 @@ var _ = Describe("Ensurer", func() {
 
 		It("should fail if the cloudprovider secret has no namespace", func() {
 			err := ensurer.EnsureCloudProviderSecret(ctx, eContextK8s, secretWithoutNamespace, nil)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should fail if the cloudprovider secret has no username", func() {
+			err := ensurer.EnsureCloudProviderSecret(ctx, eContextK8s, secretWithoutUsername, nil)
 			Expect(err).To(HaveOccurred())
 		})
 	})

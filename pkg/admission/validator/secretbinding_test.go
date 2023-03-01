@@ -22,7 +22,6 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission/validator"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 
@@ -104,8 +103,9 @@ var _ = Describe("SecretBinding validator", func() {
 			apiReader.EXPECT().Get(context.TODO(), client.ObjectKey{Namespace: namespace, Name: name}, gomock.AssignableToTypeOf(&corev1.Secret{})).
 				DoAndReturn(func(_ context.Context, _ client.ObjectKey, obj *corev1.Secret, _ ...client.GetOption) error {
 					secret := &corev1.Secret{Data: map[string][]byte{
-						onmetal.NamespaceFieldName: []byte("default"),
-						onmetal.TokenFieldName:     []byte("abcd"),
+						"namespace": []byte("default"),
+						"token":     []byte("abcd"),
+						"username":  []byte("admin"),
 					}}
 					*obj = *secret
 					return nil

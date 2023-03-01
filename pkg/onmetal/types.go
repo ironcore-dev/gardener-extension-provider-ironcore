@@ -49,6 +49,8 @@ const (
 	// MachineControllerManagerProviderOnmetalImageName is the name of the MachineController onmetal image.
 	MachineControllerManagerProviderOnmetalImageName = "machine-controller-manager-provider-onmetal"
 
+	// UsernameFieldName is the field in a secret where the namespace is stored at.
+	UsernameFieldName = "username"
 	// NamespaceFieldName is the field in a secret where the namespace is stored at.
 	NamespaceFieldName = "namespace"
 	// KubeConfigFieldName is containing the effective kubeconfig to access an onmetal cluster.
