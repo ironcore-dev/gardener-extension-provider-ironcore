@@ -109,7 +109,7 @@ var (
 			{
 				Name: onmetal.CSIControllerName,
 				Images: []string{
-					onmetal.CSIDriverOnmetalImageName,
+					onmetal.CSIDriverImageName,
 					onmetal.CSIProvisionerImageName,
 					onmetal.CSIAttacherImageName,
 					onmetal.CSIResizerImageName,
@@ -142,7 +142,7 @@ var (
 			{
 				Name: onmetal.CSINodeName,
 				Images: []string{
-					onmetal.CSIDriverOnmetalImageName,
+					onmetal.CSIDriverImageName,
 					onmetal.CSINodeDriverRegistrarImageName,
 					onmetal.CSILivenessProbeImageName,
 				},

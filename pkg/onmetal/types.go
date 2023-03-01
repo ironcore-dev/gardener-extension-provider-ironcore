@@ -26,8 +26,8 @@ const (
 
 	// CloudControllerManagerImageName is the name of the cloud-controller-manager image.
 	CloudControllerManagerImageName = "cloud-controller-manager"
-	// CSIDriverOnmetalImageName is the name of the csi-driver image.
-	CSIDriverOnmetalImageName = "csi-driver-onmetal"
+	// CSIDriverImageName is the name of the csi-driver image.
+	CSIDriverImageName = "csi-driver"
 	// CSIProvisionerImageName is the name of the csi-provisioner image.
 	CSIProvisionerImageName = "csi-provisioner"
 	// CSIAttacherImageName is the name of the csi-attacher image.
