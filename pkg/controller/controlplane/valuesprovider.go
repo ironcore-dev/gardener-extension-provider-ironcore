@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/Masterminds/semver"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
@@ -25,6 +26,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	gutil "github.com/gardener/gardener/pkg/utils/gardener"
@@ -37,7 +39,9 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 )
 
@@ -117,33 +121,27 @@ var (
 					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: "cloud-controller-manager-vpa"},
 				},
 			},
-			//{
-			//	Name: onmetal.CSIControllerName,
-			//	Images: []string{
-			//		onmetal.CSIDriverOnmetalImageName,
-			//		onmetal.CSIProvisionerImageName,
-			//		onmetal.CSIAttacherImageName,
-			//		onmetal.CSISnapshotterImageName,
-			//		onmetal.CSIResizerImageName,
-			//		onmetal.CSILivenessProbeImageName,
-			//		onmetal.CSISnapshotControllerImageName,
-			//		onmetal.CSISnapshotValidationWebhookImageName,
-			//	},
-			//	Objects: []*chart.Object{
-			//		// csi-driver-controller
-			//		{Type: &appsv1.Deployment{}, Name: onmetal.CSIControllerName},
-			//		{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerConfigName},
-			//		{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerObservabilityConfigName},
-			//		{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSIControllerName + "-vpa"},
-			//		// csi-snapshot-controller
-			//		{Type: &appsv1.Deployment{}, Name: onmetal.CSISnapshotControllerName},
-			//		{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSISnapshotControllerName + "-vpa"},
-			//		// csi-snapshot-validation-webhook
-			//		{Type: &appsv1.Deployment{}, Name: onmetal.CSISnapshotValidation},
-			//		{Type: &corev1.Service{}, Name: onmetal.CSISnapshotValidation},
-			//		{Type: &networkingv1.NetworkPolicy{}, Name: "allow-kube-apiserver-to-csi-snapshot-validation"},
-			//	},
-			//},
+			{
+				Name: onmetal.CSIControllerName,
+				Images: []string{
+					onmetal.CSIDriverOnmetalImageName,
+					onmetal.CSIProvisionerImageName,
+					onmetal.CSIAttacherImageName,
+					onmetal.CSISnapshotterImageName,
+					onmetal.CSIResizerImageName,
+					onmetal.CSILivenessProbeImageName,
+				},
+				Objects: []*chart.Object{
+					// csi-driver-controller
+					{Type: &appsv1.Deployment{}, Name: onmetal.CSIControllerName},
+					{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerConfigName},
+					{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerObservabilityConfigName},
+					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSIControllerName + "-vpa"},
+					// csi-snapshot-controller
+					{Type: &appsv1.Deployment{}, Name: onmetal.CSISnapshotControllerName},
+					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSISnapshotControllerName + "-vpa"},
+				},
+			},
 		},
 	}
 
@@ -161,49 +159,39 @@ var (
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: "onmetal:cloud-provider"},
 				},
 			},
-			//{
-			//	Name: onmetal.CSINodeName,
-			//	Images: []string{
-			//		onmetal.CSIDriverOnmetalImageName,
-			//		onmetal.CSINodeDriverRegistrarImageName,
-			//		onmetal.CSILivenessProbeImageName,
-			//	},
-			//	Objects: []*chart.Object{
-			//		// csi-driver
-			//		{Type: &appsv1.DaemonSet{}, Name: onmetal.CSINodeName},
-			//		{Type: &storagev1.CSIDriver{}, Name: onmetal.CSIStorageProvisioner},
-			//		{Type: &corev1.ServiceAccount{}, Name: onmetal.CSIDriverName},
-			//		{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIDriverName},
-			//		{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIDriverName},
-			//		{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(onmetal.UsernamePrefix+onmetal.CSIDriverName, ":", ".", -1)},
-			//		{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: onmetal.CSINodeName},
-			//		// csi-provisioner
-			//		{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
-			//		{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
-			//		{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
-			//		{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
-			//		// csi-attacher
-			//		{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-			//		{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-			//		{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-			//		{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-			//		// csi-snapshot-controller
-			//		{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotControllerName},
-			//		{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotControllerName},
-			//		{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotControllerName},
-			//		{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotControllerName},
-			//		// csi-snapshotter
-			//		{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotterName},
-			//		{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotterName},
-			//		{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotterName},
-			//		{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSISnapshotterName},
-			//		// csi-resizer
-			//		{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-			//		{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-			//		{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-			//		{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-			//	},
-			//},
+			{
+				Name: onmetal.CSINodeName,
+				Images: []string{
+					onmetal.CSIDriverOnmetalImageName,
+					onmetal.CSINodeDriverRegistrarImageName,
+					onmetal.CSILivenessProbeImageName,
+				},
+				Objects: []*chart.Object{
+					// csi-driver
+					{Type: &appsv1.DaemonSet{}, Name: onmetal.CSINodeName},
+					{Type: &storagev1.CSIDriver{}, Name: onmetal.CSIStorageProvisioner},
+					{Type: &corev1.ServiceAccount{}, Name: onmetal.CSIDriverName},
+					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIDriverName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIDriverName},
+					{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(onmetal.UsernamePrefix+onmetal.CSIDriverName, ":", ".", -1)},
+					{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: onmetal.CSINodeName},
+					// csi-provisioner
+					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
+					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
+					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
+					// csi-attacher
+					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
+					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
+					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
+					// csi-resizer
+					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+				},
+			},
 		},
 	}
 
@@ -281,7 +269,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ context.Context,
 	_ *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
+	_ *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{}, nil
 }
@@ -336,17 +324,17 @@ func getControlPlaneChartValues(
 		return nil, err
 	}
 
-	//csi, err := getCSIControllerChartValues(cpConfig, cp, cluster, secretsReader, checksums, scaledDown)
-	//if err != nil {
-	//	return nil, err
-	//}
+	csi, err := getCSIControllerChartValues(cpConfig, cp, cluster, secretsReader, checksums, scaledDown)
+	if err != nil {
+		return nil, err
+	}
 
 	return map[string]interface{}{
 		"global": map[string]interface{}{
 			"genericTokenKubeconfigSecretName": extensionscontroller.GenericTokenKubeconfigSecretNameFromCluster(cluster),
 		},
 		onmetal.CloudControllerManagerName: ccm,
-		//onmetal.CSIControllerName:          csi,
+		onmetal.CSIControllerName:          csi,
 	}, nil
 }
 
@@ -393,51 +381,37 @@ func getCCMChartValues(
 	return values, nil
 }
 
-//// getCSIControllerChartValues collects and returns the CSIController chart values.
-//func getCSIControllerChartValues(
-//	cpConfig *apisonmetal.ControlPlaneConfig,
-//	_ *extensionsv1alpha1.ControlPlane,
-//	cluster *extensionscontroller.Cluster,
-//	secretsReader secretsmanager.Reader,
-//	checksums map[string]string,
-//	scaledDown bool,
-//) (map[string]interface{}, error) {
-//	serverSecret, found := secretsReader.Get(csiSnapshotValidationServerName)
-//	if !found {
-//		return nil, fmt.Errorf("secret %q not found", csiSnapshotValidationServerName)
-//	}
-//
-//	return map[string]interface{}{
-//		"enabled":  true,
-//		"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-//		"podAnnotations": map[string]interface{}{
-//			"checksum/secret-" + internal.CloudProviderSecretName: checksums[internal.CloudProviderSecretName],
-//		},
-//		"csiSnapshotController": map[string]interface{}{
-//			"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-//		},
-//		"csiSnapshotValidationWebhook": map[string]interface{}{
-//			"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-//			"secrets": map[string]interface{}{
-//				"server": serverSecret.Name,
-//			},
-//		},
-//	}, nil
-//}
+// getCSIControllerChartValues collects and returns the CSIController chart values.
+func getCSIControllerChartValues(
+	_ *apisonmetal.ControlPlaneConfig,
+	_ *extensionsv1alpha1.ControlPlane,
+	cluster *extensionscontroller.Cluster,
+	_ secretsmanager.Reader,
+	_ map[string]string,
+	scaledDown bool,
+) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		"enabled":  true,
+		"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
+	}, nil
+}
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
 func (vp *valuesProvider) getControlPlaneShootChartValues(
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	//csiNodeDriverValues = map[string]interface{}{
-	//	"enabled":           true,
-	//	"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-	//	"vpaEnabled":        gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
-	//}
+	if cluster.Shoot == nil {
+		return nil, fmt.Errorf("cluster %s does not contain a shoot object", cluster.ObjectMeta.Name)
+	}
+	csiNodeDriverValues := map[string]interface{}{
+		"enabled":     true,
+		"vpaEnabled":  gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
+		"pspDisabled": gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+	}
 
 	return map[string]interface{}{
 		onmetal.CloudControllerManagerName: map[string]interface{}{"enabled": true},
-		//onmetal.CSINodeName:                csiNodeDriverValues,
+		onmetal.CSINodeName:                csiNodeDriverValues,
 	}, nil
 
 }
