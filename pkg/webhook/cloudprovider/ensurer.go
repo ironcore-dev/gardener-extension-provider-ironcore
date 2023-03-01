@@ -66,6 +66,10 @@ func (e *ensurer) EnsureCloudProviderSecret(ctx context.Context, gctx gcontext.G
 	if !ok {
 		return fmt.Errorf("could not mutate cloudprovider secret as %q field is missing", onmetal.NamespaceFieldName)
 	}
+	username, ok := newCloudProviderSecret.Data[onmetal.UsernameFieldName]
+	if !ok {
+		return fmt.Errorf("could not mutate cloud provider secret as %q fied is missing", onmetal.UsernameFieldName)
+	}
 
 	cluster, err := gctx.GetCluster(ctx)
 	if err != nil {
@@ -82,21 +86,21 @@ func (e *ensurer) EnsureCloudProviderSecret(ctx context.Context, gctx gcontext.G
 	}
 
 	kubeconfig := &clientcmdv1.Config{
-		CurrentContext: newCloudProviderSecret.Namespace,
+		CurrentContext: cluster.Shoot.Spec.Region,
 		Clusters: []clientcmdv1.NamedCluster{{
-			Name: newCloudProviderSecret.Namespace,
+			Name: cluster.Shoot.Spec.Region,
 		}},
 		AuthInfos: []clientcmdv1.NamedAuthInfo{{
-			Name: newCloudProviderSecret.Namespace,
+			Name: string(username),
 			AuthInfo: clientcmdv1.AuthInfo{
 				Token: string(token),
 			},
 		}},
 		Contexts: []clientcmdv1.NamedContext{{
-			Name: newCloudProviderSecret.Namespace,
+			Name: cluster.Shoot.Spec.Region,
 			Context: clientcmdv1.Context{
-				Cluster:   newCloudProviderSecret.Namespace,
-				AuthInfo:  newCloudProviderSecret.Namespace,
+				Cluster:   cluster.Shoot.Spec.Region,
+				AuthInfo:  string(username),
 				Namespace: string(namespace),
 			},
 		}},

@@ -15,7 +15,6 @@
 package validation
 
 import (
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gomegatypes "github.com/onsi/gomega/types"
@@ -29,20 +28,34 @@ var _ = Describe("Secret validation", func() {
 				Data: data,
 			}
 			err := ValidateCloudProviderSecret(secret)
-
 			Expect(err).To(matcher)
 		},
 		Entry("should return error when the token field is missing",
-			map[string][]byte{}, HaveOccurred()),
-		Entry("should return error when the namespace field is missing",
-			map[string][]byte{}, HaveOccurred()),
-		Entry("should return an error when the namespace name is invalid",
-			map[string][]byte{onmetal.NamespaceFieldName: []byte("%foo")},
-			HaveOccurred()),
-		Entry("should return error when the namespace name is valid",
 			map[string][]byte{
-				onmetal.NamespaceFieldName: []byte("foo"),
-				onmetal.TokenFieldName:     []byte("foo"),
+				"namespace": []byte("foo"),
+				"username":  []byte("admin"),
+			}, HaveOccurred()),
+		Entry("should return error when the namespace field is missing",
+			map[string][]byte{
+				"token":    []byte("foo"),
+				"username": []byte("admin"),
+			}, HaveOccurred()),
+		Entry("should return an error when the namespace name is invalid",
+			map[string][]byte{
+				"namespace": []byte("%foo"),
+				"token":     []byte("foo"),
+				"username":  []byte("admin"),
+			}, HaveOccurred()),
+		Entry("should return an error when the username is missing",
+			map[string][]byte{
+				"namespace": []byte("foo"),
+				"token":     []byte("bar"),
+			}, HaveOccurred()),
+		Entry("should return no error if the secret is valid",
+			map[string][]byte{
+				"namespace": []byte("foo"),
+				"token":     []byte("foo"),
+				"username":  []byte("admin"),
 			},
 			Not(HaveOccurred())),
 	)
