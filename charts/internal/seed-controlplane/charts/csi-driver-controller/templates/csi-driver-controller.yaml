@@ -82,8 +82,6 @@ spec:
         volumeMounts:
         - name: socket-dir
           mountPath: {{ .Values.socketPath }}
-        - name: csi-driver-controller-config
-          mountPath: /etc/kubernetes/cloudprovider
         - name: cloudprovider
           mountPath: /srv/cloudprovider
         - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
