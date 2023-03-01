@@ -118,7 +118,6 @@ var (
 				Objects: []*chart.Object{
 					// csi-driver-controller
 					{Type: &appsv1.Deployment{}, Name: onmetal.CSIControllerName},
-					{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerConfigName},
 					{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerObservabilityConfigName},
 					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSIControllerName + "-vpa"},
 				},
