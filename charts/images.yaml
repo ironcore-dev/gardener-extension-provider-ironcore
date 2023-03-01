@@ -22,7 +22,7 @@ images:
   repository: ghcr.io/onmetal/machine-controller-manager-provider-onmetal
   tag: "sha-3e34b2c"
 
-- name: csi-driver-onmetal
+- name: csi-driver
   sourceRepository: github.com/onmetal/onmetal-csi-driver
   repository: ghcr.io/onmetal/onmetal-csi-driver
   tag: "sha-a665900"
