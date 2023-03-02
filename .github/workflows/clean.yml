@@ -1,0 +1,25 @@
+name: Check generate
+
+on:
+  pull_request:
+    types: [ assigned, opened, synchronize, reopened ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+
+jobs:
+  checks:
+    name: run
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+      # helm cli is needed for the controller registration generation
+      - uses: azure/setup-helm@v3
+        with:
+          version: 'v3.11.0'
+      - run: make generate
+      - run: go mod tidy
+      - run: hack/check-generate.sh
