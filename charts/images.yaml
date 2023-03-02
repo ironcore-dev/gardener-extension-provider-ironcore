@@ -20,12 +20,12 @@ images:
 - name: machine-controller-manager-provider-onmetal
   sourceRepository: github.com/onmetal/machine-controller-manager-provider-onmetal
   repository: ghcr.io/onmetal/machine-controller-manager-provider-onmetal
-  tag: "sha-3e34b2c"
+  tag: "sha-d71d78a"
 
 - name: csi-driver
   sourceRepository: github.com/onmetal/onmetal-csi-driver
   repository: ghcr.io/onmetal/onmetal-csi-driver
-  tag: "sha-a665900"
+  tag: "sha-5ae782d"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
