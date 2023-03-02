@@ -33,7 +33,7 @@ import (
 // NewEnsurer creates a new controlplane ensurer.
 func NewEnsurer(logger logr.Logger) genericmutator.Ensurer {
 	return &ensurer{
-		logger: logger.WithName("aws-controlplane-ensurer"),
+		logger: logger.WithName("onmetal-controlplane-ensurer"),
 	}
 }
 
