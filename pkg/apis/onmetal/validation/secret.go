@@ -31,6 +31,9 @@ func ValidateCloudProviderSecret(secret *corev1.Secret) error {
 	if !ok {
 		return fmt.Errorf("missing field: %s in cloud provider secret", onmetal.NamespaceFieldName)
 	}
+	if _, ok := secret.Data[onmetal.UsernameFieldName]; !ok {
+		return fmt.Errorf("missing field: %s in cloud provider secret", onmetal.UsernameFieldName)
+	}
 	errs := apivalidation.ValidateNamespaceName(string(namespace), false)
 	if len(errs) > 0 {
 		return fmt.Errorf("invalid field: %s in cloud provider secret", onmetal.NamespaceFieldName)

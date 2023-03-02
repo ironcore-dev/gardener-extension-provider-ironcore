@@ -49,7 +49,6 @@ const (
 	caNameControlPlane                   = "ca-" + onmetal.ProviderName + "-controlplane"
 	cloudControllerManagerDeploymentName = "cloud-controller-manager"
 	cloudControllerManagerServerName     = "cloud-controller-manager-server"
-	csiSnapshotValidationServerName      = onmetal.CSISnapshotValidation + "-server"
 )
 
 func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfigWithOptions {
@@ -72,18 +71,6 @@ func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfig
 			},
 			Options: []secretsmanager.GenerateOption{secretsmanager.SignedByCA(caNameControlPlane)},
 		},
-		{
-			Config: &secretutils.CertificateSecretConfig{
-				Name:                        csiSnapshotValidationServerName,
-				CommonName:                  onmetal.UsernamePrefix + onmetal.CSISnapshotValidation,
-				DNSNames:                    kutil.DNSNamesForService(onmetal.CSISnapshotValidation, namespace),
-				CertType:                    secretutils.ServerCert,
-				SkipPublishingCACertificate: true,
-			},
-			// use current CA for signing server cert to prevent mismatches when dropping the old CA from the webhook
-			// config in phase Completing
-			Options: []secretsmanager.GenerateOption{secretsmanager.SignedByCA(caNameControlPlane, secretsmanager.UseCurrentCA)},
-		},
 	}
 }
 
@@ -92,9 +79,7 @@ func shootAccessSecretsFunc(namespace string) []*gutil.ShootAccessSecret {
 		gutil.NewShootAccessSecret(cloudControllerManagerDeploymentName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIProvisionerName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIAttacherName, namespace),
-		gutil.NewShootAccessSecret(onmetal.CSISnapshotterName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIResizerName, namespace),
-		gutil.NewShootAccessSecret(onmetal.CSISnapshotControllerName, namespace),
 	}
 }
 
@@ -124,22 +109,17 @@ var (
 			{
 				Name: onmetal.CSIControllerName,
 				Images: []string{
-					onmetal.CSIDriverOnmetalImageName,
+					onmetal.CSIDriverImageName,
 					onmetal.CSIProvisionerImageName,
 					onmetal.CSIAttacherImageName,
-					onmetal.CSISnapshotterImageName,
 					onmetal.CSIResizerImageName,
 					onmetal.CSILivenessProbeImageName,
 				},
 				Objects: []*chart.Object{
 					// csi-driver-controller
 					{Type: &appsv1.Deployment{}, Name: onmetal.CSIControllerName},
-					{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerConfigName},
 					{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerObservabilityConfigName},
 					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSIControllerName + "-vpa"},
-					// csi-snapshot-controller
-					{Type: &appsv1.Deployment{}, Name: onmetal.CSISnapshotControllerName},
-					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSISnapshotControllerName + "-vpa"},
 				},
 			},
 		},
@@ -162,7 +142,7 @@ var (
 			{
 				Name: onmetal.CSINodeName,
 				Images: []string{
-					onmetal.CSIDriverOnmetalImageName,
+					onmetal.CSIDriverImageName,
 					onmetal.CSINodeDriverRegistrarImageName,
 					onmetal.CSILivenessProbeImageName,
 				},

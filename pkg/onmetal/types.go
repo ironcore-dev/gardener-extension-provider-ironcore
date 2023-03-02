@@ -26,29 +26,25 @@ const (
 
 	// CloudControllerManagerImageName is the name of the cloud-controller-manager image.
 	CloudControllerManagerImageName = "cloud-controller-manager"
-	// CSIDriverOnmetalImageName is the name of the csi-driver image.
-	CSIDriverOnmetalImageName = "csi-driver-onmetal"
+	// CSIDriverImageName is the name of the csi-driver image.
+	CSIDriverImageName = "csi-driver"
 	// CSIProvisionerImageName is the name of the csi-provisioner image.
 	CSIProvisionerImageName = "csi-provisioner"
 	// CSIAttacherImageName is the name of the csi-attacher image.
 	CSIAttacherImageName = "csi-attacher"
-	// CSISnapshotterImageName is the name of the csi-snapshotter image.
-	CSISnapshotterImageName = "csi-snapshotter"
 	// CSIResizerImageName is the name of the csi-resizer image.
 	CSIResizerImageName = "csi-resizer"
-	// CSISnapshotControllerImageName is the name of the csi-snapshot-controller image.
-	CSISnapshotControllerImageName = "csi-snapshot-controller"
 	// CSINodeDriverRegistrarImageName is the name of the csi-node-driver-registrar image.
 	CSINodeDriverRegistrarImageName = "csi-node-driver-registrar"
 	// CSILivenessProbeImageName is the name of the csi-liveness-probe image.
 	CSILivenessProbeImageName = "csi-liveness-probe"
-	// CSISnapshotValidationWebhookImageName is the name of the csi-snapshot-validation-webhook image.
-	CSISnapshotValidationWebhookImageName = "csi-snapshot-validation-webhook"
 	// MachineControllerManagerImageName is the name of the MachineControllerManager image.
 	MachineControllerManagerImageName = "machine-controller-manager"
 	// MachineControllerManagerProviderOnmetalImageName is the name of the MachineController onmetal image.
 	MachineControllerManagerProviderOnmetalImageName = "machine-controller-manager-provider-onmetal"
 
+	// UsernameFieldName is the field in a secret where the namespace is stored at.
+	UsernameFieldName = "username"
 	// NamespaceFieldName is the field in a secret where the namespace is stored at.
 	NamespaceFieldName = "namespace"
 	// KubeConfigFieldName is containing the effective kubeconfig to access an onmetal cluster.
@@ -80,8 +76,6 @@ const (
 	CloudControllerManagerName = "cloud-controller-manager"
 	// CSIControllerName is a constant for the name of the CSI controller deployment in the seed.
 	CSIControllerName = "csi-driver-controller"
-	// CSIControllerConfigName is a constant for the name of the CSI controller config in the seed.
-	CSIControllerConfigName = "csi-driver-controller-config"
 	// CSIControllerObservabilityConfigName is the name of the ConfigMap containing monitoring and logging stack configurations for csi-driver.
 	CSIControllerObservabilityConfigName = "csi-driver-controller-observability-config"
 	// CSINodeName is a constant for the name of the CSI node deployment in the shoot.
@@ -92,18 +86,12 @@ const (
 	CSIProvisionerName = "csi-provisioner"
 	// CSIAttacherName is a constant for the name of the csi-attacher component.
 	CSIAttacherName = "csi-attacher"
-	// CSISnapshotterName is a constant for the name of the csi-snapshotter component.
-	CSISnapshotterName = "csi-snapshotter"
 	// CSIResizerName is a constant for the name of the csi-resizer component.
 	CSIResizerName = "csi-resizer"
-	// CSISnapshotControllerName is a constant for the name of the csi-snapshot-controller component.
-	CSISnapshotControllerName = "csi-snapshot-controller"
 	// CSINodeDriverRegistrarName is a constant for the name of the csi-node-driver-registrar component.
 	CSINodeDriverRegistrarName = "csi-node-driver-registrar"
 	// CSILivenessProbeName is a constant for the name of the csi-liveness-probe component.
 	CSILivenessProbeName = "csi-liveness-probe"
-	// CSISnapshotValidation is the constant for the name of the csi-snapshot-validation-webhook component.
-	CSISnapshotValidation = "csi-snapshot-validation"
 	// CSIStorageProvisioner is a constant with the storage provisioner name which is used in storageclasses.
 	CSIStorageProvisioner = "onmetal-csi-driver"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
