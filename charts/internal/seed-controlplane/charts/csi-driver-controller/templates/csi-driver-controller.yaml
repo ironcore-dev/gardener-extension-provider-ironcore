@@ -186,6 +186,12 @@ spec:
                     path: kubeconfig
                 name: {{ .Values.global.genericTokenKubeconfigSecretName }}
                 optional: false
+            - secret:
+                items:
+                  - key: token
+                    path: token
+                name: shoot-access-csi-driver
+                optional: false
       - name: kubeconfig-csi-attacher
         projected:
           defaultMode: 420
