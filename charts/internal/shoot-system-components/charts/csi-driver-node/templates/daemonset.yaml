@@ -30,17 +30,14 @@ spec:
         operator: Exists
       - effect: NoExecute
         operator: Exists
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - name: csi-driver
+        securityContext:
+          privileged: true
+          capabilities:
+            add: [ "SYS_ADMIN" ]
+          allowPrivilegeEscalation: true
         image: {{ index .Values.images "csi-driver" }}
-        args:
-        - --endpoint=$(CSI_ENDPOINT)
-        - --run-controller-service=false
-        - --logtostderr
-        - --v=5
         env:
         - name: CSI_ENDPOINT
           value: unix:{{ .Values.socketPath }}
