@@ -40,7 +40,7 @@ spec:
         image: {{ index .Values.images "csi-driver" }}
         env:
         - name: CSI_ENDPOINT
-          value: unix:{{ .Values.socketPath }}
+          value: unix:/{{ .Values.socketPath }}
         - name: X_CSI_MODE
           value: node
         - name: X_CSI_DEBUG

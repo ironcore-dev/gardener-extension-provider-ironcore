@@ -80,6 +80,7 @@ func shootAccessSecretsFunc(namespace string) []*gutil.ShootAccessSecret {
 		gutil.NewShootAccessSecret(onmetal.CSIProvisionerName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIAttacherName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIResizerName, namespace),
+		gutil.NewShootAccessSecret(onmetal.CSIDriverImageName, namespace),
 	}
 }
 
