@@ -80,7 +80,11 @@ func shootAccessSecretsFunc(namespace string) []*gutil.ShootAccessSecret {
 		gutil.NewShootAccessSecret(onmetal.CSIProvisionerName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIAttacherName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIResizerName, namespace),
-		gutil.NewShootAccessSecret(onmetal.CSIDriverImageName, namespace),
+		// TODO: This needs to be fixed!!!
+		//		 Since the csi controller needs to access the Node resources in the Shoot cluster,
+		//		 it should use the same ServiceAccount as the csi-driver-node in the Shoot. That way
+		//		 the correct ClusterRolebindings will be used for both components.
+		gutil.NewShootAccessSecret(onmetal.CSINodeName, namespace),
 	}
 }
 

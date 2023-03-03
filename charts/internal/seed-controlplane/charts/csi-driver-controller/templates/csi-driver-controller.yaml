@@ -190,7 +190,7 @@ spec:
                 items:
                   - key: token
                     path: token
-                name: shoot-access-csi-driver
+                name: shoot-access-csi-driver-node
                 optional: false
       - name: kubeconfig-csi-attacher
         projected:
