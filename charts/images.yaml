@@ -25,7 +25,7 @@ images:
 - name: csi-driver
   sourceRepository: github.com/onmetal/onmetal-csi-driver
   repository: ghcr.io/onmetal/onmetal-csi-driver
-  tag: "sha-c62822e"
+  tag: "sha-f1ad2cb"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
