@@ -125,17 +125,40 @@ This provider extension supports configuration for the `Shoot` cluster resource.
 
 
 ```yaml
----
 apiVersion: core.gardener.cloud/v1beta1
 kind: Shoot
 metadata:
   name: my-shoot
+  namespace: my-namespace
 spec:
+  cloudProfileName: onmetal
+  secretBindingName: my-credentials
+  region: my-region
+  networking:
+    type: calico
+    nodes: 10.1.0.0/16
   provider:
-    workers: 
-    - name: foo
-    - name: bar
-    networking:
-      nodes: "10.0.0.0/24"
-  ...
+    infrastructureConfig:
+      apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+      kind: InfrastructureConfig
+    type: onmetal
+    workers:
+      - name: pool1
+        machine:
+          type: x3-xlarge
+        volume:
+          type: general-purpose
+          size: 20Gi
+        cri:
+          name: containerd
+        minimum: 1
+        maximum: 1
+        maxSurge: 1
+        maxUnavailable: 0
+        zones:
+          - my-zone-a
+          - my-zone-b
+          - my-zone-c
+  kubernetes:
+    version: 1.26.0
 ```
