@@ -10,7 +10,7 @@ There are several authentication possibilities depending on whether or not [the 
 #### *Virtual Garden* is not used, i.e., the `runtime` Garden cluster is also the `target` Garden cluster.
 
 **Automounted Service Account Token**
-The easiest way to deploy the `gardener-extension-admission-gcp` component will be to not provide `kubeconfig` at all. This way in-cluster configuration and an automounted service account token will be used. The drawback of this approach is that the automounted token will not be automatically rotated.
+The easiest way to deploy the `gardener-extension-admission-onmetal` component will be to not provide `kubeconfig` at all. This way in-cluster configuration and an automounted service account token will be used. The drawback of this approach is that the automounted token will not be automatically rotated.
 
 **Service Account Token Volume Projection**
 Another solution will be to use [Service Account Token Volume Projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection) combined with a `kubeconfig` referencing a token file (see example below).
