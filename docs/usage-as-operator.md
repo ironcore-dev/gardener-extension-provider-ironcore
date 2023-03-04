@@ -1,32 +1,37 @@
-# Using the Onmetal provider extension with Gardener as operator
+# Using the onmetal provider extension with Gardener as operator
 
-The [`core.gardener.cloud/v1beta1.CloudProfile` resource](https://github.com/gardener/gardener/blob/master/example/30-cloudprofile.yaml) declares a `providerConfig` field that is meant to contain provider-specific configuration.
-The [`core.gardener.cloud/v1beta1.Seed` resource](https://github.com/gardener/gardener/blob/master/example/50-seed.yaml) is structured similarly.
-Additionally, it allows configuring settings for the backups of the main etcds' data of shoot clusters control planes running in this seed cluster.
+The [`core.gardener.cloud/v1beta1.CloudProfile` resource](https://github.com/gardener/gardener/blob/master/example/30-cloudprofile.yaml) 
+declares a `providerConfig` field that is meant to contain provider-specific configuration.
+The [`core.gardener.cloud/v1beta1.Seed` resource](https://github.com/gardener/gardener/blob/master/example/50-seed.yaml) 
+is structured similarly. Additionally, it allows configuring settings for the backups of the main etcds' data of shoot 
+clusters control planes running in this seed cluster.
 
 This document explains the necessary configuration for this provider extension.
 
 ## `CloudProfile` resource
 
-This section describes, how the configuration for `CloudProfile`s looks like for onmetal by providing an example `CloudProfile` manifest with minimal configuration that can be used to allow the creation of onmetal shoot clusters.
+This section describes, how the configuration for `CloudProfile`s looks like for `onmetal` by providing an example 
+`CloudProfile` manifest with minimal configuration that can be used to allow the creation of `onmetal` shoot clusters.
 
 ### `CloudProfileConfig`
 
-The cloud profile configuration contains information about the real machine image IDs in the onmetal environment (image URLs).
-You have to map every version that you specify in `.spec.machineImages[].versions` here such that the onmetal extension knows the image URL for every version you want to offer.
-For each machine image version an `architecture` field can be specified which specifies the CPU architecture of the machine on which given machine image can be used.
+The cloud profile configuration contains information about the real machine image IDs in the `onmetal` environment.
+You have to map every version that you specify in `.spec.machineImages[].versions` here such that the `onmetal` extension 
+knows the location of the OCI image artefact for every version you want to offer. For each machine image version an 
+`architecture` field can be specified which specifies the CPU architecture of the machine on which given machine image 
+can be used.
 
-An example `CloudProfileConfig` for the onmetal extension looks as follows:
+An example `CloudProfileConfig` for the `onmetal` extension looks as follows:
 
 ```yaml
 apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
 kind: CloudProfileConfig
 machineImages:
-- name: coreos
-  versions:
-  - version: 2135.6.0
-    image: projects/coreos-cloud/global/images/coreos-stable-2135-6-0-v20190801
-    # architecture: amd64 # optional
+  - name: gardenlinux
+    versions:
+      - version: 1.0.0
+        image: registry/images/gardenlinux:version-tag
+        # architecture: amd64 # optional
 ```
 
 ### Example `CloudProfile` manifest
@@ -45,56 +50,53 @@ spec:
     - version: 1.25.3
     - version: 1.24.3
   machineImages:
-  - name: coreos
-    versions:
-    - version: 2135.6.0
+    - name: gardenlinux
+      versions:
+        - version: 1.0.0
+          cri:
+            - name: containerd
   machineTypes:
-  - name: m5-metal
-    cpu: "96"
-    gpu: "0"
-    memory: 384Gi
-  - name: t3-small
-    cpu: "2"
-    gpu: "0"
-    memory: 2Gi
-  - name: x3-xlarge
-    cpu: "4"
-    gpu: "0"
-    memory: 8Gi
-  volumeClasses:
-  - name: fast
-    storageClassName: default
-    default: true
-  - name: slow
-    storageClassName: my-storageclass
-    default: false
-  - name: super-fast
-    storageClassName: sample-storageclass
-    default: false
-  - name: general-purpose
-    storageClassName: my-storageclass1
-    default: false
-  - name: throughput-optimized
-    storageClassName: my-storageclass2
-    default: false
-  - name: io-optimized
-    storageClassName: my-storageclass3
-    default: false
+    - name: x3-xlarge
+      cpu: "4"
+      gpu: "0"
+      memory: 8Gi
+      storage:
+        class: standard
+        type: default
+        size: 20Gi     
+      usable: true
+      architecture: amd64 # optional
+  volumeTypes:
+    - name: general-purpose
+      class: standard
+      usable: true
+    - name: io-optimized
+      class: premium
+      usable: true
   regions:
-  - region: europe-west1
+  - region: my-region
     names:
-    - europe-west1-b
-    - europe-west1-c
-    - europe-west1-d
+    - my-zone-a
+    - my-zone-b
+    - my-zone-c
   providerConfig:
     apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
     kind: CloudProfileConfig
+    regionConfigs:
+    - name: my-region
+      server: https://onmetal-api-server
+      certificateAuthorityData: >-
+        abcd12345
+    storageClasses:
+      - name: default         # name of the StorageClass in the Shoot
+        type: general-purpose # name of the VolumeClass
+        default: true         # should this StorageClass be marked as default
     machineImages:
-    - name: coreos
-      versions:
-      - version: 2135.6.0
-        image: projects/coreos-cloud/global/images/coreos-stable-2135-6-0-v20190801
-        # architecture: amd64 # optional
+      - name: gardenlinux
+        versions:
+          - version: 1.0.0
+            image: registry/images/gardenlinux:version-tag
+            architecture: amd64
 ```
 
 ## `Seed` resource
