@@ -6,7 +6,9 @@ metadata:
   namespace: shoot--foobar--onmetal
 type: Opaque
 data:
-  serviceaccount.json: ZGF0YQo=
+  namespace: my-namespace
+  username: my-user
+  token: abcd12345
 ---
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
@@ -21,9 +23,9 @@ spec:
         apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
         machineImages:
-        - name: coreos
+        - name: gardenlinux
           versions:
-          - version: 2135.6.0
+          - version: 1.0.0
             image: registry/image:tag
   seed:
     apiVersion: core.gardener.cloud/v1beta1
@@ -33,7 +35,7 @@ spec:
     kind: Shoot
     spec:
       kubernetes:
-        version: 1.24.3
+        version: 1.26.0
     status:
       lastOperation:
         state: Succeeded
@@ -50,24 +52,28 @@ metadata:
     gardener.cloud/operation: reconcile
 spec:
   type: onmetal
-  region: europe-west1
+  region: my-region
   secretRef:
     name: cloudprovider
     namespace: shoot--foobar--onmetal
   infrastructureProviderStatus:
     apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureStatus
-    serviceAccountEmail: foo@bar.com
-    networks:
-      subnets:
-      - purpose: nodes
-        name: nodes-subnet
+    networkRef:
+      name: shoot--foobar--onmetal
+      uid: 1234
+    natGatewayRef:
+      name: shoot--foobar--onmetal
+      uid: 1234
+    prefixRef:
+      name: shoot--foobar--onmetal
+      uid: 1234
   pools:
   - name: cpu-worker
-    machineType: n1-standard-4
+    machineType: my-machine-class
     machineImage:
-      name: coreos
-      version: 2135.6.0
+      name: gardenlinux
+      version: 1.0.0
     minimum: 1
     maximum: 1
     maxSurge: 1
@@ -82,17 +88,8 @@ spec:
   #   effect: NoSchedule
     userData: IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo=
     volume:
-      type: pd-standard
+      type: my-volume-class
       size: 20Gi
-    # workerconfig is used to specify the interface of onmetal local ssd
-    #dataVolumes:
-    #  - type: SCRATCH
-    # providerConfig:
-    #   apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
-    #   kind: WorkerConfig
-    #   serviceAccount:
-    #     email: foo@bar.com
-    #     scopes:
-    #     - https://www.googleapis.com/auth/cloud-platform
     zones:
-    - europe-west1-b
+    - my-machine-pool-a
+    - my-machine-pool-b
