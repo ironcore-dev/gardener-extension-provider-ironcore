@@ -31,32 +31,34 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
-## Tool Binaries
+## Tool binaries and scripts
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-INSTALL ?= $(LOCALBIN)/install
-CLEAN ?= $(LOCALBIN)/clean 
-FORMAT ?= $(LOCALBIN)/format
-TEST_COV ?= $(LOCALBIN)/test-cov
-TEST_CLEAN ?= $(LOCALBIN)/test-clean
+INSTALL ?= $(LOCALBIN)/install.sh
+CLEAN ?= $(LOCALBIN)/clean.sh
+FORMAT ?= $(LOCALBIN)/format.sh
+TEST_COV ?= $(LOCALBIN)/test-cov.sh
+TEST_CLEAN ?= $(LOCALBIN)/test-clean.sh
 GOIMPORTS ?= $(LOCALBIN)/goimports
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
-CHECK ?= $(LOCALBIN)/check
-CHECK_CHARTS ?= $(LOCALBIN)/check-charts
+CHECK ?= $(LOCALBIN)/check.sh
+CHECK_CHARTS ?= $(LOCALBIN)/check-charts.sh
 VGOPATH ?= $(LOCALBIN)/vgopath
 DEEPCOPY_GEN ?= $(LOCALBIN)/deepcopy-gen
 CONVERSION_GEN ?= $(LOCALBIN)/conversion-gen
 DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ADDLICENSE ?= $(LOCALBIN)/addlicense
+GENERATE_CRDS ?= $(LOCALBIN)/generate-crds.sh
+
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
-CONTROLLER_TOOLS_VERSION ?= v0.9.2
-GOLANGCI_LINT_VERSION ?= v1.50.1
+CONTROLLER_TOOLS_VERSION ?= v0.11.3
+GOLANGCI_LINT_VERSION ?= v1.51.2
 VGOPATH_VERSION ?= v0.0.2
-CODE_GENERATOR_VERSION ?= v0.26.1
-ADDLICENSE_VERSION ?= v1.1.0
+CODE_GENERATOR_VERSION ?= v0.26.2
+ADDLICENSE_VERSION ?= v1.1.1
 
 #########################################
 # Rules for local development scenarios #
@@ -88,11 +90,6 @@ start-admission:
 #################################################################
 # Rules related to binary build, Docker image build and release #
 #################################################################
-
-INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/install.sh"
-$(INSTALL): $(LOCALBIN)
-	curl -Ss $(INSTALL_SCRIPT_URL) -o $(INSTALL)
-	chmod +x $(INSTALL)
 
 .PHONY: install
 install: $(INSTALL)
@@ -130,16 +127,6 @@ $(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERS
 	@# see https://github.com/golangci/golangci-lint/issues/1276
 	GOBIN=$(abspath $(LOCALBIN)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
-CHECK_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check.sh"
-$(CHECK): $(LOCALBIN)
-	curl -Ss $(CHECK_SCRIPT_URL) -o $(CHECK)
-	chmod +x $(CHECK)
-
-CHECK_CHARTS_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-charts.sh"
-$(CHECK_CHARTS): $(LOCALBIN)
-	curl -Ss $(CHECK_CHARTS_SCRIPT_URL) -o $(CHECK_CHARTS)
-	chmod +x $(CHECK_CHARTS)
-
 .PHONY: add-license
 add-license: addlicense ## Add license headers to all go files.
 	find . -name '*.go' -exec $(ADDLICENSE) -c 'OnMetal authors' {} +
@@ -151,26 +138,15 @@ check-license: addlicense ## Check that every file has a license header present.
 .PHONY: check
 check: generate add-license lint test # Generate manifests, code, lint, add licenses, test
 
-CHECK_DOCFORGE_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-docforge.sh"
-$(CHECK_DOCFORGE): $(LOCALBIN)
-	curl -Ss $(CHECK_DOCFORGE_SCRIPT_URL) -o $(CHECK_DOCFORGE)
-	chmod +x $(CHECK_DOCFORGE)
-
-
 .PHONY: generate
-generate: vgopath deepcopy-gen defaulter-gen conversion-gen
+generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen generate-crds
 	VGOPATH=$(VGOPATH) \
 	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
 	DEFAULTER_GEN=$(DEFAULTER_GEN) \
 	CONVERSION_GEN=$(CONVERSION_GEN) \
 	./hack/update-codegen.sh
 	go generate ./charts/...
-	go generate ./examples/...
-
-FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/format.sh"
-$(FORMAT): $(LOCALBIN)
-	curl -Ss $(FORMAT_SCRIPT_URL) -o $(FORMAT)
-	chmod +x $(FORMAT)
+	VGOPATH=$(VGOPATH) go generate ./example/...
 
 .PHONY: format
 format: $(FORMAT)
@@ -200,23 +176,13 @@ addlicense: ## Add license headers to all go files.
 checklicense: ## Check that every file has a license header present.
 	find . -name '*.go' -exec go run github.com/google/addlicense  -check -c 'OnMetal authors' {} +
 
-TEST_COV_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover.sh"
-$(TEST_COV): $(LOCALBIN)
-	curl -Ss $(TEST_COV_SCRIPT_URL) -o $(TEST_COV)
-	chmod +x $(TEST_COV)
+.PHONY: test-clean
+test-clean: $(TEST_CLEAN)
+	$(TEST_CLEAN)
 
 .PHONY: test-cov
 test-cov: $(TEST_COV)
 	$(TEST_COV) -mod=mod ./cmd/... ./pkg/...
-
-TEST_CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover-clean.sh"
-$(TEST_CLEAN): $(LOCALBIN)
-	curl -Ss $(TEST_CLEAN_SCRIPT_URL) -o $(TEST_CLEAN)
-	chmod +x $(TEST_CLEAN)
-
-.PHONY: test-clean
-test-clean: $(TEST_CLEAN)
-	$(TEST_CLEAN)
 
 .PHONY: verify
 verify: check format test
@@ -224,6 +190,9 @@ verify: check format test
 .PHONY: verify-extended
 verify-extended: check-generate check format test-cov test-clean
 
+###
+### Download tooling
+###
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
@@ -264,3 +233,43 @@ $(CONVERSION_GEN): $(LOCALBIN)
 addlicense: $(ADDLICENSE) ## Download addlicense locally if necessary.
 $(ADDLICENSE): $(LOCALBIN)
 	test -s $(LOCALBIN)/addlicense || GOBIN=$(LOCALBIN) go install github.com/google/addlicense@$(ADDLICENSE_VERSION)
+
+###
+### Download Gardener hack scripts
+###
+GENERATE_CRDS_SCRIPT ?= https://raw.githubusercontent.com/gardener/gardener/master/hack/generate-crds.sh
+.PHONY: generate-crds
+generate-crds: $(GENERATE_CRDS) ## Download generate-crds.sh locally if necessary.
+$(GENERATE_CRDS): $(LOCALBIN)
+	test -s $(LOCALBIN)/generate-crds.sh || curl -Ss $(GENERATE_CRDS_SCRIPT) -o $(GENERATE_CRDS)
+	chmod +x $(GENERATE_CRDS)
+
+TEST_COV_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover.sh"
+$(TEST_COV): $(LOCALBIN)
+	curl -Ss $(TEST_COV_SCRIPT_URL) -o $(TEST_COV)
+	chmod +x $(TEST_COV)
+
+TEST_CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover-clean.sh"
+$(TEST_CLEAN): $(LOCALBIN)
+	curl -Ss $(TEST_CLEAN_SCRIPT_URL) -o $(TEST_CLEAN)
+	chmod +x $(TEST_CLEAN)
+
+FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/format.sh"
+$(FORMAT): $(LOCALBIN)
+	curl -Ss $(FORMAT_SCRIPT_URL) -o $(FORMAT)
+	chmod +x $(FORMAT)
+
+CHECK_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check.sh"
+$(CHECK): $(LOCALBIN)
+	curl -Ss $(CHECK_SCRIPT_URL) -o $(CHECK)
+	chmod +x $(CHECK)
+
+CHECK_CHARTS_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-charts.sh"
+$(CHECK_CHARTS): $(LOCALBIN)
+	curl -Ss $(CHECK_CHARTS_SCRIPT_URL) -o $(CHECK_CHARTS)
+	chmod +x $(CHECK_CHARTS)
+
+INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/install.sh"
+$(INSTALL): $(LOCALBIN)
+	curl -Ss $(INSTALL_SCRIPT_URL) -o $(INSTALL)
+	chmod +x $(INSTALL)
