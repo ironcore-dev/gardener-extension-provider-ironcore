@@ -11,7 +11,9 @@ metadata:
   namespace: shoot--foobar--onmetal
 type: Opaque
 data:
-# serviceaccount.json: base64(serviceaccount-json)
+  namespace: my-namespace
+  username: my-user
+  token: abcd12345
 ---
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
@@ -34,7 +36,6 @@ spec:
     status:
       lastOperation:
         state: Succeeded
-
 ---
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Infrastructure
@@ -43,12 +44,12 @@ metadata:
   namespace: shoot--foobar--onmetal
 spec:
   type: onmetal
-  region: europe-west1
+  region: my-region
   secretRef:
     namespace: shoot--foobar--onmetal
     name: core-onmetal
   providerConfig:
     apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureConfig
-    networks:
-      # networkName: my-network
+    #networkRef: # (optional)
+    #  name: my-network

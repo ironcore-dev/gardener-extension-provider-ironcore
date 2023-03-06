@@ -15,7 +15,9 @@ metadata:
   namespace: shoot--foobar--onmetal
 type: Opaque
 data:
-  serviceaccount.json: eyJwcm9qZWN0X2lkIjoiYWJjIn0=
+  namespace: my-namespace
+  username: my-user
+  token: abcd12345
 ---
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
@@ -35,7 +37,7 @@ spec:
       networking:
         pods: 10.250.0.0/19
       kubernetes:
-        version: 1.24.3
+        version: 1.26.0
       hibernation:
         enabled: false
     status:
@@ -49,23 +51,18 @@ metadata:
   namespace: shoot--foobar--onmetal
 spec:
   type: onmetal
-  region: europe-west1
+  region: my-region
   secretRef:
     name: cloudprovider
     namespace: shoot--foobar--onmetal
   providerConfig:
     apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
     kind: ControlPlaneConfig
-    zone: europe-west1a
     cloudControllerManager:
       featureGates:
         CustomResourceValidation: true
   infrastructureProviderStatus:
     apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureStatus
-    networks:
-      vpc:
-        name: vpc-1234
-      subnets:
-      - purpose: internal
-        name: subnet-acbd1234
+    #networkRef: # (optional)
+    #  name: my-network
