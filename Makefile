@@ -136,7 +136,7 @@ check-license: addlicense ## Check that every file has a license header present.
 	find . -name '*.go' -exec $(ADDLICENSE) -check -c 'OnMetal authors' {} +
 
 .PHONY: check
-check: generate add-license lint test # Generate manifests, code, lint, add licenses, test
+check: generate check-license lint test # Generate manifests, code, lint, add licenses, test
 
 .PHONY: generate
 generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen generate-crds
@@ -165,16 +165,8 @@ lint: ## Run golangci-lint on the code.
 	golangci-lint run ./...
 
 .PHONY: test
-test: generate fmt vet envtest checklicense ## Run tests.
+test: generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
-
-.PHONY: addlicense
-addlicense: ## Add license headers to all go files.
-	find . -name '*.go' -exec go run github.com/google/addlicense -c 'OnMetal authors' {} +
-
-.PHONY: checklicense
-checklicense: ## Check that every file has a license header present.
-	find . -name '*.go' -exec go run github.com/google/addlicense  -check -c 'OnMetal authors' {} +
 
 .PHONY: test-clean
 test-clean: $(TEST_CLEAN)

@@ -4,17 +4,14 @@ go 1.19
 
 require (
 	github.com/Masterminds/semver v1.5.0
-	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid/api v0.6.0
 	github.com/gardener/gardener v1.65.1
 	github.com/gardener/machine-controller-manager v0.45.0
 	github.com/go-logr/logr v1.2.3
 	github.com/golang/mock v1.6.0
-	github.com/google/addlicense v1.1.1
 	github.com/onmetal/controller-utils v0.7.0
 	github.com/onmetal/onmetal-api v0.0.13-0.20230209150448-b34e9ebc560c
-	github.com/onmetal/vgopath v0.0.4
 	github.com/onsi/ginkgo/v2 v2.8.4
 	github.com/onsi/gomega v1.27.2
 	github.com/spf13/cobra v1.6.1
@@ -25,7 +22,6 @@ require (
 	k8s.io/apimachinery v0.26.2
 	k8s.io/autoscaler/vertical-pod-autoscaler v0.13.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/code-generator v0.26.2
 	k8s.io/component-base v0.26.2
 	k8s.io/kubelet v0.26.2
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
@@ -40,7 +36,6 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.0.2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -88,15 +83,12 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go4.org/netipx v0.0.0-20220812043211-3cc044ffd68d // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
-	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
@@ -112,9 +104,7 @@ require (
 	istio.io/api v0.0.0-20221013011440-bc935762d2b9 // indirect
 	istio.io/client-go v1.15.3 // indirect
 	k8s.io/apiserver v0.26.2 // indirect
-	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
-	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-aggregator v0.26.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230109183929-3758b55a6596 // indirect
