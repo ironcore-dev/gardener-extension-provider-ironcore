@@ -17,6 +17,8 @@ package infrastructure
 import (
 	"context"
 	"fmt"
+	"math/big"
+	"net"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -37,7 +39,9 @@ import (
 )
 
 const (
-	shootPrefix = "shoot"
+	shootPrefix                 = "shoot"
+	maxAvailablePorts           = 64512
+	minPortsPerNetworkInterface = 64
 )
 
 // Reconcile implements infrastructure.Actuator.
@@ -108,6 +112,29 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 }
 
 func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
+
+	var portsPerNetworkInterface *int32
+	if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
+		_, ipv4Net, err := net.ParseCIDR(*nodeCIDR)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse node cidr %s: %w", *nodeCIDR, err)
+		}
+
+		// determines how many IP addresses reside within nodeCIDR.
+		// The first and the last IPs are NOT excluded.
+		// see reference https://github.com/cilium/cilium/blob/master/pkg/ip/ip.go#L27
+		subnet, size := ipv4Net.Mask.Size()
+		amount := big.NewInt(0).Sub(big.NewInt(2).Exp(big.NewInt(2), big.NewInt(int64(size-subnet)), nil), big.NewInt(0))
+		maxPorts := big.NewInt(maxAvailablePorts)
+		ports := big.NewInt(0).Div(maxPorts, amount)
+
+		if ports.Int64() < minPortsPerNetworkInterface {
+			portsPerNetworkInterface = pointer.Int32(minPortsPerNetworkInterface)
+		} else {
+			portsPerNetworkInterface = pointer.Int32(previousPowOf2(int32(ports.Int64())))
+		}
+	}
+
 	natGateway := &networkingv1alpha1.NATGateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "NATGateway",
@@ -129,6 +156,7 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 			NetworkRef: corev1.LocalObjectReference{
 				Name: network.Name,
 			},
+			PortsPerNetworkInterface: portsPerNetworkInterface,
 		},
 	}
 
@@ -175,6 +203,15 @@ func generateResourceNameFromCluster(cluster *controller.Cluster) string {
 	// TODO: use cluster.Name
 	// alternatively shoot.status.technicalID
 	return fmt.Sprintf("%s--%s--%s", shootPrefix, cluster.Shoot.Namespace, cluster.Shoot.Name)
+}
+
+func previousPowOf2(n int32) int32 {
+	n = n | (n >> 1)
+	n = n | (n >> 2)
+	n = n | (n >> 4)
+	n = n | (n >> 8)
+	n = n | (n >> 16)
+	return n - (n >> 1)
 }
 
 func (a *actuator) updateProviderStatus(
