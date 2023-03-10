@@ -20,19 +20,21 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
+
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	testutils "github.com/onmetal/onmetal-api/utils/testing"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 )
 
 var _ = Describe("Infrastructure Reconcile", func() {
@@ -102,6 +104,11 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			},
 		}
 
+		Eventually(func(g Gomega) {
+			err := k8sClient.Get(ctx, client.ObjectKeyFromObject(natGateway), natGateway)
+			g.Expect(err).NotTo(HaveOccurred())
+		}).Should(Succeed())
+
 		Eventually(Object(natGateway)).Should(SatisfyAll(
 			HaveField("Spec.Type", networkingv1alpha1.NATGatewayTypePublic),
 			HaveField("Spec.IPFamilies", []corev1.IPFamily{corev1.IPv4Protocol}),
@@ -113,6 +120,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 					onmetal.ClusterNameLabel: cluster.ObjectMeta.Name,
 				},
 			}),
+			HaveField("Spec.PortsPerNetworkInterface", pointer.Int32(128)),
 		))
 
 		By("expecting a prefix being created")
@@ -122,6 +130,11 @@ var _ = Describe("Infrastructure Reconcile", func() {
 				Name:      generateResourceNameFromCluster(cluster),
 			},
 		}
+
+		Eventually(func(g Gomega) {
+			err := k8sClient.Get(ctx, client.ObjectKeyFromObject(prefix), prefix)
+			g.Expect(err).NotTo(HaveOccurred())
+		}).Should(Succeed())
 
 		Eventually(Object(prefix)).Should(SatisfyAll(
 			HaveField("Spec.IPFamily", corev1.IPv4Protocol),
