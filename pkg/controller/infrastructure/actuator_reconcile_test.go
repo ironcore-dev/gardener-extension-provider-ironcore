@@ -31,6 +31,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 )
@@ -72,6 +73,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 						NetworkRef: &corev1.LocalObjectReference{
 							Name: "my-network",
 						},
+						NATPortsPerNetworkInterface: pointer.Int32(1024),
 					}},
 				},
 				Region: "foo",
@@ -113,6 +115,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 					onmetal.ClusterNameLabel: cluster.ObjectMeta.Name,
 				},
 			}),
+			HaveField("Spec.PortsPerNetworkInterface", pointer.Int32(1024)),
 		))
 
 		By("expecting a prefix being created")

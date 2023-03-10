@@ -64,7 +64,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return err
 	}
 
-	natGateway, err := a.applyNATGateway(ctx, onmetalClient, namespace, cluster, network)
+	natGateway, err := a.applyNATGateway(ctx, config, onmetalClient, namespace, cluster, network)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 	return prefix, nil
 }
 
-func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
+func (a *actuator) applyNATGateway(ctx context.Context, config *api.InfrastructureConfig, onmetalClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
 	natGateway := &networkingv1alpha1.NATGateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "NATGateway",
@@ -130,6 +130,10 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 				Name: network.Name,
 			},
 		},
+	}
+
+	if ports := config.NATPortsPerNetworkInterface; ports != nil {
+		natGateway.Spec.PortsPerNetworkInterface = ports
 	}
 
 	natGateway.Spec.NetworkInterfaceSelector = &metav1.LabelSelector{
