@@ -34,15 +34,16 @@ import (
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 const (
@@ -265,22 +266,22 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		}
 	}
 	values := make(map[string]interface{})
-	if providerConfig.StorageClasses != nil && len(providerConfig.StorageClasses) != 0 {
-		allSc := make([]map[string]interface{}, len(providerConfig.StorageClasses))
-		for i, sc := range providerConfig.StorageClasses {
-			var storageClassValues = map[string]interface{}{
-				"name": sc.Name,
-				"type": sc.Type,
-			}
-
-			if sc.Default != nil && *sc.Default {
-				storageClassValues["default"] = true
-			}
-
-			allSc[i] = storageClassValues
-		}
-		values["storageClasses"] = allSc
+	allScs := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.AdditionalStorageClasses)+1)
+	if (apisonmetal.StorageClass{} != providerConfig.StorageClasses.DefaultStorageClass) {
+		allScs = append(allScs, map[string]interface{}{
+			"name":    providerConfig.StorageClasses.DefaultStorageClass.Name,
+			"type":    providerConfig.StorageClasses.DefaultStorageClass.Type,
+			"default": true,
+		})
 	}
+	for _, sc := range providerConfig.StorageClasses.AdditionalStorageClasses {
+		allScs = append(allScs, map[string]interface{}{
+			"name": sc.Name,
+			"type": sc.Type,
+		})
+	}
+
+	values["storageClasses"] = allScs
 
 	return values, nil
 }

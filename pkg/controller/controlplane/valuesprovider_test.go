@@ -24,11 +24,6 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -40,6 +35,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
@@ -139,15 +140,20 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
-				StorageClasses: []apisonmetal.StorageClassDefinition{
-					{
-						Name:    "foo",
-						Type:    "volumeTypeFoo",
-						Default: pointer.Bool(true),
+				StorageClasses: apisonmetal.StorageClasses{
+					DefaultStorageClass: apisonmetal.StorageClass{
+						Name: "foo",
+						Type: "volumeTypeFoo",
 					},
-					{
-						Name: "bar",
-						Type: "volumeTypeBar",
+					AdditionalStorageClasses: []apisonmetal.StorageClass{
+						{
+							Name: "foo1",
+							Type: "volumeTypeFoo",
+						},
+						{
+							Name: "bar",
+							Type: "volumeTypeBar",
+						},
 					},
 				},
 			}
@@ -174,6 +180,10 @@ var _ = Describe("Valueprovider Reconcile", func() {
 						"default": true,
 					},
 					{
+						"name": "foo1",
+						"type": "volumeTypeFoo",
+					},
+					{
 						"name": "bar",
 						"type": "volumeTypeBar",
 					},
@@ -193,15 +203,16 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	Describe("#GetControlPlaneShootChartValues", func() {
 		It("should return correct config chart values", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
-				StorageClasses: []apisonmetal.StorageClassDefinition{
-					{
-						Name:    "foo",
-						Type:    "volumeTypeFoo",
-						Default: pointer.Bool(true),
+				StorageClasses: apisonmetal.StorageClasses{
+					DefaultStorageClass: apisonmetal.StorageClass{
+						Name: "foo",
+						Type: "volumeTypeFoo",
 					},
-					{
-						Name: "bar",
-						Type: "volumeTypeBar",
+					AdditionalStorageClasses: []apisonmetal.StorageClass{
+						{
+							Name: "bar",
+							Type: "volumeTypeBar",
+						},
 					},
 				},
 			}
@@ -281,15 +292,16 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				},
 			}
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
-				StorageClasses: []apisonmetal.StorageClassDefinition{
-					{
-						Name:    "foo",
-						Type:    "volumeTypeFoo",
-						Default: pointer.Bool(true),
+				StorageClasses: apisonmetal.StorageClasses{
+					DefaultStorageClass: apisonmetal.StorageClass{
+						Name: "foo",
+						Type: "volumeTypeFoo",
 					},
-					{
-						Name: "bar",
-						Type: "volumeTypeBar",
+					AdditionalStorageClasses: []apisonmetal.StorageClass{
+						{
+							Name: "bar",
+							Type: "volumeTypeBar",
+						},
 					},
 				},
 			}
