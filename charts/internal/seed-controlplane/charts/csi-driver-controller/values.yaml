@@ -30,12 +30,6 @@ resources:
       memory: 50Mi
     limits:
       memory: 210Mi
-  resizer:
-    requests:
-      cpu: 10m
-      memory: 32Mi
-    limits:
-      memory: 200Mi
   livenessProbe:
     requests:
       cpu: 10m
@@ -57,10 +51,6 @@ vpa:
       maxAllowed:
         cpu: 500m
         memory: 4G
-    resizer:
-      maxAllowed:
-        cpu: 700m
-        memory: 3G
     livenessProbe:
       maxAllowed:
         cpu: 500m

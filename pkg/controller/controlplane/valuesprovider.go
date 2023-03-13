@@ -79,7 +79,6 @@ func shootAccessSecretsFunc(namespace string) []*gutil.ShootAccessSecret {
 		gutil.NewShootAccessSecret(cloudControllerManagerDeploymentName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIProvisionerName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIAttacherName, namespace),
-		gutil.NewShootAccessSecret(onmetal.CSIResizerName, namespace),
 		// TODO: This needs to be fixed!!!
 		//		 Since the csi controller needs to access the Node resources in the Shoot cluster,
 		//		 it should use the same ServiceAccount as the csi-driver-node in the Shoot. That way
@@ -117,7 +116,6 @@ var (
 					onmetal.CSIDriverImageName,
 					onmetal.CSIProvisionerImageName,
 					onmetal.CSIAttacherImageName,
-					onmetal.CSIResizerImageName,
 					onmetal.CSILivenessProbeImageName,
 				},
 				Objects: []*chart.Object{
@@ -170,11 +168,6 @@ var (
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
 					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
 					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-					// csi-resizer
-					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
 				},
 			},
 		},
