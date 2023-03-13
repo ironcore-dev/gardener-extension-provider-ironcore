@@ -25,7 +25,7 @@ images:
 - name: csi-driver
   sourceRepository: github.com/onmetal/onmetal-csi-driver
   repository: ghcr.io/onmetal/onmetal-csi-driver
-  tag: "sha-9dfa031"
+  tag: "sha-41fc54b"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -55,20 +55,6 @@ images:
   repository: registry.k8s.io/sig-storage/csi-attacher
   tag: "v4.2.0"
   targetVersion: ">= 1.22"
-  labels:
-  - name: 'gardener.cloud/cve-categorisation'
-    value:
-      network_exposure: 'private'
-      authentication_enforced: false
-      user_interaction: 'gardener-operator'
-      confidentiality_requirement: 'low'
-      integrity_requirement: 'high'
-      availability_requirement: 'low'
-- name: csi-resizer
-  sourceRepository: github.com/kubernetes-csi/external-resizer
-  repository: registry.k8s.io/sig-storage/csi-resizer
-  tag: "v1.7.0"
-  targetVersion: ">= 1.23"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
