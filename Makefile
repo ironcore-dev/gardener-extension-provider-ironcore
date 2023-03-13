@@ -51,7 +51,6 @@ DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ADDLICENSE ?= $(LOCALBIN)/addlicense
 GENERATE_CRDS ?= $(LOCALBIN)/generate-crds.sh
 
-
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
 CONTROLLER_TOOLS_VERSION ?= v0.11.3
@@ -59,6 +58,7 @@ GOLANGCI_LINT_VERSION ?= v1.51.2
 VGOPATH_VERSION ?= v0.0.2
 CODE_GENERATOR_VERSION ?= v0.26.2
 ADDLICENSE_VERSION ?= v1.1.1
+GOIMPORTS_VERSION ?= v0.5.0
 
 #########################################
 # Rules for local development scenarios #
@@ -118,10 +118,6 @@ clean: $(CLEAN)
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
 	$(CLEAN) ./cmd/... ./pkg/... ./test/...
 
-
-$(GOIMPORTS): go.mod
-	go build -o $(GOIMPORTS) golang.org/x/tools/cmd/goimports
-
 $(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERSION))
 	@# CGO_ENABLED has to be set to 1 in order for golangci-lint to be able to load plugins
 	@# see https://github.com/golangci/golangci-lint/issues/1276
@@ -136,7 +132,7 @@ check-license: addlicense ## Check that every file has a license header present.
 	find . -name '*.go' -exec $(ADDLICENSE) -check -c 'OnMetal authors' {} +
 
 .PHONY: check
-check: generate check-license lint test # Generate manifests, code, lint, add licenses, test
+check: generate add-license fmt lint test # Generate manifests, code, lint, add licenses, test
 
 .PHONY: generate
 generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen generate-crds
@@ -153,8 +149,8 @@ format: $(FORMAT)
 	$(FORMAT) ./cmd ./pkg ./test
 
 .PHONY: fmt
-fmt: ## Run go fmt against code.
-	go fmt ./...
+fmt: goimports ## Run goimports against code.
+	$(GOIMPORTS) -w .
 
 .PHONY: vet
 vet: ## Run go vet against code.
@@ -265,3 +261,8 @@ INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/maste
 $(INSTALL): $(LOCALBIN)
 	curl -Ss $(INSTALL_SCRIPT_URL) -o $(INSTALL)
 	chmod +x $(INSTALL)
+
+.PHONY: goimports
+goimports: $(GOIMPORTS) ## Download goimports locally if necessary.
+$(GOIMPORTS): $(LOCALBIN)
+	test -s $(LOCALBIN)/goimports || GOBIN=$(LOCALBIN) go install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION)
