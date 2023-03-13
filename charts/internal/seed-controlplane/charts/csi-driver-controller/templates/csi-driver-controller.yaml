@@ -48,10 +48,6 @@ spec:
           value: unix://{{ .Values.socketPath }}/csi.sock
         - name: APP_LOG_LEVEL
           value: "info"
-        - name: CSI_DRIVER_NAME
-          value: "csi.onmetal.de"
-        - name: CSI_DRIVER_VERSION
-          value: "0.1.0"
         - name: X_CSI_MODE
           value: controller
         - name: X_CSI_SPEC_DISABLE_LEN_CHECK
