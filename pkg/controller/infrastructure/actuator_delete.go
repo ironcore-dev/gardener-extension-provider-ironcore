@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
@@ -32,7 +34,7 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extension
 	log.V(2).Info("Deleting infrastructure")
 
 	// get onmetal credentials from infrastructure config
-	onmetalClient, namespace, err := a.getOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, infra)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), infra)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}

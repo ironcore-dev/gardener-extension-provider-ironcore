@@ -15,61 +15,12 @@
 package infrastructure
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
-	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-var onmetalScheme = runtime.NewScheme()
-
-func init() {
-	utilruntime.Must(networkingv1alpha1.AddToScheme(onmetalScheme))
-	utilruntime.Must(computev1alpha1.AddToScheme(onmetalScheme))
-	utilruntime.Must(storagev1alpha1.AddToScheme(onmetalScheme))
-	utilruntime.Must(ipamv1alpha1.AddToScheme(onmetalScheme))
-}
 
 type actuator struct {
 	common.RESTConfigContext
-}
-
-func (a *actuator) getOnmetalClientAndNamespaceFromCloudProviderSecret(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) (client.Client, string, error) {
-	secret := &corev1.Secret{}
-	secretKey := client.ObjectKey{Namespace: infra.Namespace, Name: v1beta1constants.SecretNameCloudProvider}
-	if err := a.Client().Get(ctx, secretKey, secret); err != nil {
-		return nil, "", fmt.Errorf("failed to get cloudprovider secret: %w", err)
-	}
-	kubeconfig, ok := secret.Data["kubeconfig"]
-	if !ok {
-		return nil, "", fmt.Errorf("could not find a kubeconfig in the cloudprovider secret")
-	}
-	namespace, ok := secret.Data["namespace"]
-	if !ok {
-		return nil, "", fmt.Errorf("could not find a namespace in the cloudprovider secret")
-	}
-	clientCfg, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to create rest config from cloudprovider secret: %w", err)
-	}
-	c, err := client.New(clientCfg, client.Options{Scheme: onmetalScheme})
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to create client from cloudprovider secret: %w", err)
-	}
-
-	return c, string(namespace), nil
 }
 
 // NewActuator creates a new infrastructure.Actuator.

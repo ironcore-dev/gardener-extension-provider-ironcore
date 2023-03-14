@@ -55,7 +55,7 @@ func InfrastructureConfigFromInfrastructure(infra *extensionsv1alpha1.Infrastruc
 		}
 		return config, nil
 	}
-	return nil, fmt.Errorf("provider config is not set on the infrastructure resource")
+	return &api.InfrastructureConfig{}, nil
 }
 
 // InfrastructureStatusFromRaw extracts the InfrastructureStatus from the
@@ -68,7 +68,7 @@ func InfrastructureStatusFromRaw(raw *runtime.RawExtension) (*api.Infrastructure
 		}
 		return config, nil
 	}
-	return nil, fmt.Errorf("provider status is not set on the infrastructure resource")
+	return &api.InfrastructureStatus{}, nil
 }
 
 // CloudProfileConfigFromCluster decodes the provider specific cloud profile configuration for a cluster
