@@ -23,7 +23,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/utils/pointer"
 )
 
 var _ = Describe("InfrastructureConfig validation", func() {
@@ -43,13 +42,13 @@ var _ = Describe("InfrastructureConfig validation", func() {
 
 	Describe("#ValidateInfrastructureConfig", func() {
 		It("should return no errors for a valid configuration", func() {
-			Expect(ValidateInfrastructureConfig(infra, pointer.String(""), pointer.String(""), pointer.String(""), fldPath)).To(BeEmpty())
+			Expect(ValidateInfrastructureConfig(infra, nil, nil, nil, fldPath)).To(BeEmpty())
 		})
 
 		It("should fail with invalid network reference", func() {
-			infra.NetworkRef.Name = ""
+			infra.NetworkRef.Name = "my%network"
 
-			errorList := ValidateInfrastructureConfig(infra, pointer.String(""), pointer.String(""), pointer.String(""), fldPath)
+			errorList := ValidateInfrastructureConfig(infra, nil, nil, nil, fldPath)
 
 			Expect(errorList).To(ConsistOf(
 				PointTo(MatchFields(IgnoreExtras, Fields{
