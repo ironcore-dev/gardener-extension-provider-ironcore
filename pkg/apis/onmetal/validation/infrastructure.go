@@ -15,13 +15,21 @@
 package validation
 
 import (
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
 
 // ValidateInfrastructureConfig validates a InfrastructureConfig object.
 func ValidateInfrastructureConfig(infra *apisonmetal.InfrastructureConfig, nodesCIDR, podsCIDR, servicesCIDR *string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
+
+	if infra.NetworkRef != nil {
+		for _, msg := range apivalidation.NameIsDNSLabel(infra.NetworkRef.Name, false) {
+			allErrs = append(allErrs, field.Invalid(fldPath.Child("networkRef").Child("name"), infra.NetworkRef.Name, msg))
+		}
+	}
 
 	return allErrs
 }
@@ -31,6 +39,7 @@ func ValidateInfrastructureConfigUpdate(oldConfig, newConfig *apisonmetal.Infras
 	var (
 		allErrs = field.ErrorList{}
 	)
+	allErrs = append(allErrs, apivalidation.ValidateImmutableField(newConfig.NetworkRef, oldConfig.NetworkRef, fldPath.Child("networkRef"))...)
 
 	return allErrs
 }
