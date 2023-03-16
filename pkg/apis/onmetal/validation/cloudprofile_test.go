@@ -16,13 +16,26 @@ package validation
 
 import (
 	"github.com/gardener/gardener/pkg/apis/core"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
+	"github.com/onsi/gomega/types"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
+
+func InvalidField(fld string) types.GomegaMatcher {
+	return SimpleMatchField(field.ErrorTypeInvalid, fld)
+}
+
+func SimpleMatchField(errorType field.ErrorType, fld string) types.GomegaMatcher {
+	return HaveValue(MatchFields(IgnoreExtras, Fields{
+		"Type":  Equal(errorType),
+		"Field": Equal(fld),
+	}))
+}
 
 var _ = Describe("CloudProfileConfig validation", func() {
 	Describe("#ValidateCloudProfileConfig", func() {
@@ -50,15 +63,20 @@ var _ = Describe("CloudProfileConfig validation", func() {
 						},
 					},
 				},
-				StorageClasses: []apisonmetal.StorageClassDefinition{
-					{
-						Name:    "foo",
-						Default: pointer.Bool(true),
-						Type:    "fooType",
+				StorageClasses: apisonmetal.StorageClasses{
+					DefaultStorageClass: &apisonmetal.StorageClass{
+						Name: "default",
+						Type: "defaultType",
 					},
-					{
-						Name: "bar",
-						Type: "barType",
+					AdditionalStorageClasses: []apisonmetal.StorageClass{
+						{
+							Name: "foo",
+							Type: "fooType",
+						},
+						{
+							Name: "bar",
+							Type: "barType",
+						},
 					},
 				},
 			}
@@ -132,18 +150,40 @@ var _ = Describe("CloudProfileConfig validation", func() {
 			})
 		})
 
-		Describe("should validate storage classes", func() {
-			It("should forbid more than one default storage class", func() {
-				cloudProfileConfig.StorageClasses[1].Default = pointer.Bool(true)
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
+		DescribeTable("ValidateCloudProfileConfig StorageClass name",
+			func(cpConfig *apisonmetal.CloudProfileConfig, machineImages []core.MachineImage, fldPath *field.Path, match types.GomegaMatcher) {
+				errList := ValidateCloudProfileConfig(cpConfig, machineImages, fldPath)
+				Expect(errList).To(match)
+			},
+			Entry("invalid storageClass name in default StorageClass",
+				&apisonmetal.CloudProfileConfig{
+					StorageClasses: apisonmetal.StorageClasses{
+						DefaultStorageClass: &apisonmetal.StorageClass{
+							Name: "foo*",
+							Type: "defaultType",
+						},
+					},
+				},
+				machineImages,
+				nilPath,
+				ContainElement(InvalidField("storageClasses.defaultStorageClasses.name")),
+			),
+			Entry("invalid storageClass name in additional storageClasses",
+				&apisonmetal.CloudProfileConfig{
+					StorageClasses: apisonmetal.StorageClasses{
+						AdditionalStorageClasses: []apisonmetal.StorageClass{
+							{
+								Name: "foo*",
+								Type: "defaultType",
+							},
+						},
+					},
+				},
+				machineImages,
+				nilPath,
+				ContainElement(InvalidField("storageClasses.additionalStorageClasses[0].name")),
+			),
+		)
 
-				Expect(errorList).To(ConsistOf(
-					PointTo(MatchFields(IgnoreExtras, Fields{
-						"Type":  Equal(field.ErrorTypeInvalid),
-						"Field": Equal("storageClasses[1].default"),
-					})),
-				))
-			})
-		})
 	})
 })

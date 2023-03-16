@@ -88,9 +88,12 @@ spec:
       certificateAuthorityData: >-
         abcd12345
     storageClasses:
-      - name: default         # name of the StorageClass in the Shoot
-        type: general-purpose # name of the VolumeClass
-        default: true         # should this StorageClass be marked as default
+      default:                 # default StorageClass for shoot
+        name: default          # name of the StorageClass in the Shoot
+        type: general-purpose  # name of the VolumeClass
+      additional:              # additional StorageClasses for shoot
+      - name: additional-sc    # name of the StorageClass in the Shoot
+        type: general-purpose  # name of the VolumeClass
     machineImages:
       - name: gardenlinux
         versions:

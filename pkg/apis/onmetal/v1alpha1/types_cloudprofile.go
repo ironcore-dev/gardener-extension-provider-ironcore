@@ -30,18 +30,25 @@ type CloudProfileConfig struct {
 	MachineImages []MachineImages `json:"machineImages"`
 	// RegionConfigs is the list of supported regions.
 	RegionConfigs []RegionConfig `json:"regionConfigs,omitempty"`
-	// StorageClasses defines the storage classes for the shoot
+	// StorageClasses defines the DefaultStrorageClass and AdditionalStoreClasses for the shoot
 	// +optional
-	StorageClasses []StorageClassDefinition `json:"storageClasses,omitempty"`
+	StorageClasses StorageClasses `json:"storageClasses,omitempty"`
 }
 
-// StorageClassDefinition is a definition of a storageClass
-type StorageClassDefinition struct {
+// StorageClasses is a definition of a storageClasses
+type StorageClasses struct {
+	// DefaultStorageClass defines the default storage class for the shoot
+	// +optional
+	DefaultStorageClass *StorageClass `json:"defaultStorageClass,omitempty"`
+	// AdditionalStorageClasses defines the additional storage classes for the shoot
+	// +optional
+	AdditionalStorageClasses []StorageClass `json:"additionalStorageClasses,omitempty"`
+}
+
+// StorageClass is a definition of a storageClass
+type StorageClass struct {
 	// Name is the name of the storageclass
 	Name string `json:"name"`
-	// Default set the storageclass to the default one
-	// +optional
-	Default *bool `json:"default,omitempty"`
 	// Type is referring to the VolumeClass to use for this StorageClass
 	Type string `json:"type"`
 }

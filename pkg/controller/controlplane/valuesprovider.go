@@ -34,15 +34,17 @@ import (
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 const (
@@ -261,26 +263,32 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	providerConfig := apisonmetal.CloudProfileConfig{}
 	if config := cluster.CloudProfile.Spec.ProviderConfig; config != nil {
 		if _, _, err := vp.Decoder().Decode(config.Raw, nil, &providerConfig); err != nil {
-			return nil, fmt.Errorf("could not decode cloudprofile providerConfig for controlplane '%s': %w", kutil.ObjectName(controlPlane), err)
+			return nil, fmt.Errorf("could not decode cloudprofile providerConfig for controlplane '%s': %w", client.ObjectKeyFromObject(controlPlane), err)
 		}
 	}
+
 	values := make(map[string]interface{})
-	if providerConfig.StorageClasses != nil && len(providerConfig.StorageClasses) != 0 {
-		allSc := make([]map[string]interface{}, len(providerConfig.StorageClasses))
-		for i, sc := range providerConfig.StorageClasses {
-			var storageClassValues = map[string]interface{}{
-				"name": sc.Name,
-				"type": sc.Type,
-			}
-
-			if sc.Default != nil && *sc.Default {
-				storageClassValues["default"] = true
-			}
-
-			allSc[i] = storageClassValues
-		}
-		values["storageClasses"] = allSc
+	var defaultStorageClass int
+	if providerConfig.StorageClasses.DefaultStorageClass != nil {
+		defaultStorageClass++
 	}
+
+	storageClasses := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.AdditionalStorageClasses)+defaultStorageClass)
+	if providerConfig.StorageClasses.DefaultStorageClass != nil {
+		storageClasses = append(storageClasses, map[string]interface{}{
+			StorageClassNameKeyName:    providerConfig.StorageClasses.DefaultStorageClass.Name,
+			StorageClassTypeKeyName:    providerConfig.StorageClasses.DefaultStorageClass.Type,
+			StorageClassDefaultKeyName: true,
+		})
+	}
+	for _, sc := range providerConfig.StorageClasses.AdditionalStorageClasses {
+		storageClasses = append(storageClasses, map[string]interface{}{
+			StorageClassNameKeyName: sc.Name,
+			StorageClassTypeKeyName: sc.Type,
+		})
+	}
+
+	values["storageClasses"] = storageClasses
 
 	return values, nil
 }

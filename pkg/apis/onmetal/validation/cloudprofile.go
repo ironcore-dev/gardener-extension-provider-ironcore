@@ -20,10 +20,11 @@ import (
 	gardenercore "github.com/gardener/gardener/pkg/apis/core"
 	gardenercorehelper "github.com/gardener/gardener/pkg/apis/core/helper"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/utils/pointer"
 	"k8s.io/utils/strings/slices"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
 
 // ValidateCloudProfileConfig validates a CloudProfileConfig object.
@@ -45,14 +46,15 @@ func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machin
 		}
 	}
 
-	var foundDefaultStorageClass bool
-	for _, sc := range cpConfig.StorageClasses {
-		if pointer.BoolDeref(sc.Default, false) && !foundDefaultStorageClass {
-			foundDefaultStorageClass = true
-			continue
+	if cpConfig.StorageClasses.DefaultStorageClass != nil {
+		for _, msg := range apivalidation.NameIsDNSLabel(cpConfig.StorageClasses.DefaultStorageClass.Name, false) {
+			allErrs = append(allErrs, field.Invalid(fldPath.Child("storageClasses").Child("defaultStorageClasses").Child("name"), cpConfig.StorageClasses.DefaultStorageClass.Name, msg))
 		}
-		if pointer.BoolDeref(sc.Default, false) && foundDefaultStorageClass {
-			allErrs = append(allErrs, field.Invalid(fldPath.Child("storageClasses").Index(1).Child("default"), sc.Default, "only one default storage class is allowed"))
+	}
+
+	for i, sc := range cpConfig.StorageClasses.AdditionalStorageClasses {
+		for _, msg := range apivalidation.NameIsDNSLabel(sc.Name, false) {
+			allErrs = append(allErrs, field.Invalid(fldPath.Child("storageClasses").Child("additionalStorageClasses").Index(i).Child("name"), sc.Name, msg))
 		}
 	}
 
