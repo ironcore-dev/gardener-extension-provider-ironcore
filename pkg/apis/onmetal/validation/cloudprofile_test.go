@@ -64,7 +64,7 @@ var _ = Describe("CloudProfileConfig validation", func() {
 					},
 				},
 				StorageClasses: apisonmetal.StorageClasses{
-					DefaultStorageClass: apisonmetal.StorageClass{
+					DefaultStorageClass: &apisonmetal.StorageClass{
 						Name: "default",
 						Type: "defaultType",
 					},
@@ -158,7 +158,7 @@ var _ = Describe("CloudProfileConfig validation", func() {
 			Entry("invalid storageClass name in default StorageClass",
 				&apisonmetal.CloudProfileConfig{
 					StorageClasses: apisonmetal.StorageClasses{
-						DefaultStorageClass: apisonmetal.StorageClass{
+						DefaultStorageClass: &apisonmetal.StorageClass{
 							Name: "foo*",
 							Type: "defaultType",
 						},

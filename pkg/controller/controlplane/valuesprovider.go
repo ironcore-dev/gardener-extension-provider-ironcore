@@ -40,6 +40,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
@@ -262,26 +263,32 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	providerConfig := apisonmetal.CloudProfileConfig{}
 	if config := cluster.CloudProfile.Spec.ProviderConfig; config != nil {
 		if _, _, err := vp.Decoder().Decode(config.Raw, nil, &providerConfig); err != nil {
-			return nil, fmt.Errorf("could not decode cloudprofile providerConfig for controlplane '%s': %w", kutil.ObjectName(controlPlane), err)
+			return nil, fmt.Errorf("could not decode cloudprofile providerConfig for controlplane '%s': %w", client.ObjectKeyFromObject(controlPlane), err)
 		}
 	}
+
 	values := make(map[string]interface{})
-	allScs := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.AdditionalStorageClasses)+1)
-	if (apisonmetal.StorageClass{} != providerConfig.StorageClasses.DefaultStorageClass) {
-		allScs = append(allScs, map[string]interface{}{
-			"name":    providerConfig.StorageClasses.DefaultStorageClass.Name,
-			"type":    providerConfig.StorageClasses.DefaultStorageClass.Type,
-			"default": true,
+	var defaultStorageClass int
+	if providerConfig.StorageClasses.DefaultStorageClass != nil {
+		defaultStorageClass++
+	}
+
+	storageClasses := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.AdditionalStorageClasses)+defaultStorageClass)
+	if providerConfig.StorageClasses.DefaultStorageClass != nil {
+		storageClasses = append(storageClasses, map[string]interface{}{
+			StorageClassNameKeyName:    providerConfig.StorageClasses.DefaultStorageClass.Name,
+			StorageClassTypeKeyName:    providerConfig.StorageClasses.DefaultStorageClass.Type,
+			StorageClassDefaultKeyName: true,
 		})
 	}
 	for _, sc := range providerConfig.StorageClasses.AdditionalStorageClasses {
-		allScs = append(allScs, map[string]interface{}{
-			"name": sc.Name,
-			"type": sc.Type,
+		storageClasses = append(storageClasses, map[string]interface{}{
+			StorageClassNameKeyName: sc.Name,
+			StorageClassTypeKeyName: sc.Type,
 		})
 	}
 
-	values["storageClasses"] = allScs
+	values["storageClasses"] = storageClasses
 
 	return values, nil
 }

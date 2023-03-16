@@ -20,7 +20,6 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
@@ -116,43 +115,43 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	})
 
 	Describe("#GetStorageClassesChartValues", func() {
-		It("should return correct config chart values", func() {
-			cp := &extensionsv1alpha1.ControlPlane{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "control-plane",
-					Namespace: ns.Name,
-				},
-				Spec: extensionsv1alpha1.ControlPlaneSpec{
-					SecretRef: corev1.SecretReference{
-						Name:      v1beta1constants.SecretNameCloudProvider,
-						Namespace: ns.Name,
-					},
-					DefaultSpec: extensionsv1alpha1.DefaultSpec{
+		It("should return an empty config chart value map if not storageclasses are present in the cloudprofile", func() {
+			providerCloudProfile := &apisonmetal.CloudProfileConfig{}
+			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
+			Expect(err).NotTo(HaveOccurred())
+
+			cluster := &controller.Cluster{
+				CloudProfile: &gardencorev1beta1.CloudProfile{
+					Spec: gardencorev1beta1.CloudProfileSpec{
 						ProviderConfig: &runtime.RawExtension{
-							Raw: []byte("{}"),
+							Raw: providerCloudProfileJson,
 						},
-					},
-					Region: "foo",
-					InfrastructureProviderStatus: &runtime.RawExtension{
-						Raw: []byte("{}"),
 					},
 				},
 			}
 
+			values, err := vp.GetStorageClassesChartValues(ctx, nil, cluster)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(values).To(Equal(map[string]interface{}{
+				"storageClasses": []map[string]interface{}{},
+			}))
+		})
+
+		It("should return correct config chart values if default and additional storage classes are present in the cloudprofile", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
-					DefaultStorageClass: apisonmetal.StorageClass{
+					DefaultStorageClass: &apisonmetal.StorageClass{
 						Name: "foo",
 						Type: "volumeTypeFoo",
 					},
 					AdditionalStorageClasses: []apisonmetal.StorageClass{
 						{
 							Name: "foo1",
-							Type: "volumeTypeFoo",
+							Type: "volumeTypeFoo1",
 						},
 						{
-							Name: "bar",
-							Type: "volumeTypeBar",
+							Name: "foo2",
+							Type: "volumeTypeFoo2",
 						},
 					},
 				},
@@ -170,7 +169,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				},
 			}
 
-			values, err := vp.GetStorageClassesChartValues(ctx, cp, cluster)
+			values, err := vp.GetStorageClassesChartValues(ctx, nil, cluster)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(map[string]interface{}{
 				"storageClasses": []map[string]interface{}{
@@ -181,11 +180,55 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					},
 					{
 						"name": "foo1",
-						"type": "volumeTypeFoo",
+						"type": "volumeTypeFoo1",
 					},
 					{
-						"name": "bar",
-						"type": "volumeTypeBar",
+						"name": "foo2",
+						"type": "volumeTypeFoo2",
+					},
+				},
+			}))
+		})
+
+		It("should return correct config chart values if only additional storage classes are present in the cloudprofile", func() {
+			providerCloudProfile := &apisonmetal.CloudProfileConfig{
+				StorageClasses: apisonmetal.StorageClasses{
+					AdditionalStorageClasses: []apisonmetal.StorageClass{
+						{
+							Name: "foo1",
+							Type: "volumeTypeFoo1",
+						},
+						{
+							Name: "foo2",
+							Type: "volumeTypeFoo2",
+						},
+					},
+				},
+			}
+			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
+			Expect(err).NotTo(HaveOccurred())
+
+			cluster := &controller.Cluster{
+				CloudProfile: &gardencorev1beta1.CloudProfile{
+					Spec: gardencorev1beta1.CloudProfileSpec{
+						ProviderConfig: &runtime.RawExtension{
+							Raw: providerCloudProfileJson,
+						},
+					},
+				},
+			}
+
+			values, err := vp.GetStorageClassesChartValues(ctx, nil, cluster)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(values).To(Equal(map[string]interface{}{
+				"storageClasses": []map[string]interface{}{
+					{
+						"name": "foo1",
+						"type": "volumeTypeFoo1",
+					},
+					{
+						"name": "foo2",
+						"type": "volumeTypeFoo2",
 					},
 				},
 			}))
@@ -204,7 +247,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 		It("should return correct config chart values", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
-					DefaultStorageClass: apisonmetal.StorageClass{
+					DefaultStorageClass: &apisonmetal.StorageClass{
 						Name: "foo",
 						Type: "volumeTypeFoo",
 					},
@@ -293,7 +336,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
-					DefaultStorageClass: apisonmetal.StorageClass{
+					DefaultStorageClass: &apisonmetal.StorageClass{
 						Name: "foo",
 						Type: "volumeTypeFoo",
 					},
