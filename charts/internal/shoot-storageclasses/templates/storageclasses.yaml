@@ -13,7 +13,7 @@ metadata:
     {{- end }}
 parameters:
   type: {{ $value.type }}
-allowVolumeExpansion: true
+allowVolumeExpansion: false
 provisioner: csi.onmetal.de
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
