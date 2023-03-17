@@ -390,8 +390,8 @@ func Convert_onmetal_StorageClass_To_v1alpha1_StorageClass(in *onmetal.StorageCl
 }
 
 func autoConvert_v1alpha1_StorageClasses_To_onmetal_StorageClasses(in *StorageClasses, out *onmetal.StorageClasses, s conversion.Scope) error {
-	out.DefaultStorageClass = (*onmetal.StorageClass)(unsafe.Pointer(in.DefaultStorageClass))
-	out.AdditionalStorageClasses = *(*[]onmetal.StorageClass)(unsafe.Pointer(&in.AdditionalStorageClasses))
+	out.Default = (*onmetal.StorageClass)(unsafe.Pointer(in.Default))
+	out.Additional = *(*[]onmetal.StorageClass)(unsafe.Pointer(&in.Additional))
 	return nil
 }
 
@@ -401,8 +401,8 @@ func Convert_v1alpha1_StorageClasses_To_onmetal_StorageClasses(in *StorageClasse
 }
 
 func autoConvert_onmetal_StorageClasses_To_v1alpha1_StorageClasses(in *onmetal.StorageClasses, out *StorageClasses, s conversion.Scope) error {
-	out.DefaultStorageClass = (*StorageClass)(unsafe.Pointer(in.DefaultStorageClass))
-	out.AdditionalStorageClasses = *(*[]StorageClass)(unsafe.Pointer(&in.AdditionalStorageClasses))
+	out.Default = (*StorageClass)(unsafe.Pointer(in.Default))
+	out.Additional = *(*[]StorageClass)(unsafe.Pointer(&in.Additional))
 	return nil
 }
 
