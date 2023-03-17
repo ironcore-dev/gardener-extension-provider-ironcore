@@ -36,10 +36,10 @@ type CloudProfileConfig struct {
 
 // StorageClasses is a definition of a storageClasses
 type StorageClasses struct {
-	// DefaultStorageClass defines the default storage class for the shoot
-	DefaultStorageClass *StorageClass
-	// AdditionalStorageClasses defines the additional storage classes for the shoot
-	AdditionalStorageClasses []StorageClass
+	// Default defines the default storage class for the shoot
+	Default *StorageClass
+	// Additional defines the additional storage classes for the shoot
+	Additional []StorageClass
 }
 
 // StorageClass is the definition of a storageClass

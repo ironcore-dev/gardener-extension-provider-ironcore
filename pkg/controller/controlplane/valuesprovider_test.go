@@ -140,11 +140,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 		It("should return correct config chart values if default and additional storage classes are present in the cloudprofile", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
-					DefaultStorageClass: &apisonmetal.StorageClass{
+					Default: &apisonmetal.StorageClass{
 						Name: "foo",
 						Type: "volumeTypeFoo",
 					},
-					AdditionalStorageClasses: []apisonmetal.StorageClass{
+					Additional: []apisonmetal.StorageClass{
 						{
 							Name: "foo1",
 							Type: "volumeTypeFoo1",
@@ -193,7 +193,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 		It("should return correct config chart values if only additional storage classes are present in the cloudprofile", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
-					AdditionalStorageClasses: []apisonmetal.StorageClass{
+					Additional: []apisonmetal.StorageClass{
 						{
 							Name: "foo1",
 							Type: "volumeTypeFoo1",
@@ -247,11 +247,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 		It("should return correct config chart values", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
-					DefaultStorageClass: &apisonmetal.StorageClass{
+					Default: &apisonmetal.StorageClass{
 						Name: "foo",
 						Type: "volumeTypeFoo",
 					},
-					AdditionalStorageClasses: []apisonmetal.StorageClass{
+					Additional: []apisonmetal.StorageClass{
 						{
 							Name: "bar",
 							Type: "volumeTypeBar",
@@ -336,11 +336,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
-					DefaultStorageClass: &apisonmetal.StorageClass{
+					Default: &apisonmetal.StorageClass{
 						Name: "foo",
 						Type: "volumeTypeFoo",
 					},
-					AdditionalStorageClasses: []apisonmetal.StorageClass{
+					Additional: []apisonmetal.StorageClass{
 						{
 							Name: "bar",
 							Type: "volumeTypeBar",

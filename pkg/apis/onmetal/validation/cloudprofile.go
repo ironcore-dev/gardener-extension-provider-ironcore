@@ -46,13 +46,13 @@ func ValidateCloudProfileConfig(cpConfig *apisonmetal.CloudProfileConfig, machin
 		}
 	}
 
-	if cpConfig.StorageClasses.DefaultStorageClass != nil {
-		for _, msg := range apivalidation.NameIsDNSLabel(cpConfig.StorageClasses.DefaultStorageClass.Name, false) {
-			allErrs = append(allErrs, field.Invalid(fldPath.Child("storageClasses").Child("defaultStorageClasses").Child("name"), cpConfig.StorageClasses.DefaultStorageClass.Name, msg))
+	if cpConfig.StorageClasses.Default != nil {
+		for _, msg := range apivalidation.NameIsDNSLabel(cpConfig.StorageClasses.Default.Name, false) {
+			allErrs = append(allErrs, field.Invalid(fldPath.Child("storageClasses").Child("defaultStorageClasses").Child("name"), cpConfig.StorageClasses.Default.Name, msg))
 		}
 	}
 
-	for i, sc := range cpConfig.StorageClasses.AdditionalStorageClasses {
+	for i, sc := range cpConfig.StorageClasses.Additional {
 		for _, msg := range apivalidation.NameIsDNSLabel(sc.Name, false) {
 			allErrs = append(allErrs, field.Invalid(fldPath.Child("storageClasses").Child("additionalStorageClasses").Index(i).Child("name"), sc.Name, msg))
 		}
