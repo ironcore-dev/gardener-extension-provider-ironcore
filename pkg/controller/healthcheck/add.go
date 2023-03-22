@@ -28,6 +28,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -75,7 +76,9 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
 				HealthCheck:   general.CheckManagedResource(genericcontrolplaneactuator.StorageClassesChartResourceName),
 			},
-		}); err != nil {
+		},
+		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy),
+	); err != nil {
 		return err
 	}
 
@@ -100,7 +103,8 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
 				HealthCheck:   worker.NewNodesChecker(),
 			},
-		})
+		},
+		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy))
 }
 
 // AddToManager adds a controller with the default Options.
