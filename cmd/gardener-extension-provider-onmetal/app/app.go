@@ -32,6 +32,7 @@ import (
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
+	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
 	infrastructurecontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
 	workercontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
@@ -183,6 +184,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)
 			}
+			onmetalcontrolplane.DefaultAddOptions.WebhookServerNamespace = webhookOptions.Server.Namespace
 
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
 				return fmt.Errorf("could not add controllers to manager: %w", err)
