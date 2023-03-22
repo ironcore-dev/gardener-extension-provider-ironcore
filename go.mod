@@ -28,7 +28,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.5
 )
 
-replace k8s.io/client-go => k8s.io/client-go v0.26.2
+replace k8s.io/client-go => k8s.io/client-go v0.26.3
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
