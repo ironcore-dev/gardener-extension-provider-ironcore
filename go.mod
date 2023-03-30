@@ -8,7 +8,7 @@ require (
 	github.com/gardener/etcd-druid/api v0.6.0
 	github.com/gardener/gardener v1.66.1
 	github.com/gardener/machine-controller-manager v0.45.0
-	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
 	github.com/onmetal/controller-utils v0.7.0
 	github.com/onmetal/onmetal-api v0.1.0
