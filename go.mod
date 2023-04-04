@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid/api v0.6.0
-	github.com/gardener/gardener v1.67.1
+	github.com/gardener/gardener v1.67.2
 	github.com/gardener/machine-controller-manager v0.48.2
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
