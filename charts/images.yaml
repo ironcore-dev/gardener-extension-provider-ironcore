@@ -16,11 +16,29 @@ images:
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
-  tag: "v0.48.1"
+  tag: "v0.48.2"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'gardener-operator'
+      confidentiality_requirement: 'high'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: machine-controller-manager-provider-onmetal
   sourceRepository: github.com/onmetal/machine-controller-manager-provider-onmetal
   repository: ghcr.io/onmetal/machine-controller-manager-provider-onmetal
   tag: "v0.1.2"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'gardener-operator'
+      confidentiality_requirement: 'high'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 
 - name: csi-driver
   sourceRepository: github.com/onmetal/onmetal-csi-driver
@@ -40,7 +58,7 @@ images:
   sourceRepository: github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
   tag: "v3.4.0"
-  targetVersion: ">= 1.26"
+  targetVersion: ">= 1.22"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -67,7 +85,7 @@ images:
 - name: csi-node-driver-registrar
   sourceRepository: github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-  tag: "v2.6.3"
+  tag: "v2.7.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
