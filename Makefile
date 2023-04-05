@@ -163,6 +163,7 @@ lint: ## Run golangci-lint on the code.
 .PHONY: test
 test: generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	go mod tidy
 
 .PHONY: test-clean
 test-clean: $(TEST_CLEAN)
