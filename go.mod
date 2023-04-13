@@ -11,7 +11,7 @@ require (
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
 	github.com/onmetal/controller-utils v0.7.0
-	github.com/onmetal/onmetal-api v0.1.0
+	github.com/onmetal/onmetal-api v0.1.1
 	github.com/onsi/ginkgo/v2 v2.9.2
 	github.com/onsi/gomega v1.27.6
 	github.com/spf13/cobra v1.7.0
@@ -87,7 +87,7 @@ require (
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
@@ -103,7 +103,7 @@ require (
 	istio.io/client-go v1.17.1 // indirect
 	k8s.io/apiserver v0.26.3 // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
-	k8s.io/klog/v2 v2.80.1 // indirect
+	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-aggregator v0.26.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20230109183929-3758b55a6596 // indirect
 	k8s.io/metrics v0.26.2 // indirect
