@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: {{ include "name" . }}
   namespace: {{ .Release.Namespace }}
+  {{- if .Values.global.service.topologyAwareRouting.enabled }}
+  annotations:
+    service.kubernetes.io/topology-aware-hints: "auto"
+  {{- end }}
   labels:
 {{ include "labels" . | indent 4 }}
 spec:

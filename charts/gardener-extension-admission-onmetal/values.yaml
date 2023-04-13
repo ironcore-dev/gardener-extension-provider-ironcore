@@ -43,3 +43,6 @@ global:
     enabled: false
     expirationSeconds: 43200
     audience: ""
+  service:
+    topologyAwareRouting:
+      enabled: false
