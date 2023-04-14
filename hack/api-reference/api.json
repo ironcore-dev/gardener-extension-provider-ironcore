@@ -9,7 +9,11 @@
     "externalPackages": [
         {
             "typeMatchPrefix": "^k8s\\.io/(api|apimachinery/pkg/apis)/",
-            "docsURLTemplate": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#{{lower .TypeIdentifier}}-{{arrIndex .PackageSegments -1}}-{{arrIndex .PackageSegments -2}}"
+            "docsURLTemplate": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#{{lower .TypeIdentifier}}-{{arrIndex .PackageSegments -1}}-{{arrIndex .PackageSegments -2}}"
+        },
+        {
+            "typeMatchPrefix": "^github\\.com/onmetal/onmetal-api/api/common/v1alpha1\\.LocalUIDReference",
+            "docsURLTemplate": "https://github.com/onmetal/onmetal-api/blob/main/docs/api-reference/common.md#localuidreference"
         }
     ],
     "typeDisplayNamePrefixOverrides": {
