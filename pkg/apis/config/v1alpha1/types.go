@@ -43,6 +43,9 @@ type ControllerConfiguration struct {
 	// Default: nil
 	// +optional
 	FeatureGates map[string]bool `json:"featureGates,omitempty"`
+	// BastionConfig is the config for the Bastion
+	// +optional
+	BastionConfig *BastionConfig `json:"bastionConfig,omitempty"`
 }
 
 // ETCD is an etcd configuration.
@@ -68,4 +71,12 @@ type ETCDBackup struct {
 	// Schedule is the etcd backup schedule.
 	// +optional
 	Schedule *string `json:"schedule,omitempty"`
+}
+
+// BastionConfig is the config for the Bastion
+type BastionConfig struct {
+	// Image is the URL pointing to an OCI registry containing the operating system image which should be used to boot the Bastion Machine
+	Image string `json:"image,omitempty"`
+	// MachineClassName the name of the OnMetal MachineClass
+	MachineClassName string `json:"machineClassName,omitempty"`
 }
