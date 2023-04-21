@@ -13,3 +13,17 @@
 // limitations under the License.
 
 package bastion
+
+import (
+	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
+	"github.com/gardener/gardener/extensions/pkg/controller/common"
+)
+
+type actuator struct {
+	common.RESTConfigContext
+}
+
+// NewActuator creates a new bastion.Actuator.
+func NewActuator() bastion.Actuator {
+	return &actuator{}
+}

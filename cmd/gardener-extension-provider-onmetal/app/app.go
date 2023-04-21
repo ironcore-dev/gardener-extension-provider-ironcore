@@ -30,13 +30,6 @@ import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
-	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
-	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
-	infrastructurecontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
-	workercontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
@@ -44,6 +37,15 @@ import (
 	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
+	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
+	bastioncontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
+	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
+	infrastructurecontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
+	workercontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 // NewControllerManagerCommand creates a new command for running a onmetal provider controller.
@@ -100,6 +102,11 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			Namespace: os.Getenv("WEBHOOK_CONFIG_NAMESPACE"),
 		}
 
+		// options for the bastion controller
+		bastionCtrlOpts = &controllercmd.ControllerOptions{
+			MaxConcurrentReconciles: 5,
+		}
+
 		controllerSwitches = onmetalcmd.ControllerSwitchOptions()
 		webhookSwitches    = onmetalcmd.WebhookSwitchOptions()
 		webhookOptions     = webhookcmd.NewAddToManagerOptions(
@@ -119,6 +126,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			controllercmd.PrefixOption("worker-", &workerCtrlOptsUnprefixed),
 			controllercmd.PrefixOption("healthcheck-", healthCheckCtrlOpts),
 			controllercmd.PrefixOption("heartbeat-", heartbeatCtrlOpts),
+			controllercmd.PrefixOption("bastion-", bastionCtrlOpts),
 			configFileOpts,
 			controllerSwitches,
 			reconcileOpts,
@@ -180,6 +188,8 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&workercontroller.DefaultAddOptions.Controller)
+			bastionCtrlOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.Controller)
+			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)

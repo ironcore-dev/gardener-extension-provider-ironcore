@@ -13,3 +13,16 @@
 // limitations under the License.
 
 package bastion
+
+import (
+	"context"
+
+	"github.com/gardener/gardener/extensions/pkg/controller"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/go-logr/logr"
+)
+
+// Delete implements bastion.Actuator.
+func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastions *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
+	return nil
+}

@@ -13,3 +13,42 @@
 // limitations under the License.
 
 package bastion
+
+import (
+	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+)
+
+var (
+	// DefaultAddOptions are the default AddOptions for AddToManager.
+	DefaultAddOptions = AddOptions{}
+)
+
+// AddOptions are options to apply when adding the onmetal bastion controller to the manager.
+type AddOptions struct {
+	// Controller are the controller.Options.
+	Controller controller.Options
+	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
+	IgnoreOperationAnnotation bool
+}
+
+// AddToManagerWithOptions adds a controller with the given AddOptions to the given manager.
+// The opts.Reconciler is being set with a newly instantiated actuator.
+func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
+	return bastion.Add(mgr, bastion.AddArgs{
+		Actuator:          NewActuator(),
+		ConfigValidator:   NewConfigValidator(mgr.GetClient(), log.Log),
+		ControllerOptions: opts.Controller,
+		Predicates:        bastion.DefaultPredicates(opts.IgnoreOperationAnnotation),
+		Type:              onmetal.Type,
+	})
+}
+
+// AddToManager adds a controller with the default AddOptions.
+func AddToManager(mgr manager.Manager) error {
+	return AddToManagerWithOptions(mgr, DefaultAddOptions)
+}
