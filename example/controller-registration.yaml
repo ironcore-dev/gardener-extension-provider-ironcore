@@ -25,3 +25,5 @@ spec:
     type: onmetal
   - kind: Worker
     type: onmetal
+  - kind: Bastion
+    type: onmetal

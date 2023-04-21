@@ -17,10 +17,13 @@ package bastion
 import (
 	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
+
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 )
 
 type actuator struct {
 	common.RESTConfigContext
+	bastionConfig *controllerconfig.BastionConfig
 }
 
 // NewActuator creates a new bastion.Actuator.
