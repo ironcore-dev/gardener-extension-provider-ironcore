@@ -34,7 +34,7 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extension
 	log.V(2).Info("Deleting infrastructure")
 
 	// get onmetal credentials from infrastructure config
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), infra)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), cluster.ObjectMeta.Name)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}

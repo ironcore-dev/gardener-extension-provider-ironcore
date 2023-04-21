@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
@@ -40,9 +39,11 @@ func init() {
 	utilruntime.Must(ipamv1alpha1.AddToScheme(onmetalScheme))
 }
 
-func GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx context.Context, cl client.Client, infra *extensionsv1alpha1.Infrastructure) (client.Client, string, error) {
+// GetOnmetalClientAndNamespaceFromCloudProviderSecret extracts the <onmetalClient, onmetalNamespace> from the
+// cloudprovider secret in the Shoot namespace.
+func GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx context.Context, cl client.Client, shootNamespace string) (client.Client, string, error) {
 	secret := &corev1.Secret{}
-	secretKey := client.ObjectKey{Namespace: infra.Namespace, Name: v1beta1constants.SecretNameCloudProvider}
+	secretKey := client.ObjectKey{Namespace: shootNamespace, Name: v1beta1constants.SecretNameCloudProvider}
 	if err := cl.Get(ctx, secretKey, secret); err != nil {
 		return nil, "", fmt.Errorf("failed to get cloudprovider secret: %w", err)
 	}
