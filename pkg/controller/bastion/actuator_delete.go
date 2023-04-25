@@ -38,15 +38,15 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensi
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
-	if err := a.deleteBastionMachine(ctx, onmetalClient, namespace, bastion.Name); client.IgnoreNotFound(err) != nil {
-		return fmt.Errorf("failed to delete infrastructure: %w", err)
+	if err := deleteBastionMachine(ctx, onmetalClient, namespace, bastion.Name); client.IgnoreNotFound(err) != nil {
+		return fmt.Errorf("failed to delete bastion machine: %w", err)
 	}
 
 	log.V(2).Info("Successfully deleted Bastion host")
 	return nil
 }
 
-func (a *actuator) deleteBastionMachine(ctx context.Context, onmetalClient client.Client, namespace, name string) error {
+func deleteBastionMachine(ctx context.Context, onmetalClient client.Client, namespace, name string) error {
 	prefix := &computev1alpha1.Machine{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,

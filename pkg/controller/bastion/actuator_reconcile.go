@@ -55,6 +55,7 @@ type bastionEndpoints struct {
 
 // Reconcile implements bastion.Actuator.
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
+	log.V(2).Info("Reconciling bastion host")
 	err := bastionConfigCheck(a.bastionConfig)
 	if err != nil {
 		return err
@@ -106,6 +107,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, bastion *exte
 
 	// once a public endpoint is available, publish the endpoint on the
 	// Bastion resource to notify upstream about the ready instance
+	log.V(2).Info("Successfully reconciled bastion host")
 	patch := client.MergeFrom(bastion.DeepCopy())
 	bastion.Status.Ingress = endpoints.public
 	return a.Client().Status().Patch(ctx, bastion, patch)
