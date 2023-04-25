@@ -20,7 +20,6 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
 	go.uber.org/zap v1.24.0
-	istio.io/api v0.0.0-20230217221049-9d422bf48675
 	k8s.io/api v0.26.3
 	k8s.io/apiextensions-apiserver v0.26.3
 	k8s.io/apimachinery v0.26.3
@@ -111,6 +110,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	istio.io/api v0.0.0-20230217221049-9d422bf48675 // indirect
 	istio.io/client-go v1.17.1 // indirect
 	k8s.io/apiserver v0.26.3 // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
