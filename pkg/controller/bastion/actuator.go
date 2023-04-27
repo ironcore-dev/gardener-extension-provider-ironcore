@@ -27,6 +27,8 @@ type actuator struct {
 }
 
 // NewActuator creates a new bastion.Actuator.
-func NewActuator() bastion.Actuator {
-	return &actuator{}
+func NewActuator(bastionConfig *controllerconfig.BastionConfig) bastion.Actuator {
+	return &actuator{
+		bastionConfig: bastionConfig,
+	}
 }

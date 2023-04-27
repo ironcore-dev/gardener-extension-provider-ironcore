@@ -53,8 +53,13 @@ type bastionEndpoints struct {
 	public  *corev1.LoadBalancerIngress
 }
 
-// Reconcile implements bastion.Actuator.
+// Reconcile implements infrastructure.Actuator.
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
+	return a.reconcile(ctx, log, bastion, cluster)
+}
+
+// Reconcile implements bastion.Actuator.
+func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
 	log.V(2).Info("Reconciling bastion host")
 	err := bastionConfigCheck(a.bastionConfig)
 	if err != nil {
@@ -168,7 +173,7 @@ func getInfrastructureStatus(ctx context.Context, c client.Client, cluster *cont
 	worker := &extensionsv1alpha1.Worker{}
 	err := c.Get(ctx, client.ObjectKey{Namespace: cluster.ObjectMeta.Name, Name: cluster.Shoot.Name}, worker)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get worker: %w", err)
 	}
 
 	if worker == nil || worker.Spec.InfrastructureProviderStatus == nil {
@@ -178,11 +183,10 @@ func getInfrastructureStatus(ctx context.Context, c client.Client, cluster *cont
 	return helper.InfrastructureStatusFromRaw(worker.Spec.InfrastructureProviderStatus)
 }
 
+// applyMachine applies the configuration to create or update the bastion host machine
+// and the ignition secret used for provisioning the machine. It sets the owner reference
+// for the ignition secret to the bastion host machine.
 func applyMachine(ctx context.Context, onmetalClient client.Client, ignitionSecret *corev1.Secret, bastionHost *computev1alpha1.Machine) (*computev1alpha1.Machine, error) {
-
-	if err := controllerutil.SetOwnerReference(bastionHost, ignitionSecret, onmetalClient.Scheme()); err != nil {
-		return nil, fmt.Errorf("failed to set owner reference for ignition secret %s: %w", client.ObjectKeyFromObject(ignitionSecret), err)
-	}
 
 	_, err := controllerutil.CreateOrPatch(ctx, onmetalClient, ignitionSecret, nil)
 	if err != nil {
@@ -194,9 +198,14 @@ func applyMachine(ctx context.Context, onmetalClient client.Client, ignitionSecr
 		return nil, fmt.Errorf("failed to create or patch bastion host machine %s: %w", client.ObjectKeyFromObject(bastionHost), err)
 	}
 
+	if err := controllerutil.SetOwnerReference(bastionHost, ignitionSecret, onmetalClient.Scheme()); err != nil {
+		return nil, fmt.Errorf("failed to set owner reference for ignition secret %s: %w", client.ObjectKeyFromObject(ignitionSecret), err)
+	}
+
 	return bastionHost, nil
 }
 
+// createIgnitionSecret constructs a Kubernetes secret object containing an ignition file for the Bastion instance
 func createIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, error) {
 	// Construct ignition file config
 	config := &ignition.Config{
@@ -227,6 +236,7 @@ func createIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, error
 	return ignitionSecret, nil
 }
 
+// createMachine constructs a Machine object for the Bastion instance
 func createMachine(namespace string, bastionConfig *controllerconfig.BastionConfig, ignitionSecret *corev1.Secret, infraStatus *api.InfrastructureStatus, opt *Options) *computev1alpha1.Machine {
 	bastionHost := &computev1alpha1.Machine{
 		TypeMeta: metav1.TypeMeta{
@@ -241,6 +251,7 @@ func createMachine(namespace string, bastionConfig *controllerconfig.BastionConf
 			MachineClassRef: corev1.LocalObjectReference{
 				Name: bastionConfig.MachineClassName,
 			},
+			Image: bastionConfig.Image,
 			Power: computev1alpha1.PowerOn,
 			NetworkInterfaces: []computev1alpha1.NetworkInterface{
 				{
@@ -289,7 +300,7 @@ func createMachine(namespace string, bastionConfig *controllerconfig.BastionConf
 			},
 		},
 	}
-
+	// TODO: Add root disk check implementation
 	return bastionHost
 }
 

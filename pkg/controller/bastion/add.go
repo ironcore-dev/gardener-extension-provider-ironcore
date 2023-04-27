@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
@@ -34,13 +35,15 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
+	// BastionConfig contains config for the Bastion config.
+	BastionConfig controllerconfig.BastionConfig
 }
 
 // AddToManagerWithOptions adds a controller with the given AddOptions to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return bastion.Add(mgr, bastion.AddArgs{
-		Actuator:          NewActuator(),
+		Actuator:          NewActuator(&opts.BastionConfig),
 		ConfigValidator:   NewConfigValidator(mgr.GetClient(), log.Log),
 		ControllerOptions: opts.Controller,
 		Predicates:        bastion.DefaultPredicates(opts.IgnoreOperationAnnotation),

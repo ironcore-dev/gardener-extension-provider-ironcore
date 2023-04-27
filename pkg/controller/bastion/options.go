@@ -25,11 +25,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-const (
-	//maxLengthForBaseName for "base" name due to fact that we use this name to name other openstack resources,
-	maxLengthForBaseName = 33
-)
-
 // Options contains provider-related information required for setting up
 // a bastion instance. This struct combines precomputed values like the
 // bastion instance name with the IDs of pre-existing cloud provider
