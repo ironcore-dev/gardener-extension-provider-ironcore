@@ -53,12 +53,11 @@ type bastionEndpoints struct {
 	public  *corev1.LoadBalancerIngress
 }
 
-// Reconcile implements infrastructure.Actuator.
+// Reconcile implements bastion.Actuator.
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
 	return a.reconcile(ctx, log, bastion, cluster)
 }
 
-// Reconcile implements bastion.Actuator.
 func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
 	log.V(2).Info("Reconciling bastion host")
 	err := bastionConfigCheck(a.bastionConfig)

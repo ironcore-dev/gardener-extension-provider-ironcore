@@ -23,11 +23,16 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
@@ -82,6 +87,7 @@ var _ = BeforeSuite(func() {
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_clusters.yaml"),
+			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_workers.yaml"),
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_bastions.yaml"),
 		},
 		ErrorIfCRDPathMissing: true,
@@ -148,6 +154,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 		}
 		Expect(k8sClient.Create(ctx, namespace)).To(Succeed(), "failed to create test namespace")
 
+		By("creating a test shoot")
 		shoot := v1beta1.Shoot{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespace.Name,
@@ -163,11 +170,13 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 				Networking: v1beta1.Networking{
 					Nodes: pointer.String("10.0.0.0/24"),
 				},
+				Region: "abc",
 			},
 		}
 		shootJson, err := json.Marshal(shoot)
 		Expect(err).NotTo(HaveOccurred())
 
+		By("creating a test cluster")
 		*cluster = extensionsv1alpha1.Cluster{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: namespace.Name,
@@ -179,6 +188,76 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, cluster)).Should(Succeed())
+
+		By("creating a test machine class")
+		machineClass := &computev1alpha1.MachineClass{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "my-machine-class",
+			},
+			Capabilities: map[corev1alpha1.ResourceName]resource.Quantity{
+				corev1alpha1.ResourceCPU:    resource.MustParse("100m"),
+				corev1alpha1.ResourceMemory: resource.MustParse("8Gi"),
+			},
+		}
+		Expect(k8sClient.Create(ctx, machineClass)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, ctx, machineClass)
+
+		By("creating a test worker")
+		volumeName := "test-volume"
+		volumeType := "fast"
+		worker := &extensionsv1alpha1.Worker{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "foo",
+				Namespace: namespace.Name,
+			},
+			Spec: extensionsv1alpha1.WorkerSpec{
+				Pools: []extensionsv1alpha1.WorkerPool{
+					{
+						MachineType:    "foo",
+						Maximum:        10,
+						MaxSurge:       intstr.IntOrString{IntVal: 5},
+						MaxUnavailable: intstr.IntOrString{IntVal: 2},
+						Annotations:    map[string]string{"foo": "bar"},
+						Labels:         map[string]string{"foo": "bar"},
+						MachineImage: extensionsv1alpha1.MachineImage{
+							Name:    "my-os",
+							Version: "1.0",
+						},
+						Minimum:  0,
+						Name:     "pool",
+						UserData: []byte("some-data"),
+						Volume: &extensionsv1alpha1.Volume{
+							Name: &volumeName,
+							Type: &volumeType,
+							Size: "10Gi",
+						},
+						Zones:        []string{"zone1", "zone2"},
+						Architecture: pointer.String("amd64"),
+						NodeTemplate: &extensionsv1alpha1.NodeTemplate{
+							Capacity: map[corev1.ResourceName]resource.Quantity{
+								corev1.ResourceCPU: resource.MustParse("100m"),
+							},
+						},
+					},
+				},
+			},
+		}
+		infraStatus := &apiv1alpha1.InfrastructureStatus{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: apiv1alpha1.SchemeGroupVersion.String(),
+				Kind:       "InfrastructureStatus",
+			},
+			NetworkRef: commonv1alpha1.LocalUIDReference{
+				Name: "my-network",
+				UID:  "1234",
+			},
+			PrefixRef: commonv1alpha1.LocalUIDReference{
+				Name: "my-prefix",
+				UID:  "4321",
+			},
+		}
+		worker.Spec.InfrastructureProviderStatus = &runtime.RawExtension{Object: infraStatus}
+		Expect(k8sClient.Create(ctx, worker)).Should(Succeed())
 
 		mgr, err := manager.New(cfg, manager.Options{
 			Scheme:             scheme.Scheme,
@@ -195,6 +274,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 		kubeconfig, err := user.KubeConfig()
 		Expect(err).NotTo(HaveOccurred())
 
+		By("creating a test cloudprovider secret")
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespace.Name,
@@ -207,9 +287,15 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, ctx, secret)
 
+		bastionConfig := controllerconfig.BastionConfig{
+			Image:            "my-image",
+			MachineClassName: "my-machine-class",
+		}
 		Expect(AddToManagerWithOptions(mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
+			BastionConfig:             bastionConfig,
 		})).NotTo(HaveOccurred())
 
 		go func() {
