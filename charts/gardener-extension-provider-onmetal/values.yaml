@@ -1,8 +1,3 @@
-regions:
-  - name: foo
-    kubeConfigStub: |
-      bar
-
 image:
   repository: ghcr.io/onmetal/gardener-extension-provider-onmetal
   tag: latest

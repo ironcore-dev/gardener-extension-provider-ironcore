@@ -28,10 +28,3 @@ data:
     featureGates:
 {{ toYaml .Values.config.featureGates | indent 6 }}
 {{- end }}
-{{- if .Values.regions }}
-    regions:
-{{- range .Values.regions }}
-    - name: {{ .name }}
-      kubeConfigStub: {{ .kubeConfigStub }}
-{{- end }}
-{{- end }}
