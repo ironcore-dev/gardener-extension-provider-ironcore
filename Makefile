@@ -62,6 +62,9 @@ ADDLICENSE_VERSION ?= v1.1.1
 GOIMPORTS_VERSION ?= v0.5.0
 GEN_CRD_API_REFERENCE_DOCS_VERSION ?= v0.3.0
 
+# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
+ENVTEST_K8S_VERSION = 1.26.0
+
 #########################################
 # Rules for local development scenarios #
 #########################################
