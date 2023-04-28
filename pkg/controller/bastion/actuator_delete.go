@@ -30,7 +30,7 @@ import (
 
 // Delete implements bastion.Actuator.
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
-	log.V(2).Info("Deleting Bastion Host")
+	log.V(2).Info("Deleting bastion host machine")
 
 	// get onmetal credentials from infrastructure config
 	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), cluster.ObjectMeta.Name)
@@ -39,10 +39,10 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensi
 	}
 
 	if err := deleteBastionMachine(ctx, onmetalClient, namespace, bastion.Name); client.IgnoreNotFound(err) != nil {
-		return fmt.Errorf("failed to delete bastion machine: %w", err)
+		return fmt.Errorf("failed to delete bastion host machine: %w", err)
 	}
 
-	log.V(2).Info("Successfully deleted Bastion host")
+	log.V(2).Info("Successfully deleted bastion host machine")
 	return nil
 }
 

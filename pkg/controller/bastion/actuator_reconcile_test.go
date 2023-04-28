@@ -20,21 +20,19 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
-
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Bastion Host Reconcile", func() {
@@ -97,6 +95,15 @@ var _ = Describe("Bastion Host Reconcile", func() {
 				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.NetworkRef.Name", "my-network"),
 			))),
 		))
+
+		By("ensuring ignition secret is created")
+		ignitionSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      getIgnitionNameForMachine(machineName),
+				Namespace: ns.Name,
+			},
+		}
+		Eventually(Get(ignitionSecret)).Should(Succeed())
 
 		By("patching machine with running state and network interfaces with private and virtual ip")
 		machineBase := machine.DeepCopy()

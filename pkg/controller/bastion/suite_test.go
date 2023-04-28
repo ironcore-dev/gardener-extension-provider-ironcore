@@ -23,9 +23,6 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -45,8 +42,11 @@ import (
 
 	"github.com/onmetal/controller-utils/buildutils"
 	"github.com/onmetal/controller-utils/modutils"
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
+	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
@@ -291,7 +291,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 
 		bastionConfig := controllerconfig.BastionConfig{
 			Image:            "my-image",
-			MachineClassName: "my-machine-class",
+			MachineClassName: machineClass.Name,
 		}
 		Expect(AddToManagerWithOptions(mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
