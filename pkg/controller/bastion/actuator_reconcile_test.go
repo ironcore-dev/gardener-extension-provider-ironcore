@@ -21,6 +21,7 @@ import (
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -125,5 +126,33 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		Eventually(Object(bastion)).Should(SatisfyAll(
 			HaveField("Status.Ingress.IP", "10.0.0.10"),
 		))
+
+		By("error check for nil bastion config")
+		err = bastionConfigCheck(nil)
+		Expect(err).To(MatchError("bastionConfig must not be empty"))
+
+		By("error check for no Image in bastion config")
+		bastionConfig1 := &controllerconfig.BastionConfig{
+			MachineClassName: "foo",
+		}
+		err = bastionConfigCheck(bastionConfig1)
+		Expect(err).To(MatchError("bastion not supported as no Image is configured for the bastion host machine"))
+
+		By("error check for no MachineClassName in bastion config")
+		bastionConfig2 := &controllerconfig.BastionConfig{
+			Image: "bar",
+		}
+		err = bastionConfigCheck(bastionConfig2)
+		Expect(err).To(MatchError("bastion not supported as no flavor is configured for the bastion host machine"))
+
+		By("check for bastion config")
+		bastionConfig3 := &controllerconfig.BastionConfig{
+			MachineClassName: "foo",
+			Image:            "bar",
+		}
+		err = bastionConfigCheck(bastionConfig3)
+		Expect(err).To(BeNil())
+
 	})
+
 })

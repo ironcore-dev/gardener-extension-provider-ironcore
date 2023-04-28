@@ -16,7 +16,6 @@ package bastion
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/netip"
 	"time"
@@ -38,7 +37,6 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion/ignition"
 
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -155,31 +153,17 @@ func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, e
 
 func bastionConfigCheck(bastionConfig *controllerconfig.BastionConfig) error {
 	if bastionConfig == nil {
-		return errors.New("bastionConfig must not be empty")
+		return fmt.Errorf("bastionConfig must not be empty")
 	}
 
 	if bastionConfig.MachineClassName == "" {
-		return errors.New("bastion not supported as no flavor is configured for the bastion host machine")
+		return fmt.Errorf("bastion not supported as no flavor is configured for the bastion host machine")
 	}
 
 	if bastionConfig.Image == "" {
-		return errors.New("bastion not supported as no Image is configured for the bastion host machine")
+		return fmt.Errorf("bastion not supported as no Image is configured for the bastion host machine")
 	}
 	return nil
-}
-
-func getInfrastructureStatus(ctx context.Context, c client.Client, cluster *controller.Cluster) (*api.InfrastructureStatus, error) {
-	worker := &extensionsv1alpha1.Worker{}
-	err := c.Get(ctx, client.ObjectKey{Namespace: cluster.ObjectMeta.Name, Name: cluster.Shoot.Name}, worker)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get worker: %w", err)
-	}
-
-	if worker == nil || worker.Spec.InfrastructureProviderStatus == nil {
-		return nil, errors.New("infrastructure provider status must be not empty for worker")
-	}
-
-	return helper.InfrastructureStatusFromRaw(worker.Spec.InfrastructureProviderStatus)
 }
 
 // applyMachine applies the configuration to create or update the bastion host machine

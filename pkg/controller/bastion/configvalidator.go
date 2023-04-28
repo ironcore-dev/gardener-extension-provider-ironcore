@@ -16,14 +16,20 @@ package bastion
 
 import (
 	"context"
+	"fmt"
+	"net"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/go-logr/logr"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
 )
 
 // configValidator implements ConfigValidator for onmetal bastion resources.
@@ -44,5 +50,71 @@ func NewConfigValidator(client client.Client, logger logr.Logger) bastion.Config
 // Validate validates the provider config of the given bastion resource with the cloud provider.
 func (c *configValidator) Validate(ctx context.Context, bastion *extensionsv1alpha1.Bastion, cluster *extensions.Cluster) field.ErrorList {
 	allErrs := field.ErrorList{}
+
+	if bastion == nil {
+		return allErrs
+	}
+
+	if len(bastion.Spec.UserData) == 0 {
+		return allErrs
+	}
+
+	for _, ingress := range bastion.Spec.Ingress {
+		if ingress.IPBlock.CIDR == "" {
+			return allErrs
+		}
+		_, _, err := net.ParseCIDR(ingress.IPBlock.CIDR)
+		if err != nil {
+			allErrs = append(allErrs, field.InternalError(nil, err))
+			return allErrs
+		}
+	}
+
+	infrastructureStatus, err := getInfrastructureStatus(ctx, c.client, cluster)
+	if err != nil {
+		allErrs = append(allErrs, field.InternalError(nil, err))
+		return allErrs
+	}
+
+	err = validateInfrastructureStatus(infrastructureStatus)
+	if err != nil {
+		allErrs = append(allErrs, field.InternalError(nil, err))
+		return allErrs
+	}
+
 	return allErrs
+}
+
+func getInfrastructureStatus(ctx context.Context, c client.Client, cluster *extensions.Cluster) (*api.InfrastructureStatus, error) {
+	var infrastructureStatus *api.InfrastructureStatus
+
+	worker := &extensionsv1alpha1.Worker{}
+	err := c.Get(ctx, client.ObjectKey{Namespace: cluster.ObjectMeta.Name, Name: cluster.Shoot.Name}, worker)
+	if err != nil {
+		return nil, err
+	}
+
+	if worker == nil || worker.Spec.InfrastructureProviderStatus == nil {
+		return nil, fmt.Errorf("infrastructure provider status must be not empty for worker")
+	}
+
+	if infrastructureStatus, err = helper.InfrastructureStatusFromRaw(worker.Spec.InfrastructureProviderStatus); err != nil {
+		return nil, fmt.Errorf("%s", err)
+	}
+
+	return infrastructureStatus, nil
+}
+
+func validateInfrastructureStatus(infrastructureStatus *api.InfrastructureStatus) error {
+	emptyref := commonv1alpha1.LocalUIDReference{}
+
+	if infrastructureStatus.NetworkRef == emptyref {
+		return fmt.Errorf("network ref must be not empty for infrastructure provider status")
+	}
+
+	if infrastructureStatus.PrefixRef == emptyref {
+		return fmt.Errorf("prefix ref must be not empty for infrastructure provider status")
+	}
+
+	return nil
 }
