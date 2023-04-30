@@ -32,6 +32,16 @@ spec:
         operator: Exists
       - effect: NoExecute
         operator: Exists
+      initContainers:
+      - name: cleanup
+        image: mtr.devops.telekom.de/osc/onmetal/bash:5.2.15-1
+        volumeMounts:
+          - name: plugin-dir
+            mountPath: /csi
+        args:
+          - rm
+          - -f
+          - /csi/csi.sock
       containers:
       - name: csi-driver
         securityContext:
