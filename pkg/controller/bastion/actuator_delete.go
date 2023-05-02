@@ -21,6 +21,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -51,11 +52,18 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensi
 }
 
 func deleteBastionMachine(ctx context.Context, onmetalClient client.Client, namespace, bastionMachineName string) error {
-	prefix := &computev1alpha1.Machine{
+	bastionMachine := &computev1alpha1.Machine{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      bastionMachineName,
 		},
 	}
-	return onmetalClient.Delete(ctx, prefix)
+	ignitionSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      getIgnitionNameForMachine(bastionMachineName),
+			Namespace: namespace,
+		},
+	}
+	onmetalClient.Delete(ctx, ignitionSecret)
+	return onmetalClient.Delete(ctx, bastionMachine)
 }

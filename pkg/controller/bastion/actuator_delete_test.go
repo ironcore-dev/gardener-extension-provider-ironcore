@@ -23,6 +23,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
@@ -115,12 +116,12 @@ var _ = Describe("Bastion Host Delete", func() {
 		))
 
 		By("ensure bastion to be gone")
-		Eventually(Get(bastion)).Should(BeNil())
+		Eventually(Get(bastion)).Should(Satisfy(apierrors.IsNotFound))
 
 		By("ensure bastion machine to be gone")
-		Eventually(Get(bastionMachine)).Should(BeNil())
+		Eventually(Get(bastionMachine)).Should(Satisfy(apierrors.IsNotFound))
 
 		By("ensure ignition secret to be gone")
-		Eventually(Get(ignitionSecret)).Should(BeNil())
+		Eventually(Get(ignitionSecret)).Should(Satisfy(apierrors.IsNotFound))
 	})
 })
