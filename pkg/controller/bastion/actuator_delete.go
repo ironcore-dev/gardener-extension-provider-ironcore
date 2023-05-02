@@ -30,7 +30,7 @@ import (
 
 // Delete implements bastion.Actuator.
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
-	log.V(2).Info("Deleting bastion host machine")
+	log.V(2).Info("Deleting bastion machine")
 
 	// get onmetal credentials from infrastructure config
 	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), cluster.ObjectMeta.Name)
@@ -38,19 +38,23 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensi
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
-	if err := deleteBastionMachine(ctx, onmetalClient, namespace, bastion.Name); client.IgnoreNotFound(err) != nil {
-		return fmt.Errorf("failed to delete bastion host machine: %w", err)
+	bastionMachineName, err := generateBastionBaseResourceName(cluster.ObjectMeta.Name, bastion)
+	if err != nil {
+		return err
+	}
+	if err := deleteBastionMachine(ctx, onmetalClient, namespace, bastionMachineName); client.IgnoreNotFound(err) != nil {
+		return fmt.Errorf("failed to delete bastion machine: %w", err)
 	}
 
-	log.V(2).Info("Successfully deleted bastion host machine")
+	log.V(2).Info("Successfully deleted bastion machine")
 	return nil
 }
 
-func deleteBastionMachine(ctx context.Context, onmetalClient client.Client, namespace, name string) error {
+func deleteBastionMachine(ctx context.Context, onmetalClient client.Client, namespace, bastionMachineName string) error {
 	prefix := &computev1alpha1.Machine{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      name,
+			Name:      bastionMachineName,
 		},
 	}
 	return onmetalClient.Delete(ctx, prefix)

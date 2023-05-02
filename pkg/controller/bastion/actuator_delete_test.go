@@ -37,16 +37,16 @@ var _ = Describe("Bastion Host Delete", func() {
 	ctx := testutils.SetupContext()
 	ns := SetupTest(ctx)
 
-	It("should ensure that the bastion host is being deleted", func() {
+	It("should ensure that the bastion is deleted along with bastion machine and ignition secret", func() {
 
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
 
-		By("creating bastion host")
-		bastionHost := &extensionsv1alpha1.Bastion{
+		By("creating bastion resource")
+		bastion := &extensionsv1alpha1.Bastion{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "my-bastion-host",
+				Name:      "my-bastion",
 				Namespace: ns.Name,
 			},
 			Spec: extensionsv1alpha1.BastionSpec{
@@ -58,13 +58,13 @@ var _ = Describe("Bastion Host Delete", func() {
 				Ingress:  []extensionsv1alpha1.BastionIngressPolicy{},
 			},
 		}
-		Expect(k8sClient.Create(ctx, bastionHost)).Should(Succeed())
-		Eventually(Object(bastionHost)).Should(SatisfyAll(
+		Expect(k8sClient.Create(ctx, bastion)).Should(Succeed())
+		Eventually(Object(bastion)).Should(SatisfyAll(
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeCreate),
 		))
 
 		By("generating bastion machine name")
-		machineName, err := generateBastionBaseResourceName(cluster.ObjectMeta.Name, bastionHost)
+		machineName, err := generateBastionBaseResourceName(cluster.ObjectMeta.Name, bastion)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		By("creating ignition secret object")
@@ -75,7 +75,7 @@ var _ = Describe("Bastion Host Delete", func() {
 			},
 		}
 
-		By("creating bastion host machine object")
+		By("creating bastion machine object")
 		bastionMachine := &computev1alpha1.Machine{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      machineName,
@@ -83,9 +83,9 @@ var _ = Describe("Bastion Host Delete", func() {
 			},
 		}
 
-		By("ensuring bastion host, bastion machine and ignition secret")
+		By("ensuring bastion, bastion machine and ignition secret is created")
 		Eventually(func(g Gomega) {
-			err := k8sClient.Get(ctx, client.ObjectKeyFromObject(bastionHost), bastionHost)
+			err := k8sClient.Get(ctx, client.ObjectKeyFromObject(bastion), bastion)
 			g.Expect(err).NotTo(HaveOccurred())
 			err = k8sClient.Get(ctx, client.ObjectKeyFromObject(bastionMachine), bastionMachine)
 			g.Expect(err).NotTo(HaveOccurred())
@@ -93,7 +93,7 @@ var _ = Describe("Bastion Host Delete", func() {
 			g.Expect(err).NotTo(HaveOccurred())
 		}).Should(Succeed())
 
-		By("patching machine with running state")
+		By("patching bastion machine with Running state")
 		machineBase := bastionMachine.DeepCopy()
 		bastionMachine.Status.State = computev1alpha1.MachineStateRunning
 		bastionMachine.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
@@ -103,21 +103,21 @@ var _ = Describe("Bastion Host Delete", func() {
 		}}
 		Expect(k8sClient.Status().Patch(ctx, bastionMachine, client.MergeFrom(machineBase))).To(Succeed())
 
-		By("ensuring that machine is in Running state")
+		By("ensuring bastion machine is in Running state")
 		Eventually(Object(bastionMachine)).Should(SatisfyAll(
 			HaveField("Status.State", computev1alpha1.MachineStateRunning),
 		))
 
-		By("deleting bastion host machine")
-		Expect(k8sClient.Delete(ctx, bastionHost)).Should(Succeed())
-		Eventually(Object(bastionHost)).Should(SatisfyAll(
+		By("deleting bastion resource")
+		Expect(k8sClient.Delete(ctx, bastion)).Should(Succeed())
+		Eventually(Object(bastion)).Should(SatisfyAll(
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeDelete),
 		))
 
-		By("ensure bastion host to be gone")
-		Eventually(Get(bastionHost)).Should(BeNil())
+		By("ensure bastion to be gone")
+		Eventually(Get(bastion)).Should(BeNil())
 
-		By("ensure bastion host machine to be gone")
+		By("ensure bastion machine to be gone")
 		Eventually(Get(bastionMachine)).Should(BeNil())
 
 		By("ensure ignition secret to be gone")
