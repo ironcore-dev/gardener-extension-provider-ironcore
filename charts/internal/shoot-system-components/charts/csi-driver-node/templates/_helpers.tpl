@@ -7,7 +7,7 @@ provider-onmetal
 {{- end -}}
 
 {{- define "csi-driver-node.provisioner" -}}
-onmetal-csi-driver
+csi.onmetal.de
 {{- end -}}
 
 {{- define "csi-driver-node.storageversion" -}}
