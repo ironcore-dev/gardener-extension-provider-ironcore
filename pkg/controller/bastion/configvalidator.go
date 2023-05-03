@@ -23,6 +23,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
+
 	"github.com/go-logr/logr"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -51,23 +52,14 @@ func NewConfigValidator(client client.Client, logger logr.Logger) bastion.Config
 func (c *configValidator) Validate(ctx context.Context, bastion *extensionsv1alpha1.Bastion, cluster *extensions.Cluster) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	if bastion == nil {
+	if err := validateBastion(bastion); err != nil {
+		allErrs = append(allErrs, field.InternalError(nil, err))
 		return allErrs
 	}
 
-	if len(bastion.Spec.UserData) == 0 {
+	if err := validateCluster(cluster); err != nil {
+		allErrs = append(allErrs, field.InternalError(nil, err))
 		return allErrs
-	}
-
-	for _, ingress := range bastion.Spec.Ingress {
-		if ingress.IPBlock.CIDR == "" {
-			return allErrs
-		}
-		_, _, err := net.ParseCIDR(ingress.IPBlock.CIDR)
-		if err != nil {
-			allErrs = append(allErrs, field.InternalError(nil, err))
-			return allErrs
-		}
 	}
 
 	infrastructureStatus, err := getInfrastructureStatus(ctx, c.client, cluster)
@@ -83,6 +75,40 @@ func (c *configValidator) Validate(ctx context.Context, bastion *extensionsv1alp
 	}
 
 	return allErrs
+}
+
+func validateBastion(bastion *extensionsv1alpha1.Bastion) error {
+	if bastion == nil {
+		return fmt.Errorf("bastion can't be nil")
+	}
+
+	if len(bastion.Spec.UserData) == 0 {
+		return fmt.Errorf("bastion spec userdata can't be empty")
+	}
+
+	for _, ingress := range bastion.Spec.Ingress {
+		if ingress.IPBlock.CIDR == "" {
+			return fmt.Errorf("bastion spec Ingress CIDR can't be empty")
+		}
+		_, _, err := net.ParseCIDR(ingress.IPBlock.CIDR)
+		if err != nil {
+			return fmt.Errorf("invalid bastion spec Ingress CIDR %w", err)
+		}
+	}
+	return nil
+}
+
+func validateCluster(cluster *extensions.Cluster) error {
+
+	if cluster == nil {
+		return fmt.Errorf("cluster can't be nil")
+	}
+
+	if cluster.Shoot == nil {
+		return fmt.Errorf("cluster shoot can't be empty")
+	}
+
+	return nil
 }
 
 func getInfrastructureStatus(ctx context.Context, c client.Client, cluster *extensions.Cluster) (*api.InfrastructureStatus, error) {
