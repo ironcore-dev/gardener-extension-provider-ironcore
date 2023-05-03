@@ -20,9 +20,7 @@ import (
 	"strings"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
 )
 
 // Options contains provider-related information required for setting up
@@ -31,36 +29,21 @@ import (
 // resources, like the nic name, subnet name etc.
 type Options struct {
 	BastionInstanceName string
-	Region              string
-	ShootName           string
-	SecretReference     corev1.SecretReference
-	//TODO: add securityGroup/networkPolicy once implemented
-	UserData []byte
+	UserData            []byte
+	//TODO: add networkPolicy
 }
 
 // DetermineOptions determines the required information that are required to reconcile a Bastion on onmetal. This
 // function does not create any IaaS resources.
 func DetermineOptions(bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) (*Options, error) {
 	clusterName := cluster.ObjectMeta.Name
-	region := cluster.Shoot.Spec.Region
-
 	baseResourceName, err := generateBastionBaseResourceName(clusterName, bastion)
 	if err != nil {
 		return nil, err
 	}
-
-	secretReference := corev1.SecretReference{
-		Namespace: clusterName,
-		Name:      v1beta1constants.SecretNameCloudProvider,
-	}
-
 	return &Options{
-		ShootName:           clusterName,
 		BastionInstanceName: baseResourceName,
-		SecretReference:     secretReference,
-		//TODO: add securityGroup/networkPolicy once implemented
-		Region:   region,
-		UserData: []byte(base64.StdEncoding.EncodeToString(bastion.Spec.UserData)),
+		UserData:            []byte(base64.StdEncoding.EncodeToString(bastion.Spec.UserData)),
 	}, nil
 }
 

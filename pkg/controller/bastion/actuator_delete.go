@@ -33,7 +33,6 @@ import (
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
 	log.V(2).Info("Deleting bastion machine")
 
-	// get onmetal credentials from infrastructure config
 	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), cluster.ObjectMeta.Name)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
@@ -64,6 +63,14 @@ func deleteBastionMachine(ctx context.Context, onmetalClient client.Client, name
 			Namespace: namespace,
 		},
 	}
-	onmetalClient.Delete(ctx, ignitionSecret)
-	return onmetalClient.Delete(ctx, bastionMachine)
+
+	if err := onmetalClient.Delete(ctx, bastionMachine); err != nil {
+		return fmt.Errorf("error deleting bastion machine: %v", err)
+	}
+
+	if err := onmetalClient.Delete(ctx, ignitionSecret); err != nil {
+		return fmt.Errorf("error deleting ignition secret: %v", err)
+	}
+
+	return nil
 }

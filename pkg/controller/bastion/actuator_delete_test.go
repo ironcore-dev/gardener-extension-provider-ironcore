@@ -115,13 +115,13 @@ var _ = Describe("Bastion Host Delete", func() {
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeDelete),
 		))
 
-		By("ensure bastion to be gone")
+		By("waiting for the bastion to be gone")
 		Eventually(Get(bastion)).Should(Satisfy(apierrors.IsNotFound))
 
-		By("ensure bastion machine to be gone")
+		By("waiting for the bastion machine to be gone")
 		Eventually(Get(bastionMachine)).Should(Satisfy(apierrors.IsNotFound))
 
-		By("ensure ignition secret to be gone")
+		By("waiting for the ignition secret to be gone")
 		Eventually(Get(ignitionSecret)).Should(Satisfy(apierrors.IsNotFound))
 	})
 })

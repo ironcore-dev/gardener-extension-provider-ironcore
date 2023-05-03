@@ -40,13 +40,13 @@ var _ = Describe("Bastion Host Reconcile", func() {
 	ctx := testutils.SetupContext()
 	ns := SetupTest(ctx)
 
-	It("should create a igntion secret and machine for a given bastion configuration", func() {
+	It("should create igntion secret and machine for a given bastion configuration", func() {
 
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
 
-		By("creating a bastion configuration")
+		By("creating bastion resource")
 		bastion := &extensionsv1alpha1.Bastion{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -75,21 +75,21 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeCreate),
 		))
 
-		By("ensuring that machine is created with correct spec")
+		By("ensuring that bastion machine is created with correct spec")
 		machineName, err := generateBastionBaseResourceName(cluster.ObjectMeta.Name, bastion)
 		Expect(err).ShouldNot(HaveOccurred())
-		machine := &computev1alpha1.Machine{
+		bastionMachine := &computev1alpha1.Machine{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      machineName,
 			},
 		}
-		Eventually(Object(machine)).Should(SatisfyAll(
+		Eventually(Object(bastionMachine)).Should(SatisfyAll(
 			HaveField("Spec.MachineClassRef", corev1.LocalObjectReference{
 				Name: "my-machine-class",
 			}),
 			HaveField("Spec.Image", "my-image"),
-			HaveField("Spec.IgnitionRef.Name", getIgnitionNameForMachine(machine.Name)),
+			HaveField("Spec.IgnitionRef.Name", getIgnitionNameForMachine(bastionMachine.Name)),
 			HaveField("Spec.Power", computev1alpha1.PowerOn),
 			HaveField("Spec.NetworkInterfaces", ContainElement(SatisfyAll(
 				HaveField("Name", "primary"),
@@ -106,19 +106,19 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		}
 		Eventually(Get(ignitionSecret)).Should(Succeed())
 
-		By("patching machine with running state and network interfaces with private and virtual ip")
-		machineBase := machine.DeepCopy()
-		machine.Status.State = computev1alpha1.MachineStateRunning
-		machine.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
+		By("patching bastion machine with running state and network interfaces with private and virtual ip")
+		machineBase := bastionMachine.DeepCopy()
+		bastionMachine.Status.State = computev1alpha1.MachineStateRunning
+		bastionMachine.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
 			Name:      "primary",
 			IPs:       []commonv1alpha1.IP{commonv1alpha1.MustParseIP("10.0.0.1")},
 			VirtualIP: &commonv1alpha1.IP{Addr: netip.MustParseAddr("10.0.0.10")},
 		}}
-		Expect(k8sClient.Status().Patch(ctx, machine, client.MergeFrom(machineBase))).To(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, machine)
+		Expect(k8sClient.Status().Patch(ctx, bastionMachine, client.MergeFrom(machineBase))).To(Succeed())
+		DeferCleanup(k8sClient.Delete, ctx, bastionMachine)
 
-		By("ensuring that machine is created and Running")
-		Eventually(Object(machine)).Should(SatisfyAll(
+		By("ensuring that bastion machine is created and Running")
+		Eventually(Object(bastionMachine)).Should(SatisfyAll(
 			HaveField("Status.State", computev1alpha1.MachineStateRunning),
 		))
 
@@ -126,33 +126,33 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		Eventually(Object(bastion)).Should(SatisfyAll(
 			HaveField("Status.Ingress.IP", "10.0.0.10"),
 		))
+	})
 
-		By("error check for nil bastion config")
-		err = bastionConfigCheck(nil)
+	It("should validate and return an appropriate error when attempting to create a machine with an invalid bastion configuration", func() {
+		By("checking for nil bastion config")
+		err := bastionConfigCheck(nil)
 		Expect(err).To(MatchError("bastionConfig must not be empty"))
 
-		By("error check for no Image in bastion config")
+		By("checking for missing Image in bastion config")
 		bastionConfig1 := &controllerconfig.BastionConfig{
 			MachineClassName: "foo",
 		}
 		err = bastionConfigCheck(bastionConfig1)
 		Expect(err).To(MatchError("bastion not supported as no Image is configured for the bastion host machine"))
 
-		By("error check for no MachineClassName in bastion config")
+		By("checking for missing MachineClassName in bastion config")
 		bastionConfig2 := &controllerconfig.BastionConfig{
 			Image: "bar",
 		}
 		err = bastionConfigCheck(bastionConfig2)
-		Expect(err).To(MatchError("bastion not supported as no flavor is configured for the bastion host machine"))
+		Expect(err).To(MatchError("bastion not supported as no machine class is configured for the bastion host machine"))
 
-		By("check for bastion config")
+		By("checking for valid bastion config")
 		bastionConfig3 := &controllerconfig.BastionConfig{
 			MachineClassName: "foo",
 			Image:            "bar",
 		}
 		err = bastionConfigCheck(bastionConfig3)
 		Expect(err).To(BeNil())
-
 	})
-
 })
