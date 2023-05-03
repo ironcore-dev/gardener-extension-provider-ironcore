@@ -33,6 +33,7 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
@@ -75,50 +76,59 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeCreate),
 		))
 
-		By("ensuring that bastion machine is created with correct spec")
-		machineName, err := generateBastionBaseResourceName(cluster.ObjectMeta.Name, bastion)
+		By("ensuring bastion host is created with correct spec")
+		bastionHostName, err := generateBastionHostResourceName(cluster.ObjectMeta.Name, bastion)
 		Expect(err).ShouldNot(HaveOccurred())
-		bastionMachine := &computev1alpha1.Machine{
+		bastionHost := &computev1alpha1.Machine{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
-				Name:      machineName,
+				Name:      bastionHostName,
 			},
 		}
-		Eventually(Object(bastionMachine)).Should(SatisfyAll(
+		Eventually(Object(bastionHost)).Should(SatisfyAll(
 			HaveField("Spec.MachineClassRef", corev1.LocalObjectReference{
 				Name: "my-machine-class",
 			}),
 			HaveField("Spec.Image", "my-image"),
-			HaveField("Spec.IgnitionRef.Name", getIgnitionNameForMachine(bastionMachine.Name)),
+			HaveField("Spec.IgnitionRef.Name", getIgnitionNameForMachine(bastionHost.Name)),
 			HaveField("Spec.Power", computev1alpha1.PowerOn),
 			HaveField("Spec.NetworkInterfaces", ContainElement(SatisfyAll(
 				HaveField("Name", "primary"),
 				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.NetworkRef.Name", "my-network"),
+				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.IPFamilies", ConsistOf(corev1.IPv4Protocol)),
+				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.VirtualIP.Ephemeral.VirtualIPTemplate.Spec.Type", networkingv1alpha1.VirtualIPTypePublic),
+				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.VirtualIP.Ephemeral.VirtualIPTemplate.Spec.IPFamily", corev1.IPv4Protocol),
 			))),
 		))
 
-		By("ensuring ignition secret is created")
+		By("ensuring ignition secret is created and owned by bastion host machine")
 		ignitionSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      getIgnitionNameForMachine(machineName),
+				Name:      getIgnitionNameForMachine(bastionHostName),
 				Namespace: ns.Name,
 			},
 		}
-		Eventually(Get(ignitionSecret)).Should(Succeed())
+		Eventually(Object(ignitionSecret)).Should(SatisfyAll(
+			HaveField("ObjectMeta.OwnerReferences", ContainElement(SatisfyAll(
+				HaveField("Name", bastionHost.Name),
+				HaveField("Kind", "Machine"),
+			))),
+			HaveField("Data", HaveLen(1)),
+		))
 
-		By("patching bastion machine with running state and network interfaces with private and virtual ip")
-		machineBase := bastionMachine.DeepCopy()
-		bastionMachine.Status.State = computev1alpha1.MachineStateRunning
-		bastionMachine.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
+		By("patching bastion host with running state and network interfaces with private and virtual ip")
+		machineBase := bastionHost.DeepCopy()
+		bastionHost.Status.State = computev1alpha1.MachineStateRunning
+		bastionHost.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
 			Name:      "primary",
 			IPs:       []commonv1alpha1.IP{commonv1alpha1.MustParseIP("10.0.0.1")},
 			VirtualIP: &commonv1alpha1.IP{Addr: netip.MustParseAddr("10.0.0.10")},
 		}}
-		Expect(k8sClient.Status().Patch(ctx, bastionMachine, client.MergeFrom(machineBase))).To(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, bastionMachine)
+		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(machineBase))).To(Succeed())
+		DeferCleanup(k8sClient.Delete, ctx, bastionHost)
 
-		By("ensuring that bastion machine is created and Running")
-		Eventually(Object(bastionMachine)).Should(SatisfyAll(
+		By("ensuring that bastion host is created and Running")
+		Eventually(Object(bastionHost)).Should(SatisfyAll(
 			HaveField("Status.State", computev1alpha1.MachineStateRunning),
 		))
 
@@ -130,21 +140,21 @@ var _ = Describe("Bastion Host Reconcile", func() {
 
 	It("should validate and return an appropriate error when attempting to create a machine with an invalid bastion configuration", func() {
 		By("checking for nil bastion config")
-		err := bastionConfigCheck(nil)
+		err := validateConfiguration(nil)
 		Expect(err).To(MatchError("bastionConfig must not be empty"))
 
 		By("checking for missing Image in bastion config")
 		bastionConfig1 := &controllerconfig.BastionConfig{
 			MachineClassName: "foo",
 		}
-		err = bastionConfigCheck(bastionConfig1)
+		err = validateConfiguration(bastionConfig1)
 		Expect(err).To(MatchError("bastion not supported as no Image is configured for the bastion host machine"))
 
 		By("checking for missing MachineClassName in bastion config")
 		bastionConfig2 := &controllerconfig.BastionConfig{
 			Image: "bar",
 		}
-		err = bastionConfigCheck(bastionConfig2)
+		err = validateConfiguration(bastionConfig2)
 		Expect(err).To(MatchError("bastion not supported as no machine class is configured for the bastion host machine"))
 
 		By("checking for valid bastion config")
@@ -152,7 +162,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			MachineClassName: "foo",
 			Image:            "bar",
 		}
-		err = bastionConfigCheck(bastionConfig3)
+		err = validateConfiguration(bastionConfig3)
 		Expect(err).To(BeNil())
 	})
 })

@@ -79,20 +79,20 @@ func (c *configValidator) Validate(ctx context.Context, bastion *extensionsv1alp
 
 func validateBastion(bastion *extensionsv1alpha1.Bastion) error {
 	if bastion == nil {
-		return fmt.Errorf("bastion can't be nil")
+		return fmt.Errorf("bastion can not be nil")
 	}
 
 	if len(bastion.Spec.UserData) == 0 {
-		return fmt.Errorf("bastion spec userdata can't be empty")
+		return fmt.Errorf("bastion spec userdata can not be empty")
 	}
 
 	for _, ingress := range bastion.Spec.Ingress {
 		if ingress.IPBlock.CIDR == "" {
-			return fmt.Errorf("bastion spec Ingress CIDR can't be empty")
+			return fmt.Errorf("bastion spec Ingress CIDR can not be empty")
 		}
 		_, _, err := net.ParseCIDR(ingress.IPBlock.CIDR)
 		if err != nil {
-			return fmt.Errorf("invalid bastion spec Ingress CIDR %w", err)
+			return fmt.Errorf("invalid bastion spec Ingress CIDR: %w", err)
 		}
 	}
 	return nil
@@ -101,11 +101,11 @@ func validateBastion(bastion *extensionsv1alpha1.Bastion) error {
 func validateCluster(cluster *extensions.Cluster) error {
 
 	if cluster == nil {
-		return fmt.Errorf("cluster can't be nil")
+		return fmt.Errorf("cluster can not be nil")
 	}
 
 	if cluster.Shoot == nil {
-		return fmt.Errorf("cluster shoot can't be empty")
+		return fmt.Errorf("cluster shoot can not be empty")
 	}
 
 	return nil

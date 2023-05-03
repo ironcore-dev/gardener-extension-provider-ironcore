@@ -31,43 +31,46 @@ import (
 
 // Delete implements bastion.Actuator.
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
-	log.V(2).Info("Deleting bastion machine")
+	log.V(2).Info("Deleting bastion host")
 
 	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), cluster.ObjectMeta.Name)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
-	bastionMachineName, err := generateBastionBaseResourceName(cluster.ObjectMeta.Name, bastion)
+	bastionHostName, err := generateBastionHostResourceName(cluster.ObjectMeta.Name, bastion)
 	if err != nil {
 		return err
 	}
-	if err := deleteBastionMachine(ctx, onmetalClient, namespace, bastionMachineName); client.IgnoreNotFound(err) != nil {
-		return fmt.Errorf("failed to delete bastion machine: %w", err)
+	if err := deleteBastionHost(ctx, onmetalClient, namespace, bastionHostName); client.IgnoreNotFound(err) != nil {
+		return fmt.Errorf("failed to delete bastion host: %w", err)
 	}
 
-	log.V(2).Info("Successfully deleted bastion machine")
+	log.V(2).Info("Deleted bastion host")
 	return nil
 }
 
-func deleteBastionMachine(ctx context.Context, onmetalClient client.Client, namespace, bastionMachineName string) error {
-	bastionMachine := &computev1alpha1.Machine{
+func deleteBastionHost(ctx context.Context, onmetalClient client.Client, namespace, bastionHostName string) error {
+	bastionHost := &computev1alpha1.Machine{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      bastionMachineName,
+			Name:      bastionHostName,
 		},
 	}
 	ignitionSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      getIgnitionNameForMachine(bastionMachineName),
+			Name:      getIgnitionNameForMachine(bastionHostName),
 			Namespace: namespace,
 		},
 	}
 
-	if err := onmetalClient.Delete(ctx, bastionMachine); err != nil {
-		return fmt.Errorf("error deleting bastion machine: %v", err)
+	if err := onmetalClient.Delete(ctx, bastionHost); err != nil {
+		return fmt.Errorf("error deleting bastion host: %v", err)
 	}
 
+	// TODO: Despite setting the owner reference to the ignition secret in func
+	// applyMachineAndIgnitionSecret, the ignition secret is not being garbage
+	// collected upon deleting the bastion host.
 	if err := onmetalClient.Delete(ctx, ignitionSecret); err != nil {
 		return fmt.Errorf("error deleting ignition secret: %v", err)
 	}

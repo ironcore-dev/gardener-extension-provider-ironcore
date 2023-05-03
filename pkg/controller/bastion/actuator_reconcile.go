@@ -58,9 +58,9 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, bastion *exte
 
 func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) error {
 	log.V(2).Info("Reconciling bastion host")
-	err := bastionConfigCheck(a.bastionConfig)
-	if err != nil {
-		return err
+
+	if err := validateConfiguration(a.bastionConfig); err != nil {
+		return fmt.Errorf("error validating configuration: %w", err)
 	}
 
 	opt, err := DetermineOptions(bastion, cluster)
@@ -79,14 +79,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 
 	// TODO: Add NetworkPolicy related implementation
 
-	ignitionSecret, err := createIgnitionSecret(namespace, opt)
-	if err != nil {
-		return fmt.Errorf("failed to create ignition secret: %w", err)
-	}
-
-	bastionMachine := createMachine(namespace, a.bastionConfig, infraStatus, opt.BastionInstanceName, ignitionSecret.Name)
-
-	machine, err := applyMachine(ctx, onmetalClient, ignitionSecret, bastionMachine)
+	machine, err := a.applyMachineAndIgnitionSecret(ctx, namespace, onmetalClient, infraStatus, opt)
 	if err != nil {
 		return fmt.Errorf("failed to create machine: %w", err)
 	}
@@ -107,7 +100,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 
 	// once a public endpoint is available, publish the endpoint on the
 	// Bastion resource to notify upstream about the ready instance
-	log.V(2).Info("Successfully reconciled bastion host")
+	log.V(2).Info("Reconciled bastion host")
 	patch := client.MergeFrom(bastion.DeepCopy())
 	bastion.Status.Ingress = endpoints.public
 	return a.Client().Status().Patch(ctx, bastion, patch)
@@ -119,7 +112,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 // finally converts the IPs to their respective ingress addresses.
 func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, error) {
 	if machine == nil {
-		return nil, fmt.Errorf("machine can't be nil")
+		return nil, fmt.Errorf("machine can not be nil")
 	}
 
 	if machine.Status.State != computev1alpha1.MachineStateRunning {
@@ -132,20 +125,16 @@ func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, e
 		return nil, fmt.Errorf("no network interface found for machine: %s", machine.Name)
 	}
 
-	if len(machine.Status.NetworkInterfaces[0].IPs) == 0 {
-		return nil, fmt.Errorf("no private ip found for network interface for machine: %s", machine.Name)
+	privateIP, virtualIP, err := getPrivateAndVirtualIPsFromNetworkInterfaces(machine.Status.NetworkInterfaces)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ips from network interfaces: %s", machine.Name)
+
 	}
 
-	privateIP := machine.Status.NetworkInterfaces[0].IPs[0].String()
 	if ingress := addressToIngress(&machine.Name, &privateIP); ingress != nil {
 		endpoints.private = ingress
 	}
 
-	if machine.Status.NetworkInterfaces[0].VirtualIP == nil {
-		return nil, fmt.Errorf("no virtual ip found for network interface for machine: %s", machine.Name)
-	}
-
-	virtualIP := machine.Status.NetworkInterfaces[0].VirtualIP.String()
 	if ingress := addressToIngress(&machine.Name, &virtualIP); ingress != nil {
 		endpoints.public = ingress
 	}
@@ -153,34 +142,41 @@ func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, e
 	return endpoints, nil
 }
 
-// bastionConfigCheck checks whether a bastion configuration is valid.
-func bastionConfigCheck(bastionConfig *controllerconfig.BastionConfig) error {
-	if bastionConfig == nil {
+// validateConfiguration checks whether a bastion configuration is valid.
+func validateConfiguration(config *controllerconfig.BastionConfig) error {
+	if config == nil {
 		return fmt.Errorf("bastionConfig must not be empty")
 	}
 
-	if bastionConfig.MachineClassName == "" {
+	if config.MachineClassName == "" {
 		return fmt.Errorf("bastion not supported as no machine class is configured for the bastion host machine")
 	}
 
-	if bastionConfig.Image == "" {
+	if config.Image == "" {
 		return fmt.Errorf("bastion not supported as no Image is configured for the bastion host machine")
 	}
 	return nil
 }
 
-// applyMachine applies the configuration to create or update the bastion host machine
-// and the ignition secret used for provisioning the machine. It first sets the owner
-// reference for the ignition secret to the bastion host machine, to ensure that the secret
-// is garbage collected when the machine is deleted.
-func applyMachine(ctx context.Context, onmetalClient client.Client, ignitionSecret *corev1.Secret, bastionHost *computev1alpha1.Machine) (*computev1alpha1.Machine, error) {
+// applyMachineAndIgnitionSecret applies the configuration to create or update
+// the bastion host machine and the ignition secret used for provisioning the
+// bastion host machine. It first sets the owner reference for the ignition
+// secret to the bastion host machine, to ensure that the secret is garbage
+// collected when the bastion host is deleted.
+func (a *actuator) applyMachineAndIgnitionSecret(ctx context.Context, namespace string, onmetalClient client.Client, infraStatus *api.InfrastructureStatus, opt *Options) (*computev1alpha1.Machine, error) {
 
-	_, err := controllerutil.CreateOrPatch(ctx, onmetalClient, bastionHost, nil)
+	ignitionSecret, err := generateIgnitionSecret(namespace, opt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ignition secret: %w", err)
+	}
+
+	bastionHost := generateMachine(namespace, a.bastionConfig, infraStatus, opt.BastionInstanceName, ignitionSecret.Name)
+
+	_, err = controllerutil.CreateOrPatch(ctx, onmetalClient, bastionHost, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create or patch bastion host machine %s: %w", client.ObjectKeyFromObject(bastionHost), err)
 	}
 
-	//TODO: Even after its owner is set as the Bastion machine, ignitionSecret does not get garbage collected when deleting Bastion.
 	if err := controllerutil.SetOwnerReference(bastionHost, ignitionSecret, onmetalClient.Scheme()); err != nil {
 		return nil, fmt.Errorf("failed to set owner reference for ignition secret %s: %w", client.ObjectKeyFromObject(ignitionSecret), err)
 	}
@@ -193,8 +189,8 @@ func applyMachine(ctx context.Context, onmetalClient client.Client, ignitionSecr
 	return bastionHost, nil
 }
 
-// createIgnitionSecret constructs a Kubernetes secret object containing an ignition file for the Bastion machine
-func createIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, error) {
+// generateIgnitionSecret constructs a Kubernetes secret object containing an ignition file for the Bastion host
+func generateIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, error) {
 	// Construct ignition file config
 	config := &ignition.Config{
 		Hostname:   opt.BastionInstanceName,
@@ -210,10 +206,6 @@ func createIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, error
 	ignitionData := map[string][]byte{}
 	ignitionData[computev1alpha1.DefaultIgnitionKey] = []byte(ignitionContent)
 	ignitionSecret := &corev1.Secret{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: corev1.SchemeGroupVersion.String(),
-			Kind:       "Secret",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      getIgnitionNameForMachine(opt.BastionInstanceName),
 			Namespace: namespace,
@@ -224,8 +216,8 @@ func createIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, error
 	return ignitionSecret, nil
 }
 
-// createMachine constructs a Machine object for the Bastion instance
-func createMachine(namespace string, bastionConfig *controllerconfig.BastionConfig, infraStatus *api.InfrastructureStatus, BastionInstanceName string, ignitionSecretName string) *computev1alpha1.Machine {
+// generateMachine constructs a Machine object for the Bastion instance
+func generateMachine(namespace string, bastionConfig *controllerconfig.BastionConfig, infraStatus *api.InfrastructureStatus, BastionInstanceName string, ignitionSecretName string) *computev1alpha1.Machine {
 	bastionHost := &computev1alpha1.Machine{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: computev1alpha1.SchemeGroupVersion.String(),
@@ -289,10 +281,6 @@ func createMachine(namespace string, bastionConfig *controllerconfig.BastionConf
 		},
 	}
 	return bastionHost
-}
-
-func getIgnitionNameForMachine(machineName string) string {
-	return fmt.Sprintf("%s-%s", machineName, "ignition")
 }
 
 // addressToIngress converts the IP address into a

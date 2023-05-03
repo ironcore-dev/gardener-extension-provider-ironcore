@@ -16,8 +16,6 @@ package bastion
 
 import (
 	"encoding/base64"
-	"fmt"
-	"strings"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -37,7 +35,7 @@ type Options struct {
 // function does not create any IaaS resources.
 func DetermineOptions(bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) (*Options, error) {
 	clusterName := cluster.ObjectMeta.Name
-	baseResourceName, err := generateBastionBaseResourceName(clusterName, bastion)
+	baseResourceName, err := generateBastionHostResourceName(clusterName, bastion)
 	if err != nil {
 		return nil, err
 	}
@@ -45,17 +43,4 @@ func DetermineOptions(bastion *extensionsv1alpha1.Bastion, cluster *controller.C
 		BastionInstanceName: baseResourceName,
 		UserData:            []byte(base64.StdEncoding.EncodeToString(bastion.Spec.UserData)),
 	}, nil
-}
-
-func generateBastionBaseResourceName(clusterName string, bastion *extensionsv1alpha1.Bastion) (string, error) {
-	bastionName := bastion.Name
-	if bastionName == "" {
-		return "", fmt.Errorf("bastionName can't be empty")
-	}
-	if clusterName == "" {
-		return "", fmt.Errorf("clusterName can't be empty")
-	}
-	staticName := clusterName + "-" + bastionName
-	nameSuffix := strings.Split(string(bastion.UID), "-")[0]
-	return fmt.Sprintf("%s-bastion-%s", staticName, nameSuffix), nil
 }

@@ -80,6 +80,9 @@ config:
       provisioner: kubernetes.io/gce-pd
       volumeBindingMode: WaitForFirstConsumer
   featureGates: {}
+  bastionConfig:
+    image: ""
+    machineClassName: ""
 #   DisableGardenerServiceAccountCreation: false
 gardener:
   version: ""

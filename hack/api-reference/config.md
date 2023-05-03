@@ -139,7 +139,7 @@ string
 </em>
 </td>
 <td>
-<p>Image is the URL pointing to an OCI registry containing the operating system image which should be used to boot the Bastion Machine</p>
+<p>Image is the URL pointing to an OCI registry containing the operating system image which should be used to boot the Bastion host</p>
 </td>
 </tr>
 <tr>

@@ -47,7 +47,7 @@ var _ = Describe("ConfigValidator", func() {
 	It("should return error for an empty bastion config", func() {
 		errorList := configValidator.Validate(ctx, nil, cluster)
 		Expect(errorList).To(ConsistOfFields(gstruct.Fields{
-			"Detail": Equal("bastion can't be nil"),
+			"Detail": Equal("bastion can not be nil"),
 		}))
 	})
 
@@ -64,7 +64,7 @@ var _ = Describe("ConfigValidator", func() {
 		}
 		errorList := configValidator.Validate(ctx, bastion, cluster)
 		Expect(errorList).To(ConsistOfFields(gstruct.Fields{
-			"Detail": Equal("bastion spec userdata can't be empty"),
+			"Detail": Equal("bastion spec userdata can not be empty"),
 		}))
 	})
 
@@ -86,7 +86,7 @@ var _ = Describe("ConfigValidator", func() {
 		}
 		errorList := configValidator.Validate(ctx, bastion, cluster)
 		Expect(errorList).To(ConsistOfFields(gstruct.Fields{
-			"Detail": Equal("bastion spec Ingress CIDR can't be empty"),
+			"Detail": Equal("bastion spec Ingress CIDR can not be empty"),
 		}))
 	})
 
@@ -112,7 +112,7 @@ var _ = Describe("ConfigValidator", func() {
 		}
 		errorList := configValidator.Validate(ctx, bastion, cluster)
 		Expect(errorList).To(ConsistOfFields(gstruct.Fields{
-			"Detail": Equal("invalid bastion spec Ingress CIDR invalid CIDR address: 213.69.151.260/24"),
+			"Detail": Equal("invalid bastion spec Ingress CIDR: invalid CIDR address: 213.69.151.260/24"),
 		}))
 	})
 
@@ -138,7 +138,7 @@ var _ = Describe("ConfigValidator", func() {
 		}
 		errorList := configValidator.Validate(ctx, bastion, nil)
 		Expect(errorList).To(ConsistOfFields(gstruct.Fields{
-			"Detail": Equal("cluster can't be nil"),
+			"Detail": Equal("cluster can not be nil"),
 		}))
 	})
 	It("should return error for an empty cluster shoot", func() {
@@ -171,7 +171,7 @@ var _ = Describe("ConfigValidator", func() {
 		}
 		errorList := configValidator.Validate(ctx, bastion, cluster)
 		Expect(errorList).To(ConsistOfFields(gstruct.Fields{
-			"Detail": Equal("cluster shoot can't be empty"),
+			"Detail": Equal("cluster shoot can not be empty"),
 		}))
 	})
 })
