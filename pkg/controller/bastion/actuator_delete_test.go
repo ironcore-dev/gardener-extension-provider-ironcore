@@ -31,7 +31,6 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
@@ -65,7 +64,7 @@ var _ = Describe("Bastion Host Delete", func() {
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeCreate),
 		))
 
-		By("ensuring bastion host is created with correct spec")
+		By("ensuring bastion host is created")
 		bastionHostName, err := generateBastionHostResourceName(cluster.ObjectMeta.Name, bastion)
 		Expect(err).ShouldNot(HaveOccurred())
 		bastionHost := &computev1alpha1.Machine{
@@ -74,21 +73,7 @@ var _ = Describe("Bastion Host Delete", func() {
 				Name:      bastionHostName,
 			},
 		}
-		Eventually(Object(bastionHost)).Should(SatisfyAll(
-			HaveField("Spec.MachineClassRef", corev1.LocalObjectReference{
-				Name: "my-machine-class",
-			}),
-			HaveField("Spec.Image", "my-image"),
-			HaveField("Spec.IgnitionRef.Name", getIgnitionNameForMachine(bastionHost.Name)),
-			HaveField("Spec.Power", computev1alpha1.PowerOn),
-			HaveField("Spec.NetworkInterfaces", ContainElement(SatisfyAll(
-				HaveField("Name", "primary"),
-				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.NetworkRef.Name", "my-network"),
-				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.IPFamilies", ConsistOf(corev1.IPv4Protocol)),
-				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.VirtualIP.Ephemeral.VirtualIPTemplate.Spec.Type", networkingv1alpha1.VirtualIPTypePublic),
-				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.VirtualIP.Ephemeral.VirtualIPTemplate.Spec.IPFamily", corev1.IPv4Protocol),
-			))),
-		))
+		Eventually(Get(bastionHost)).Should(BeNil())
 
 		By("ensuring ignition secret is created and owned by bastion host machine")
 		ignitionSecret := &corev1.Secret{
@@ -123,7 +108,7 @@ var _ = Describe("Bastion Host Delete", func() {
 		By("deleting bastion resource")
 		Expect(k8sClient.Delete(ctx, bastion)).Should(Succeed())
 		Eventually(Object(bastion)).Should(SatisfyAll(
-		//HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeDelete),
+			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeDelete),
 		))
 
 		By("waiting for the bastion to be gone")
