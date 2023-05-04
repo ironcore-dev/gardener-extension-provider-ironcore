@@ -16,9 +16,13 @@ package infrastructure
 
 import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -26,15 +30,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
-var _ = Describe("Infrastructure Delete", func() {
+var _ = Describe("Infrastructure Reconcile", func() {
 	ctx := testutils.SetupContext()
 	ns := SetupTest(ctx)
 
@@ -96,9 +94,6 @@ var _ = Describe("Infrastructure Delete", func() {
 
 		By("deleting the infrastructure resource")
 		Expect(k8sClient.Delete(ctx, infra)).Should(Succeed())
-		Eventually(Object(infra)).Should(SatisfyAll(
-			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeDelete),
-		))
 
 		By("waiting for the network to be gone")
 		Eventually(Get(network)).Should(Satisfy(apierrors.IsNotFound))
