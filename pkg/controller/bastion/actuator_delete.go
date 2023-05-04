@@ -21,9 +21,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
@@ -42,38 +40,16 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensi
 	if err != nil {
 		return err
 	}
-	if err := deleteBastionHost(ctx, onmetalClient, namespace, bastionHostName); client.IgnoreNotFound(err) != nil {
-		return fmt.Errorf("failed to delete bastion host: %w", err)
-	}
-
-	log.V(2).Info("Deleted bastion host")
-	return nil
-}
-
-func deleteBastionHost(ctx context.Context, onmetalClient client.Client, namespace, bastionHostName string) error {
 	bastionHost := &computev1alpha1.Machine{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      bastionHostName,
 		},
 	}
-	ignitionSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      getIgnitionNameForMachine(bastionHostName),
-			Namespace: namespace,
-		},
-	}
-
 	if err := onmetalClient.Delete(ctx, bastionHost); err != nil {
-		return fmt.Errorf("error deleting bastion host: %v", err)
+		return fmt.Errorf("failed to delete bastion host: %v", err)
 	}
 
-	// TODO: Despite setting the owner reference to the ignition secret in func
-	// applyMachineAndIgnitionSecret, the ignition secret is not being garbage
-	// collected upon deleting the bastion host.
-	if err := onmetalClient.Delete(ctx, ignitionSecret); err != nil {
-		return fmt.Errorf("error deleting ignition secret: %v", err)
-	}
-
+	log.V(2).Info("Deleted bastion host")
 	return nil
 }

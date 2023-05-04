@@ -116,8 +116,5 @@ var _ = Describe("Bastion Host Delete", func() {
 
 		By("waiting for the bastion host to be gone")
 		Eventually(Get(bastionHost)).Should(Satisfy(apierrors.IsNotFound))
-
-		By("waiting for the ignition secret to be gone")
-		Eventually(Get(ignitionSecret)).Should(Satisfy(apierrors.IsNotFound))
 	})
 })

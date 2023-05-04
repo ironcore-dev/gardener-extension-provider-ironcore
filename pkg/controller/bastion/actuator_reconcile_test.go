@@ -19,7 +19,6 @@ import (
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	. "github.com/onsi/ginkgo/v2"
@@ -52,9 +51,6 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      "my-bastion",
-				Annotations: map[string]string{
-					constants.GardenerOperation: constants.GardenerOperationReconcile,
-				},
 			},
 			Spec: extensionsv1alpha1.BastionSpec{
 				DefaultSpec: extensionsv1alpha1.DefaultSpec{

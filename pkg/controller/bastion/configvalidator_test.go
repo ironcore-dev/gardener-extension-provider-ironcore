@@ -53,7 +53,6 @@ var _ = Describe("ConfigValidator", func() {
 
 	It("should return error for an empty bastion userdata", func() {
 		bastion := &gardenerextensionv1alpha1.Bastion{
-			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      "bastion",
@@ -70,7 +69,6 @@ var _ = Describe("ConfigValidator", func() {
 
 	It("should return error for an empty bastion CIDR", func() {
 		bastion := &gardenerextensionv1alpha1.Bastion{
-			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      "bastion",
@@ -92,7 +90,6 @@ var _ = Describe("ConfigValidator", func() {
 
 	It("should return error for an invalid bastion spec CIDR", func() {
 		bastion := &gardenerextensionv1alpha1.Bastion{
-			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      "bastion",
@@ -118,7 +115,6 @@ var _ = Describe("ConfigValidator", func() {
 
 	It("should return error for an empty cluster", func() {
 		bastion := &gardenerextensionv1alpha1.Bastion{
-			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      "bastion",
@@ -143,7 +139,6 @@ var _ = Describe("ConfigValidator", func() {
 	})
 	It("should return error for an empty cluster shoot", func() {
 		bastion := &gardenerextensionv1alpha1.Bastion{
-			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      "bastion",
