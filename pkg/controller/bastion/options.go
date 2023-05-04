@@ -27,7 +27,7 @@ import (
 // resources, like the nic name, subnet name etc.
 type Options struct {
 	BastionInstanceName string
-	UserData            []byte
+	UserData            string
 	//TODO: add networkPolicy
 }
 
@@ -41,6 +41,6 @@ func DetermineOptions(bastion *extensionsv1alpha1.Bastion, cluster *controller.C
 	}
 	return &Options{
 		BastionInstanceName: baseResourceName,
-		UserData:            []byte(base64.StdEncoding.EncodeToString(bastion.Spec.UserData)),
+		UserData:            base64.StdEncoding.EncodeToString(bastion.Spec.UserData),
 	}, nil
 }

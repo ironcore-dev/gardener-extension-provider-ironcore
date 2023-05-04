@@ -110,8 +110,9 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		}
 		Eventually(Object(ignitionSecret)).Should(SatisfyAll(
 			HaveField("ObjectMeta.OwnerReferences", ContainElement(SatisfyAll(
-				HaveField("Name", bastionHost.Name),
 				HaveField("Kind", "Machine"),
+				HaveField("UID", bastionHost.UID),
+				HaveField("Name", bastionHost.Name),
 			))),
 			HaveField("Data", HaveLen(1)),
 		))

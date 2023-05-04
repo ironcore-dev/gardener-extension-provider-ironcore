@@ -172,8 +172,7 @@ func (a *actuator) applyMachineAndIgnitionSecret(ctx context.Context, namespace 
 
 	bastionHost := generateMachine(namespace, a.bastionConfig, infraStatus, opt.BastionInstanceName, ignitionSecret.Name)
 
-	_, err = controllerutil.CreateOrPatch(ctx, onmetalClient, bastionHost, nil)
-	if err != nil {
+	if _, err = controllerutil.CreateOrPatch(ctx, onmetalClient, bastionHost, nil); err != nil {
 		return nil, fmt.Errorf("failed to create or patch bastion host machine %s: %w", client.ObjectKeyFromObject(bastionHost), err)
 	}
 
@@ -194,7 +193,7 @@ func generateIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, err
 	// Construct ignition file config
 	config := &ignition.Config{
 		Hostname:   opt.BastionInstanceName,
-		UserData:   string(opt.UserData),
+		UserData:   opt.UserData,
 		DnsServers: []netip.Addr{netip.MustParseAddr("8.8.8.8")},
 	}
 
@@ -219,10 +218,6 @@ func generateIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, err
 // generateMachine constructs a Machine object for the Bastion instance
 func generateMachine(namespace string, bastionConfig *controllerconfig.BastionConfig, infraStatus *api.InfrastructureStatus, BastionInstanceName string, ignitionSecretName string) *computev1alpha1.Machine {
 	bastionHost := &computev1alpha1.Machine{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: computev1alpha1.SchemeGroupVersion.String(),
-			Kind:       "Machine",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      BastionInstanceName,
 			Namespace: namespace,
