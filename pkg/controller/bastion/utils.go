@@ -23,6 +23,12 @@ import (
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 )
 
+// generateBastionHostResourceName returns a unique name for the Bastion host in
+// the Gardener Kubernetes cluster, based on the cluster name, Bastion name, and
+// UID. The function concatenates these values and truncates the resulting
+// string to 63 characters, if necessary, to comply with the Kubernetes naming
+// convention. In rare cases, this truncation may result in non-unique names,
+// but the likelihood of this happening is extremely low.
 func generateBastionHostResourceName(clusterName string, bastion *extensionsv1alpha1.Bastion) (string, error) {
 	bastionName := bastion.Name
 	if bastionName == "" {
@@ -33,7 +39,11 @@ func generateBastionHostResourceName(clusterName string, bastion *extensionsv1al
 	}
 	staticName := clusterName + "-" + bastionName
 	nameSuffix := strings.Split(string(bastion.UID), "-")[0]
-	return fmt.Sprintf("%s-bastion-%s", staticName, nameSuffix), nil
+	name := fmt.Sprintf("%s-bastion-%s", staticName, nameSuffix)
+	if len(name) > 63 {
+		name = name[:63]
+	}
+	return name, nil
 }
 
 func getIgnitionNameForMachine(machineName string) string {

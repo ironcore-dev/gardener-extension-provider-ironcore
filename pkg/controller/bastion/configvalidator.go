@@ -68,8 +68,7 @@ func (c *configValidator) Validate(ctx context.Context, bastion *extensionsv1alp
 		return allErrs
 	}
 
-	err = validateInfrastructureStatus(infrastructureStatus)
-	if err != nil {
+	if err = validateInfrastructureStatus(infrastructureStatus); err != nil {
 		allErrs = append(allErrs, field.InternalError(nil, err))
 		return allErrs
 	}
@@ -112,11 +111,8 @@ func validateCluster(cluster *extensions.Cluster) error {
 }
 
 func getInfrastructureStatus(ctx context.Context, c client.Client, cluster *extensions.Cluster) (*api.InfrastructureStatus, error) {
-	var infrastructureStatus *api.InfrastructureStatus
-
 	worker := &extensionsv1alpha1.Worker{}
-	err := c.Get(ctx, client.ObjectKey{Namespace: cluster.ObjectMeta.Name, Name: cluster.Shoot.Name}, worker)
-	if err != nil {
+	if err := c.Get(ctx, client.ObjectKey{Namespace: cluster.ObjectMeta.Name, Name: cluster.Shoot.Name}, worker); err != nil {
 		return nil, err
 	}
 
@@ -124,7 +120,8 @@ func getInfrastructureStatus(ctx context.Context, c client.Client, cluster *exte
 		return nil, fmt.Errorf("infrastructure provider status must be not empty for worker")
 	}
 
-	if infrastructureStatus, err = helper.InfrastructureStatusFromRaw(worker.Spec.InfrastructureProviderStatus); err != nil {
+	infrastructureStatus, err := helper.InfrastructureStatusFromRaw(worker.Spec.InfrastructureProviderStatus)
+	if err != nil {
 		return nil, fmt.Errorf("%s", err)
 	}
 

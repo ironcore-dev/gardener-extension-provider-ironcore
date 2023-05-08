@@ -164,7 +164,6 @@ func validateConfiguration(config *controllerconfig.BastionConfig) error {
 // secret to the bastion host machine, to ensure that the secret is garbage
 // collected when the bastion host is deleted.
 func (a *actuator) applyMachineAndIgnitionSecret(ctx context.Context, namespace string, onmetalClient client.Client, infraStatus *api.InfrastructureStatus, opt *Options) (*computev1alpha1.Machine, error) {
-
 	ignitionSecret, err := generateIgnitionSecret(namespace, opt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ignition secret: %w", err)
@@ -180,8 +179,7 @@ func (a *actuator) applyMachineAndIgnitionSecret(ctx context.Context, namespace 
 		return nil, fmt.Errorf("failed to set owner reference for ignition secret %s: %w", client.ObjectKeyFromObject(ignitionSecret), err)
 	}
 
-	_, err = controllerutil.CreateOrPatch(ctx, onmetalClient, ignitionSecret, nil)
-	if err != nil {
+	if _, err = controllerutil.CreateOrPatch(ctx, onmetalClient, ignitionSecret, nil); err != nil {
 		return nil, fmt.Errorf("failed to create or patch ignition secret %s for bastion host %s: %w", client.ObjectKeyFromObject(ignitionSecret), client.ObjectKeyFromObject(bastionHost), err)
 	}
 
