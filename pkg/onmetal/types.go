@@ -63,6 +63,8 @@ const (
 	RootDiskFieldName = "rootDisk"
 	// SizeFieldName is the name of the size field
 	SizeFieldName = "size"
+	// VolumePoolFieldName is the name of the volume pool field
+	VolumePoolFieldName = "volumePoolName"
 	// VolumeClassFieldName is the name of the volume class field
 	VolumeClassFieldName = "volumeClassName"
 	// ClusterNameLabel is the name is the label key of the cluster name
