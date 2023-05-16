@@ -1,0 +1,35 @@
+variant: fcos
+version: 1.3.0
+storage:
+  files:
+    - path: /etc/hostname
+      overwrite: yes
+      mode: 0644
+      contents:
+        inline: |
+          {{ .Hostname }}
+    - path: /var/lib/onmetal-cloud-config/init.sh
+      overwrite: yes
+      mode: 0755
+      contents:
+        inline: |
+          {{ .UserData | indent 8 | trim }}
+systemd:
+  units:
+    - name: cloud-config-init.service
+      enabled: true
+      contents: |
+        [Unit]
+        Wants=network-online.target
+        After=network-online.target
+        ConditionPathExists=!/var/lib/onmetal-cloud-config/init.done
+
+        [Service]
+        Type=oneshot
+        ExecStart=/var/lib/onmetal-cloud-config/init.sh
+        ExecStopPost=touch /var/lib/onmetal-cloud-config/init.done
+        Restart=on-failure
+        RestartSec=5
+
+        [Install]
+        WantedBy=multi-user.target

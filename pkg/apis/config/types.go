@@ -39,6 +39,8 @@ type ControllerConfiguration struct {
 	// or disable alpha/experimental features.
 	// Default: nil
 	FeatureGates map[string]bool
+	// BastionConfig is the config for the Bastion
+	BastionConfig *BastionConfig
 }
 
 // ETCD is an etcd configuration.
@@ -61,4 +63,12 @@ type ETCDStorage struct {
 type ETCDBackup struct {
 	// Schedule is the etcd backup schedule.
 	Schedule *string
+}
+
+// BastionConfig is the config for the Bastion
+type BastionConfig struct {
+	// Image is the URL pointing to an OCI registry containing the operating system image which should be used to boot the Bastion host
+	Image string
+	// MachineClassName the name of the OnMetal MachineClass
+	MachineClassName string
 }

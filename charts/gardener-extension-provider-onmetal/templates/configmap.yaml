@@ -28,3 +28,6 @@ data:
     featureGates:
 {{ toYaml .Values.config.featureGates | indent 6 }}
 {{- end }}
+    bastionConfig:
+      image:  {{ .Values.config.bastionConfig.image }}
+      machineClassName: {{ .Values.config.bastionConfig.machineClassName }}

@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
@@ -33,10 +34,12 @@ import (
 var onmetalScheme = runtime.NewScheme()
 
 func init() {
+	utilruntime.Must(corev1.AddToScheme(onmetalScheme))
 	utilruntime.Must(networkingv1alpha1.AddToScheme(onmetalScheme))
 	utilruntime.Must(computev1alpha1.AddToScheme(onmetalScheme))
 	utilruntime.Must(storagev1alpha1.AddToScheme(onmetalScheme))
 	utilruntime.Must(ipamv1alpha1.AddToScheme(onmetalScheme))
+	utilruntime.Must(extensionsv1alpha1.AddToScheme(onmetalScheme))
 }
 
 // GetOnmetalClientAndNamespaceFromCloudProviderSecret extracts the <onmetalClient, onmetalNamespace> from the

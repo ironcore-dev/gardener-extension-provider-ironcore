@@ -98,6 +98,61 @@ or disable alpha/experimental features.
 Default: nil</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>bastionConfig</code></br>
+<em>
+<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">
+BastionConfig
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BastionConfig is the config for the Bastion</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">BastionConfig
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
+</p>
+<p>
+<p>BastionConfig is the config for the Bastion</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>image</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Image is the URL pointing to an OCI registry containing the operating system image which should be used to boot the Bastion host</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>machineClassName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>MachineClassName the name of the OnMetal MachineClass</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD
