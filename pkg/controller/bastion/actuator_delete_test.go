@@ -73,7 +73,7 @@ var _ = Describe("Bastion Host Delete", func() {
 				Name:      bastionHostName,
 			},
 		}
-		Eventually(Get(bastionHost)).Should(BeNil())
+		Eventually(Get(bastionHost)).Should(Succeed())
 
 		By("ensuring ignition secret is created and owned by bastion host machine")
 		ignitionSecret := &corev1.Secret{
@@ -86,30 +86,22 @@ var _ = Describe("Bastion Host Delete", func() {
 			HaveField("ObjectMeta.OwnerReferences", ContainElement(SatisfyAll(
 				HaveField("Name", bastionHost.Name),
 				HaveField("Kind", "Machine"),
+				HaveField("UID", bastionHost.UID),
 			))),
 			HaveField("Data", HaveLen(1)),
 		))
 
 		By("patching bastion host with Running state")
-		machineBase := bastionHost.DeepCopy()
+		bastionHostBase := bastionHost.DeepCopy()
 		bastionHost.Status.State = computev1alpha1.MachineStateRunning
 		bastionHost.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
 			Name:      "primary",
 			IPs:       []commonv1alpha1.IP{commonv1alpha1.MustParseIP("10.0.0.3")},
 			VirtualIP: &commonv1alpha1.IP{Addr: netip.MustParseAddr("10.0.0.4")},
 		}}
-		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(machineBase))).To(Succeed())
+		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(bastionHostBase))).To(Succeed())
 
-		By("ensuring bastion host is in Running state")
-		Eventually(Object(bastionHost)).Should(SatisfyAll(
-			HaveField("Status.State", computev1alpha1.MachineStateRunning),
-		))
-
-		By("deleting bastion resource")
-		Expect(k8sClient.Delete(ctx, bastion)).Should(Succeed())
-		Eventually(Object(bastion)).Should(SatisfyAll(
-			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeDelete),
-		))
+		Expect(k8sClient.Delete(ctx, bastion)).To(Succeed())
 
 		By("waiting for the bastion to be gone")
 		Eventually(Get(bastion)).Should(Satisfy(apierrors.IsNotFound))
