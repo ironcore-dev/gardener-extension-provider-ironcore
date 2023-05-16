@@ -170,6 +170,10 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 				onmetal.ClusterNameLabel: w.cluster.ObjectMeta.Name,
 			}
 
+			if _, exists := machineClassProviderSpec[onmetal.RootDiskFieldName]; exists {
+				machineClassProviderSpec[onmetal.RootDiskFieldName].(map[string]interface{})[onmetal.VolumePoolFieldName] = zone
+			}
+
 			machineClassProviderSpecJSON, err := json.Marshal(machineClassProviderSpec)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to marshal machine class for machine pool %s: %w", pool.Name, err)
