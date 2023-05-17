@@ -478,6 +478,15 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="onmetal.provider.extensions.gardener.cloud/v1alpha1.ResizePolicy">ResizePolicy
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#onmetal.provider.extensions.gardener.cloud/v1alpha1.StorageClass">StorageClass</a>)
+</p>
+<p>
+<p>ResizePolicy is a type of policy.</p>
+</p>
 <h3 id="onmetal.provider.extensions.gardener.cloud/v1alpha1.StorageClass">StorageClass
 </h3>
 <p>
@@ -515,6 +524,20 @@ string
 </td>
 <td>
 <p>Type is referring to the VolumeClass to use for this StorageClass</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>resizePolicy</code></br>
+<em>
+<a href="#onmetal.provider.extensions.gardener.cloud/v1alpha1.ResizePolicy">
+ResizePolicy
+</a>
+</em>
+</td>
+<td>
+<p>ResizePolicy describes the supported expansion policy of a VolumeClass.
+If not set default to Static expansion policy.</p>
 </td>
 </tr>
 </tbody>

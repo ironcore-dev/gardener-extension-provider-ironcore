@@ -21,4 +21,6 @@ const (
 	StorageClassTypeKeyName = "type"
 	// StorageClassDefaultKeyName is the default key name of the StorageClass value map
 	StorageClassDefaultKeyName = "default"
+	// StorageClassExpandableKeyName is the expandable key name of the StorageClass value map
+	StorageClassExpandableKeyName = "expandable"
 )

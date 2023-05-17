@@ -277,21 +277,27 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	storageClasses := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.Additional)+defaultStorageClass)
 	if providerConfig.StorageClasses.Default != nil {
 		storageClasses = append(storageClasses, map[string]interface{}{
-			StorageClassNameKeyName:    providerConfig.StorageClasses.Default.Name,
-			StorageClassTypeKeyName:    providerConfig.StorageClasses.Default.Type,
-			StorageClassDefaultKeyName: true,
+			StorageClassNameKeyName:       providerConfig.StorageClasses.Default.Name,
+			StorageClassTypeKeyName:       providerConfig.StorageClasses.Default.Type,
+			StorageClassDefaultKeyName:    true,
+			StorageClassExpandableKeyName: isExpandable(providerConfig.StorageClasses.Default.ResizePolicy),
 		})
 	}
 	for _, sc := range providerConfig.StorageClasses.Additional {
 		storageClasses = append(storageClasses, map[string]interface{}{
-			StorageClassNameKeyName: sc.Name,
-			StorageClassTypeKeyName: sc.Type,
+			StorageClassNameKeyName:       sc.Name,
+			StorageClassTypeKeyName:       sc.Type,
+			StorageClassExpandableKeyName: isExpandable(sc.ResizePolicy),
 		})
 	}
 
 	values["storageClasses"] = storageClasses
 
 	return values, nil
+}
+
+func isExpandable(resizePolicy apisonmetal.ResizePolicy) bool {
+	return resizePolicy == apisonmetal.ResizePolicyExpandOnly
 }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.

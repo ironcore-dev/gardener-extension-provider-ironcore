@@ -5,3 +5,4 @@
 #  - name: default-sample
 #    type: sample
 #    default: false
+#    expandable: true
