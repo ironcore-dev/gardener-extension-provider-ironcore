@@ -146,17 +146,20 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
 					Default: &apisonmetal.StorageClass{
-						Name: "foo",
-						Type: "volumeTypeFoo",
+						Name:         "foo",
+						Type:         "volumeTypeFoo",
+						ResizePolicy: "Static",
 					},
 					Additional: []apisonmetal.StorageClass{
 						{
-							Name: "foo1",
-							Type: "volumeTypeFoo1",
+							Name:         "foo1",
+							Type:         "volumeTypeFoo1",
+							ResizePolicy: "ExpandOnly",
 						},
 						{
-							Name: "foo2",
-							Type: "volumeTypeFoo2",
+							Name:         "foo2",
+							Type:         "volumeTypeFoo2",
+							ResizePolicy: "Static",
 						},
 					},
 				},
@@ -179,17 +182,20 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			Expect(values).To(Equal(map[string]interface{}{
 				"storageClasses": []map[string]interface{}{
 					{
-						"name":    "foo",
-						"type":    "volumeTypeFoo",
-						"default": true,
+						"name":       "foo",
+						"type":       "volumeTypeFoo",
+						"default":    true,
+						"expandable": false,
 					},
 					{
-						"name": "foo1",
-						"type": "volumeTypeFoo1",
+						"name":       "foo1",
+						"type":       "volumeTypeFoo1",
+						"expandable": true,
 					},
 					{
-						"name": "foo2",
-						"type": "volumeTypeFoo2",
+						"name":       "foo2",
+						"type":       "volumeTypeFoo2",
+						"expandable": false,
 					},
 				},
 			}))
@@ -200,12 +206,14 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				StorageClasses: apisonmetal.StorageClasses{
 					Additional: []apisonmetal.StorageClass{
 						{
-							Name: "foo1",
-							Type: "volumeTypeFoo1",
+							Name:         "foo1",
+							Type:         "volumeTypeFoo1",
+							ResizePolicy: "Static",
 						},
 						{
-							Name: "foo2",
-							Type: "volumeTypeFoo2",
+							Name:         "foo2",
+							Type:         "volumeTypeFoo2",
+							ResizePolicy: "ExpandOnly",
 						},
 					},
 				},
@@ -228,12 +236,14 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			Expect(values).To(Equal(map[string]interface{}{
 				"storageClasses": []map[string]interface{}{
 					{
-						"name": "foo1",
-						"type": "volumeTypeFoo1",
+						"name":       "foo1",
+						"type":       "volumeTypeFoo1",
+						"expandable": false,
 					},
 					{
-						"name": "foo2",
-						"type": "volumeTypeFoo2",
+						"name":       "foo2",
+						"type":       "volumeTypeFoo2",
+						"expandable": true,
 					},
 				},
 			}))
