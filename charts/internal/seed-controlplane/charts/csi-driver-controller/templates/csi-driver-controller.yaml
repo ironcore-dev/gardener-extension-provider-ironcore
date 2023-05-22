@@ -133,6 +133,30 @@ spec:
           name: kubeconfig-csi-attacher
           readOnly: true
 
+      - name: onmetal-csi-resizer
+        image: {{ index .Values.images "csi-resizer" }}
+        imagePullPolicy: IfNotPresent
+        args:
+        - --csi-address=$(ADDRESS)
+        - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
+        - --leader-election=true
+        - --leader-election-namespace=kube-system
+        - --handle-volume-inuse-error=false
+        - --v=5
+        env:
+        - name: ADDRESS
+          value: {{ .Values.socketPath }}/csi.sock
+{{- if .Values.resources.resizer }}
+        resources:
+{{ toYaml .Values.resources.resizer | indent 10 }}
+{{- end }}
+        volumeMounts:
+        - name: socket-dir
+          mountPath: {{ .Values.socketPath }}
+        - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
+          name: kubeconfig-csi-resizer
+          readOnly: true
+
       - name: onmetal-csi-liveness-probe
         image: {{ index .Values.images "csi-liveness-probe" }}
         args:
@@ -195,6 +219,22 @@ spec:
                   - key: token
                     path: token
                 name: shoot-access-csi-provisioner
+                optional: false
+      - name: kubeconfig-csi-resizer
+        projected:
+          defaultMode: 420
+          sources:
+            - secret:
+                items:
+                  - key: kubeconfig
+                    path: kubeconfig
+                name: {{ .Values.global.genericTokenKubeconfigSecretName }}
+                optional: false
+            - secret:
+                items:
+                  - key: token
+                    path: token
+                name: shoot-access-csi-resizer
                 optional: false
       - name: cloudprovider
         secret:
