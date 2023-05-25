@@ -93,6 +93,10 @@ var _ = Describe("Valueprovider Reconcile", func() {
 								Name: "my-network",
 								UID:  "1234",
 							},
+							PrefixRef: v1alpha1.LocalUIDReference{
+								Name: "my-prefix",
+								UID:  "6789",
+							},
 						}),
 					},
 				},
@@ -111,6 +115,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			cloudProviderConfig := map[string]interface{}{}
 			Expect(yaml.Unmarshal([]byte(config.Data["cloudprovider.conf"]), &cloudProviderConfig)).NotTo(HaveOccurred())
 			Expect(cloudProviderConfig["networkName"]).To(Equal("my-network"))
+			Expect(cloudProviderConfig["prefixName"]).To(Equal("my-prefix"))
 		})
 	})
 

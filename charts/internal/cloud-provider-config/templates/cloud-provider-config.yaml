@@ -6,3 +6,4 @@ metadata:
 data:
   cloudprovider.conf: |
     networkName: {{ .Values.networkName }}
+    prefixName: {{ .Values.prefixName }}
