@@ -42,9 +42,11 @@ apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
 kind: InfrastructureConfig
 networkRef:
   name: "my-network"
+prefixRef:
+  name: "my-prefix"
 ```
 
-Here the `networkRef` field references the network to use for the Shoot creation.
+Here the `networkRef` field refer to network and `prefixRef` field refer to prefix. Both are used for Shoot creation.
 
 ## `ControlPlaneConfig`
 
