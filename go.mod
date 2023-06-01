@@ -14,7 +14,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/imdario/mergo v0.3.16
 	github.com/onmetal/controller-utils v0.7.0
-	github.com/onmetal/onmetal-api v0.1.1
+	github.com/onmetal/onmetal-api v0.1.2-0.20230425083928-00b302f8455b
 	github.com/onsi/ginkgo/v2 v2.9.7
 	github.com/onsi/gomega v1.27.7
 	github.com/spf13/cobra v1.7.0
