@@ -98,15 +98,10 @@ var _ = BeforeSuite(func() {
 	Expect(cfg).NotTo(BeNil())
 	DeferCleanup(utilsenvtest.StopWithExtensions, testEnv, testEnvExt)
 
-	// Expect(computev1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(extensionsv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(onmetalextensionv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(corev1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(storagev1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
-	//Expect(ipamv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
-	//Expect(networkingv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
-	//Expect(corev1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
-	//Expect(onmetalextensionv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 
 	// Init package-level k8sClient
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
@@ -229,32 +224,6 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *valuesProvider) {
 		}
 		Expect(k8sClient.Create(ctx, cloudproviderSecret)).To(Succeed())
 		DeferCleanup(k8sClient.Delete, ctx, cloudproviderSecret)
-
-		/* volumeClassExpandOnly := &storagev1alpha1.VolumeClass{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "volume-expandable",
-			},
-			Capabilities: corev1alpha1.ResourceList{
-				corev1alpha1.ResourceIOPS: resource.MustParse("100"),
-				corev1alpha1.ResourceTPS:  resource.MustParse("100"),
-			},
-			ResizePolicy: storagev1alpha1.ResizePolicyExpandOnly,
-		}
-		Expect(k8sClient.Create(ctx, volumeClassExpandOnly)).To(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, volumeClassExpandOnly)
-
-		volumeClassStatic := &storagev1alpha1.VolumeClass{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "volume-static",
-			},
-			Capabilities: corev1alpha1.ResourceList{
-				corev1alpha1.ResourceIOPS: resource.MustParse("100"),
-				corev1alpha1.ResourceTPS:  resource.MustParse("100"),
-			},
-			ResizePolicy: storagev1alpha1.ResizePolicyStatic,
-		}
-		Expect(k8sClient.Create(ctx, volumeClassStatic)).To(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, volumeClassStatic) */
 
 		Expect(AddToManagerWithOptions(mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
