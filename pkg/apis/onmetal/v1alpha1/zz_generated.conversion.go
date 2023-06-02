@@ -370,7 +370,6 @@ func Convert_onmetal_RegionConfig_To_v1alpha1_RegionConfig(in *onmetal.RegionCon
 func autoConvert_v1alpha1_StorageClass_To_onmetal_StorageClass(in *StorageClass, out *onmetal.StorageClass, s conversion.Scope) error {
 	out.Name = in.Name
 	out.Type = in.Type
-	out.ResizePolicy = onmetal.ResizePolicy(in.ResizePolicy)
 	return nil
 }
 
@@ -382,7 +381,6 @@ func Convert_v1alpha1_StorageClass_To_onmetal_StorageClass(in *StorageClass, out
 func autoConvert_onmetal_StorageClass_To_v1alpha1_StorageClass(in *onmetal.StorageClass, out *StorageClass, s conversion.Scope) error {
 	out.Name = in.Name
 	out.Type = in.Type
-	out.ResizePolicy = ResizePolicy(in.ResizePolicy)
 	return nil
 }
 
