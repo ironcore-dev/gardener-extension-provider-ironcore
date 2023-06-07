@@ -21,7 +21,6 @@ import (
 	"github.com/gardener/gardener/pkg/extensions"
 	. "github.com/gardener/gardener/pkg/utils/test/matchers"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gstruct "github.com/onsi/gomega/gstruct"
@@ -31,8 +30,7 @@ import (
 )
 
 var _ = Describe("ConfigValidator", func() {
-	ctx := testutils.SetupContext()
-	ns := SetupTest(ctx)
+	ns := SetupTest()
 
 	var (
 		configValidator bastion.ConfigValidator
@@ -44,14 +42,14 @@ var _ = Describe("ConfigValidator", func() {
 		configValidator = NewConfigValidator(k8sClient, logger)
 	})
 
-	It("should return error for an empty bastion config", func() {
+	It("should return error for an empty bastion config", func(ctx SpecContext) {
 		errorList := configValidator.Validate(ctx, nil, cluster)
 		Expect(errorList).To(ConsistOfFields(gstruct.Fields{
 			"Detail": Equal("bastion can not be nil"),
 		}))
 	})
 
-	It("should return error for an empty bastion userdata", func() {
+	It("should return error for an empty bastion userdata", func(ctx SpecContext) {
 		bastion := &gardenerextensionv1alpha1.Bastion{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -67,7 +65,7 @@ var _ = Describe("ConfigValidator", func() {
 		}))
 	})
 
-	It("should return error for an empty bastion CIDR", func() {
+	It("should return error for an empty bastion CIDR", func(ctx SpecContext) {
 		bastion := &gardenerextensionv1alpha1.Bastion{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -88,7 +86,7 @@ var _ = Describe("ConfigValidator", func() {
 		}))
 	})
 
-	It("should return error for an invalid bastion spec CIDR", func() {
+	It("should return error for an invalid bastion spec CIDR", func(ctx SpecContext) {
 		bastion := &gardenerextensionv1alpha1.Bastion{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -113,7 +111,7 @@ var _ = Describe("ConfigValidator", func() {
 		}))
 	})
 
-	It("should return error for an empty cluster", func() {
+	It("should return error for an empty cluster", func(ctx SpecContext) {
 		bastion := &gardenerextensionv1alpha1.Bastion{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -137,7 +135,8 @@ var _ = Describe("ConfigValidator", func() {
 			"Detail": Equal("cluster can not be nil"),
 		}))
 	})
-	It("should return error for an empty cluster shoot", func() {
+
+	It("should return error for an empty cluster shoot", func(ctx SpecContext) {
 		bastion := &gardenerextensionv1alpha1.Bastion{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,

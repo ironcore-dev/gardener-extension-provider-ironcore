@@ -31,15 +31,12 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Bastion Host Delete", func() {
-	ctx := testutils.SetupContext()
-	ns := SetupTest(ctx)
+	ns := SetupTest()
 
-	It("should ensure that the bastion is deleted along with bastion host and ignition secret", func() {
-
+	It("should ensure that the bastion is deleted along with bastion host and ignition secret", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
