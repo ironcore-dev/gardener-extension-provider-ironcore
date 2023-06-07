@@ -13,7 +13,11 @@ metadata:
     {{- end }}
 parameters:
   type: {{ $value.type }}
+{{- if $value.expandable }}
+allowVolumeExpansion: true
+{{- else }}
 allowVolumeExpansion: false
+{{- end }}
 provisioner: csi.onmetal.de
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer

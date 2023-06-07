@@ -26,6 +26,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
@@ -39,6 +40,8 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
@@ -120,12 +123,44 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	})
 
 	Describe("#GetStorageClassesChartValues", func() {
+		BeforeEach(func() {
+			By("creating an expand only VolumeClass")
+			volumeClassExpandOnly := &storagev1alpha1.VolumeClass{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "volume-expandable",
+				},
+				Capabilities: corev1alpha1.ResourceList{
+					corev1alpha1.ResourceIOPS: resource.MustParse("100"),
+					corev1alpha1.ResourceTPS:  resource.MustParse("100"),
+				},
+				ResizePolicy: storagev1alpha1.ResizePolicyExpandOnly,
+			}
+			Expect(k8sClient.Create(ctx, volumeClassExpandOnly)).To(Succeed())
+			DeferCleanup(k8sClient.Delete, ctx, volumeClassExpandOnly)
+
+			By("creating an static VolumeClass")
+			volumeClassStatic := &storagev1alpha1.VolumeClass{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "volume-static",
+				},
+				Capabilities: corev1alpha1.ResourceList{
+					corev1alpha1.ResourceIOPS: resource.MustParse("100"),
+					corev1alpha1.ResourceTPS:  resource.MustParse("100"),
+				},
+				ResizePolicy: storagev1alpha1.ResizePolicyStatic,
+			}
+			Expect(k8sClient.Create(ctx, volumeClassStatic)).To(Succeed())
+			DeferCleanup(k8sClient.Delete, ctx, volumeClassStatic)
+		})
 		It("should return an empty config chart value map if not storageclasses are present in the cloudprofile", func() {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{}
 			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
 			Expect(err).NotTo(HaveOccurred())
 
 			cluster := &controller.Cluster{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: ns.Name,
+				},
 				CloudProfile: &gardencorev1beta1.CloudProfile{
 					Spec: gardencorev1beta1.CloudProfileSpec{
 						ProviderConfig: &runtime.RawExtension{
@@ -147,16 +182,16 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				StorageClasses: apisonmetal.StorageClasses{
 					Default: &apisonmetal.StorageClass{
 						Name: "foo",
-						Type: "volumeTypeFoo",
+						Type: "volume-expandable",
 					},
 					Additional: []apisonmetal.StorageClass{
 						{
 							Name: "foo1",
-							Type: "volumeTypeFoo1",
+							Type: "volume-expandable",
 						},
 						{
 							Name: "foo2",
-							Type: "volumeTypeFoo2",
+							Type: "volume-static",
 						},
 					},
 				},
@@ -165,6 +200,9 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cluster := &controller.Cluster{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: ns.Name,
+				},
 				CloudProfile: &gardencorev1beta1.CloudProfile{
 					Spec: gardencorev1beta1.CloudProfileSpec{
 						ProviderConfig: &runtime.RawExtension{
@@ -179,17 +217,20 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			Expect(values).To(Equal(map[string]interface{}{
 				"storageClasses": []map[string]interface{}{
 					{
-						"name":    "foo",
-						"type":    "volumeTypeFoo",
-						"default": true,
+						"name":       "foo",
+						"type":       "volume-expandable",
+						"default":    true,
+						"expandable": true,
 					},
 					{
-						"name": "foo1",
-						"type": "volumeTypeFoo1",
+						"name":       "foo1",
+						"type":       "volume-expandable",
+						"expandable": true,
 					},
 					{
-						"name": "foo2",
-						"type": "volumeTypeFoo2",
+						"name":       "foo2",
+						"type":       "volume-static",
+						"expandable": false,
 					},
 				},
 			}))
@@ -201,11 +242,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					Additional: []apisonmetal.StorageClass{
 						{
 							Name: "foo1",
-							Type: "volumeTypeFoo1",
+							Type: "volume-expandable",
 						},
 						{
 							Name: "foo2",
-							Type: "volumeTypeFoo2",
+							Type: "volume-static",
 						},
 					},
 				},
@@ -214,6 +255,9 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			cluster := &controller.Cluster{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: ns.Name,
+				},
 				CloudProfile: &gardencorev1beta1.CloudProfile{
 					Spec: gardencorev1beta1.CloudProfileSpec{
 						ProviderConfig: &runtime.RawExtension{
@@ -228,16 +272,48 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			Expect(values).To(Equal(map[string]interface{}{
 				"storageClasses": []map[string]interface{}{
 					{
-						"name": "foo1",
-						"type": "volumeTypeFoo1",
+						"name":       "foo1",
+						"type":       "volume-expandable",
+						"expandable": true,
 					},
 					{
-						"name": "foo2",
-						"type": "volumeTypeFoo2",
+						"name":       "foo2",
+						"type":       "volume-static",
+						"expandable": false,
 					},
 				},
 			}))
 		})
+
+		It("should return error if volumeClass is not available", func() {
+			providerCloudProfile := &apisonmetal.CloudProfileConfig{
+				StorageClasses: apisonmetal.StorageClasses{
+					Default: &apisonmetal.StorageClass{
+						Name: "foo",
+						Type: "volume-non-existing",
+					},
+				},
+			}
+			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
+			Expect(err).NotTo(HaveOccurred())
+
+			cluster := &controller.Cluster{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: ns.Name,
+				},
+				CloudProfile: &gardencorev1beta1.CloudProfile{
+					Spec: gardencorev1beta1.CloudProfileSpec{
+						ProviderConfig: &runtime.RawExtension{
+							Raw: providerCloudProfileJson,
+						},
+					},
+				},
+			}
+
+			_, err = vp.GetStorageClassesChartValues(ctx, nil, cluster)
+			Expect(err).To(MatchError("could not get resize policy from volumeclass : VolumeClass not found"))
+		})
+
 	})
 
 	Describe("#GetControlPlaneShootCRDsChartValues", func() {
@@ -254,12 +330,12 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				StorageClasses: apisonmetal.StorageClasses{
 					Default: &apisonmetal.StorageClass{
 						Name: "foo",
-						Type: "volumeTypeFoo",
+						Type: "volume-expandable",
 					},
 					Additional: []apisonmetal.StorageClass{
 						{
 							Name: "bar",
-							Type: "volumeTypeBar",
+							Type: "volume-static",
 						},
 					},
 				},

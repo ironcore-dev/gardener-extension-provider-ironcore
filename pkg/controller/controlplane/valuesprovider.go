@@ -31,7 +31,6 @@ import (
 	"github.com/gardener/gardener/pkg/utils/chart"
 	gutil "github.com/gardener/gardener/pkg/utils/gardener"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-	"github.com/gardener/gardener/pkg/utils/secrets"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	appsv1 "k8s.io/api/apps/v1"
@@ -41,6 +40,10 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
@@ -59,7 +62,7 @@ func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfig
 			Config: &secretutils.CertificateSecretConfig{
 				Name:       caNameControlPlane,
 				CommonName: caNameControlPlane,
-				CertType:   secrets.CACert,
+				CertType:   secretutils.CACert,
 			},
 			Options: []secretsmanager.GenerateOption{secretsmanager.Persist()},
 		},
@@ -81,6 +84,7 @@ func shootAccessSecretsFunc(namespace string) []*gutil.ShootAccessSecret {
 		gutil.NewShootAccessSecret(cloudControllerManagerDeploymentName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIProvisionerName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIAttacherName, namespace),
+		gutil.NewShootAccessSecret(onmetal.CSIResizerName, namespace),
 		// TODO: This needs to be fixed!!!
 		//		 Since the csi controller needs to access the Node resources in the Shoot cluster,
 		//		 it should use the same ServiceAccount as the csi-driver-node in the Shoot. That way
@@ -118,6 +122,7 @@ var (
 					onmetal.CSIDriverImageName,
 					onmetal.CSIProvisionerImageName,
 					onmetal.CSIAttacherImageName,
+					onmetal.CSIResizerImageName,
 					onmetal.CSILivenessProbeImageName,
 				},
 				Objects: []*chart.Object{
@@ -170,6 +175,11 @@ var (
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
 					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
 					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
+					// csi-resizer
+					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
 				},
 			},
 		},
@@ -257,7 +267,7 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 
 // GetStorageClassesChartValues returns the values for the storage classes chart applied by the generic actuator.
 func (vp *valuesProvider) GetStorageClassesChartValues(
-	_ context.Context,
+	ctx context.Context,
 	controlPlane *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
@@ -274,24 +284,52 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		defaultStorageClass++
 	}
 
+	// get onmetal credentials from infrastructure config
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, vp.Client(), cluster.ObjectMeta.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
+	}
+
+	var expandable bool
 	storageClasses := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.Additional)+defaultStorageClass)
 	if providerConfig.StorageClasses.Default != nil {
+		if expandable, err = isExpandable(ctx, onmetalClient, namespace, providerConfig.StorageClasses.Default.Type); err != nil {
+			return nil, fmt.Errorf("could not get resize policy from volumeclass : %w", err)
+		}
+
 		storageClasses = append(storageClasses, map[string]interface{}{
-			StorageClassNameKeyName:    providerConfig.StorageClasses.Default.Name,
-			StorageClassTypeKeyName:    providerConfig.StorageClasses.Default.Type,
-			StorageClassDefaultKeyName: true,
+			StorageClassNameKeyName:       providerConfig.StorageClasses.Default.Name,
+			StorageClassTypeKeyName:       providerConfig.StorageClasses.Default.Type,
+			StorageClassDefaultKeyName:    true,
+			StorageClassExpandableKeyName: expandable,
 		})
 	}
 	for _, sc := range providerConfig.StorageClasses.Additional {
+		if expandable, err = isExpandable(ctx, onmetalClient, namespace, sc.Type); err != nil {
+			return nil, fmt.Errorf("could not get resize policy from volumeclass : %w", err)
+		}
 		storageClasses = append(storageClasses, map[string]interface{}{
-			StorageClassNameKeyName: sc.Name,
-			StorageClassTypeKeyName: sc.Type,
+			StorageClassNameKeyName:       sc.Name,
+			StorageClassTypeKeyName:       sc.Type,
+			StorageClassExpandableKeyName: expandable,
 		})
 	}
 
 	values["storageClasses"] = storageClasses
 
 	return values, nil
+}
+
+func isExpandable(ctx context.Context, onmetalClient client.Client, namespace, volumeClassName string) (bool, error) {
+
+	volumeClass := &storagev1alpha1.VolumeClass{}
+	if err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: volumeClassName}, volumeClass); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, fmt.Errorf("VolumeClass not found")
+		}
+		return false, fmt.Errorf("could not get volumeclass: %w", err)
+	}
+	return volumeClass.ResizePolicy == storagev1alpha1.ResizePolicyExpandOnly, nil
 }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.

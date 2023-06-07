@@ -23,7 +23,6 @@ import (
 
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -38,18 +37,27 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/onmetal/controller-utils/buildutils"
+	"github.com/onmetal/controller-utils/modutils"
+	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	utilsenvtest "github.com/onmetal/onmetal-api/utils/envtest"
+	"github.com/onmetal/onmetal-api/utils/envtest/apiserver"
 )
 
 const (
 	pollingInterval      = 50 * time.Millisecond
 	eventuallyTimeout    = 10 * time.Second
 	consistentlyDuration = 1 * time.Second
+	apiServiceTimeout    = 5 * time.Minute
 )
 
 var (
-	testEnv   *envtest.Environment
-	cfg       *rest.Config
-	k8sClient client.Client
+	testEnv    *envtest.Environment
+	testEnvExt *utilsenvtest.EnvironmentExtensions
+	cfg        *rest.Config
+	k8sClient  client.Client
 )
 
 func TestAPIs(t *testing.T) {
@@ -78,13 +86,22 @@ var _ = BeforeSuite(func() {
 		ErrorIfCRDPathMissing: true,
 	}
 
-	cfg, err = testEnv.Start()
+	testEnvExt = &utilsenvtest.EnvironmentExtensions{
+		APIServiceDirectoryPaths: []string{
+			modutils.Dir("github.com/onmetal/onmetal-api", "config", "apiserver", "apiservice", "bases"),
+		},
+		ErrorIfAPIServicePathIsMissing: true,
+	}
+
+	cfg, err = utilsenvtest.StartWithExtensions(testEnv, testEnvExt)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
+	DeferCleanup(utilsenvtest.StopWithExtensions, testEnv, testEnvExt)
 
 	Expect(extensionsv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(onmetalextensionv1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 	Expect(corev1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(storagev1alpha1.AddToScheme(scheme.Scheme)).To(Succeed())
 
 	// Init package-level k8sClient
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
@@ -92,11 +109,21 @@ var _ = BeforeSuite(func() {
 	Expect(k8sClient).NotTo(BeNil())
 
 	komega.SetClient(k8sClient)
-})
 
-var _ = AfterSuite(func() {
-	By("tearing down the test environment")
-	err := testEnv.Stop()
+	apiSrv, err := apiserver.New(cfg, apiserver.Options{
+		MainPath:     "github.com/onmetal/onmetal-api/cmd/onmetal-apiserver",
+		BuildOptions: []buildutils.BuildOption{buildutils.ModModeMod},
+		ETCDServers:  []string{testEnv.ControlPlane.Etcd.URL.String()},
+		Host:         testEnvExt.APIServiceInstallOptions.LocalServingHost,
+		Port:         testEnvExt.APIServiceInstallOptions.LocalServingPort,
+		CertDir:      testEnvExt.APIServiceInstallOptions.LocalServingCertDir,
+	})
+	Expect(err).NotTo(HaveOccurred())
+
+	Expect(apiSrv.Start()).To(Succeed())
+	DeferCleanup(apiSrv.Stop)
+
+	err = utilsenvtest.WaitUntilAPIServicesReadyWithTimeout(apiServiceTimeout, testEnvExt, k8sClient, scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 })
 
@@ -173,6 +200,30 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *valuesProvider) {
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
+
+		user, err := testEnv.AddUser(envtest.User{
+			Name:   "dummy",
+			Groups: []string{"system:authenticated", "system:masters"},
+		}, cfg)
+		Expect(err).NotTo(HaveOccurred())
+
+		kubeconfig, err := user.KubeConfig()
+		Expect(err).NotTo(HaveOccurred())
+
+		By("creating a test cloudprovider secret")
+		cloudproviderSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace.Name,
+				Name:      "cloudprovider",
+			},
+			Data: map[string][]byte{
+				"namespace":  []byte(namespace.Name),
+				"token":      []byte("foo"),
+				"kubeconfig": kubeconfig,
+			},
+		}
+		Expect(k8sClient.Create(ctx, cloudproviderSecret)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, ctx, cloudproviderSecret)
 
 		Expect(AddToManagerWithOptions(mgr, AddOptions{
 			IgnoreOperationAnnotation: true,

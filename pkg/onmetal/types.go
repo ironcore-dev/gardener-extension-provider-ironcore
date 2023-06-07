@@ -32,6 +32,8 @@ const (
 	CSIProvisionerImageName = "csi-provisioner"
 	// CSIAttacherImageName is the name of the csi-attacher image.
 	CSIAttacherImageName = "csi-attacher"
+	// CSIResizerImageName is the name of the csi-resizer image.
+	CSIResizerImageName = "csi-resizer"
 	// CSINodeDriverRegistrarImageName is the name of the csi-node-driver-registrar image.
 	CSINodeDriverRegistrarImageName = "csi-node-driver-registrar"
 	// CSILivenessProbeImageName is the name of the csi-liveness-probe image.
@@ -84,6 +86,8 @@ const (
 	CSIProvisionerName = "csi-provisioner"
 	// CSIAttacherName is a constant for the name of the csi-attacher component.
 	CSIAttacherName = "csi-attacher"
+	// CSIResizerName is a constant for the name of the csi-resizer component.
+	CSIResizerName = "csi-resizer"
 	// CSINodeDriverRegistrarName is a constant for the name of the csi-node-driver-registrar component.
 	CSINodeDriverRegistrarName = "csi-node-driver-registrar"
 	// CSILivenessProbeName is a constant for the name of the csi-liveness-probe component.

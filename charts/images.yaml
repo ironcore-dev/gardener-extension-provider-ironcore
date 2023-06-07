@@ -82,6 +82,20 @@ images:
       confidentiality_requirement: 'low'
       integrity_requirement: 'high'
       availability_requirement: 'low'
+- name: csi-resizer
+  sourceRepository: github.com/kubernetes-csi/external-resizer
+  repository: registry.k8s.io/sig-storage/csi-resizer
+  tag: "v1.8.0"
+  targetVersion: ">= 1.23"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'private'
+      authentication_enforced: false
+      user_interaction: 'gardener-operator'
+      confidentiality_requirement: 'low'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: csi-node-driver-registrar
   sourceRepository: github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
