@@ -15,7 +15,6 @@
 package worker
 
 import (
-	"context"
 	"encoding/json"
 	"path/filepath"
 	"testing"
@@ -132,13 +131,13 @@ var _ = BeforeSuite(func() {
 	komega.SetClient(k8sClient)
 })
 
-func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) {
+func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 	var (
 		chartApplier gardener.ChartApplier
 	)
 	ns := &corev1.Namespace{}
 
-	BeforeEach(func() {
+	BeforeEach(func(ctx SpecContext) {
 		var err error
 		*ns = corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -146,6 +145,7 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) 
 			},
 		}
 		Expect(k8sClient.Create(ctx, ns)).To(Succeed(), "failed to create test namespace")
+		DeferCleanup(k8sClient.Delete, ns)
 
 		chartApplier, err = gardener.NewChartApplierForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
@@ -241,10 +241,6 @@ func SetupTest(ctx context.Context) (*corev1.Namespace, *gardener.ChartApplier) 
 				},
 			},
 		}
-	})
-
-	AfterEach(func() {
-		Expect(k8sClient.Delete(ctx, ns)).To(Succeed(), "failed to delete test namespace")
 	})
 
 	return ns, &chartApplier

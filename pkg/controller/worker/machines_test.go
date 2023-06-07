@@ -26,7 +26,6 @@ import (
 	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -37,8 +36,7 @@ import (
 )
 
 var _ = Describe("Machines", func() {
-	ctx := testutils.SetupContext()
-	ns, _ := SetupTest(ctx)
+	ns, _ := SetupTest()
 
 	It("should create the correct kind of the machine class", func() {
 		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(nil, nil, nil), "", nil, nil)
@@ -58,7 +56,7 @@ var _ = Describe("Machines", func() {
 		Expect(workerDelegate.MachineClassList()).To(Equal(&machinecontrollerv1alpha1.MachineClassList{}))
 	})
 
-	It("should create the expected machine class for a multi zone cluster", func() {
+	It("should create the expected machine class for a multi zone cluster", func(ctx SpecContext) {
 		By("defining and setting infrastructure status for worker")
 		infraStatus := &onmetalextensionv1alpha1.InfrastructureStatus{
 			TypeMeta: metav1.TypeMeta{
@@ -149,7 +147,7 @@ var _ = Describe("Machines", func() {
 		))
 	})
 
-	It("should generate the machine deployments", func() {
+	It("should generate the machine deployments", func(ctx SpecContext) {
 		By("creating a worker delegate")
 		workerPoolHash, err := worker.WorkerPoolHash(pool, cluster)
 		Expect(err).NotTo(HaveOccurred())

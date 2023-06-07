@@ -21,7 +21,6 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
@@ -33,8 +32,7 @@ import (
 )
 
 var _ = Describe("ConfigValidator", func() {
-	ctx := testutils.SetupContext()
-	ns := SetupTest(ctx)
+	ns := SetupTest()
 
 	var (
 		configValidator infrastructure.ConfigValidator
@@ -45,7 +43,7 @@ var _ = Describe("ConfigValidator", func() {
 		configValidator = NewConfigValidator(k8sClient, logger)
 	})
 
-	It("should pass on an empty infrastructure config", func() {
+	It("should pass on an empty infrastructure config", func(ctx SpecContext) {
 		infra := &gardenerextensionv1alpha1.Infrastructure{
 			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
@@ -59,7 +57,7 @@ var _ = Describe("ConfigValidator", func() {
 		Expect(errorList).To(BeEmpty())
 	})
 
-	It("should pass if the referenced network exists", func() {
+	It("should pass if the referenced network exists", func(ctx SpecContext) {
 		network := &networkingv1alpha1.Network{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -96,7 +94,7 @@ var _ = Describe("ConfigValidator", func() {
 		}))
 	})
 
-	It("should not pass if the referenced network does not exists", func() {
+	It("should not pass if the referenced network does not exists", func(ctx SpecContext) {
 		infra := &gardenerextensionv1alpha1.Infrastructure{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,

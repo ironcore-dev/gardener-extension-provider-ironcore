@@ -25,7 +25,6 @@ import (
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -36,10 +35,9 @@ import (
 )
 
 var _ = Describe("Infrastructure Reconcile", func() {
-	ctx := testutils.SetupContext()
-	ns := SetupTest(ctx)
+	ns := SetupTest()
 
-	It("should create a network, natgateway and prefix for a given infrastructure configuration", func() {
+	It("should create a network, natgateway and prefix for a given infrastructure configuration", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
@@ -152,7 +150,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		))
 	})
 
-	It("should create a network, natgateway and prefix for a given infrastructure configuration", func() {
+	It("should create a network, natgateway and prefix for a given infrastructure configuration", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())

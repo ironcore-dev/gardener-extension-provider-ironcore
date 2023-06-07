@@ -136,16 +136,14 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func SetupTest(ctx context.Context) *corev1.Namespace {
-	var (
-		cancel context.CancelFunc
-	)
+func SetupTest() *corev1.Namespace {
 	namespace := &corev1.Namespace{}
 	cluster := &extensionsv1alpha1.Cluster{}
 
-	BeforeEach(func() {
+	BeforeEach(func(ctx SpecContext) {
 		var mgrCtx context.Context
-		mgrCtx, cancel = context.WithCancel(ctx)
+		mgrCtx, cancel := context.WithCancel(context.Background())
+		DeferCleanup(cancel)
 
 		*namespace = corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -153,6 +151,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, namespace)).To(Succeed(), "failed to create test namespace")
+		DeferCleanup(k8sClient.Delete, namespace)
 
 		By("creating a test shoot")
 		shoot := v1beta1.Shoot{
@@ -188,6 +187,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, cluster)).Should(Succeed())
+		DeferCleanup(k8sClient.Delete, cluster)
 
 		By("creating a test machine class")
 		machineClass := &computev1alpha1.MachineClass{
@@ -200,7 +200,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, machineClass)).To(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, machineClass)
+		DeferCleanup(k8sClient.Delete, machineClass)
 
 		By("creating a test worker")
 		volumeName := "test-volume"
@@ -287,7 +287,6 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, secret)
 
 		bastionConfig := controllerconfig.BastionConfig{
 			Image:            "my-image",
@@ -302,12 +301,6 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			defer GinkgoRecover()
 			Expect(mgr.Start(mgrCtx)).To(Succeed(), "failed to start manager")
 		}()
-	})
-
-	AfterEach(func() {
-		cancel()
-		Expect(k8sClient.Delete(ctx, namespace)).To(Succeed(), "failed to delete test namespace")
-		Expect(k8sClient.Delete(ctx, cluster)).To(Succeed(), "failed to delete cluster")
 	})
 
 	return namespace

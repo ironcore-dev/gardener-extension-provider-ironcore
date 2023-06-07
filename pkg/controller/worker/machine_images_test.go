@@ -18,7 +18,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,10 +29,9 @@ import (
 )
 
 var _ = Describe("MachinesImages", func() {
-	ctx := testutils.SetupContext()
-	ns, _ := SetupTest(ctx)
+	ns, _ := SetupTest()
 
-	It("should update the worker status", func() {
+	It("should update the worker status", func(ctx SpecContext) {
 		By("defining and setting infrastructure status for worker")
 		infraStatus := &apiv1alpha1.InfrastructureStatus{
 			TypeMeta: metav1.TypeMeta{

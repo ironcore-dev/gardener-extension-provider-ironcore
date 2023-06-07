@@ -129,16 +129,14 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func SetupTest(ctx context.Context) *corev1.Namespace {
-	var (
-		cancel context.CancelFunc
-	)
+func SetupTest() *corev1.Namespace {
 	namespace := &corev1.Namespace{}
 	cluster := &extensionsv1alpha1.Cluster{}
 
-	BeforeEach(func() {
+	BeforeEach(func(ctx SpecContext) {
 		var mgrCtx context.Context
-		mgrCtx, cancel = context.WithCancel(ctx)
+		mgrCtx, cancel := context.WithCancel(context.Background())
+		DeferCleanup(cancel)
 
 		*namespace = corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -146,6 +144,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, namespace)).To(Succeed(), "failed to create test namespace")
+		DeferCleanup(k8sClient.Delete, namespace)
 
 		shoot := v1beta1.Shoot{
 			ObjectMeta: metav1.ObjectMeta{
@@ -178,6 +177,7 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, cluster)).Should(Succeed())
+		Expect(k8sClient.Delete, cluster)
 
 		mgr, err := manager.New(cfg, manager.Options{
 			Scheme:             scheme.Scheme,
@@ -215,12 +215,6 @@ func SetupTest(ctx context.Context) *corev1.Namespace {
 			defer GinkgoRecover()
 			Expect(mgr.Start(mgrCtx)).To(Succeed(), "failed to start manager")
 		}()
-	})
-
-	AfterEach(func() {
-		cancel()
-		Expect(k8sClient.Delete(ctx, namespace)).To(Succeed(), "failed to delete test namespace")
-		Expect(k8sClient.Delete(ctx, cluster)).To(Succeed(), "failed to delete cluster")
 	})
 
 	return namespace

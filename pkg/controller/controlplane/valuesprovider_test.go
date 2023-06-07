@@ -42,19 +42,17 @@ import (
 	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
-	ctx := testutils.SetupContext()
-	ns, vp := SetupTest(ctx)
+	ns, vp := SetupTest()
 
 	var (
 		fakeClient         client.Client
 		fakeSecretsManager secretsmanager.Interface
 	)
 
-	BeforeEach(func() {
+	BeforeEach(func(ctx SpecContext) {
 		curDir, err := os.Getwd()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(os.Chdir(filepath.Join("..", "..", ".."))).To(Succeed())
@@ -66,7 +64,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	})
 
 	Describe("#GetConfigChartValues", func() {
-		It("should return correct config chart values", func() {
+		It("should return correct config chart values", func(ctx SpecContext) {
 			cp := &extensionsv1alpha1.ControlPlane{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "control-plane",
@@ -123,7 +121,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	})
 
 	Describe("#GetStorageClassesChartValues", func() {
-		BeforeEach(func() {
+		BeforeEach(func(ctx SpecContext) {
 			By("creating an expand only VolumeClass")
 			volumeClassExpandOnly := &storagev1alpha1.VolumeClass{
 				ObjectMeta: metav1.ObjectMeta{
@@ -136,7 +134,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				ResizePolicy: storagev1alpha1.ResizePolicyExpandOnly,
 			}
 			Expect(k8sClient.Create(ctx, volumeClassExpandOnly)).To(Succeed())
-			DeferCleanup(k8sClient.Delete, ctx, volumeClassExpandOnly)
+			DeferCleanup(k8sClient.Delete, volumeClassExpandOnly)
 
 			By("creating an static VolumeClass")
 			volumeClassStatic := &storagev1alpha1.VolumeClass{
@@ -150,9 +148,9 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				ResizePolicy: storagev1alpha1.ResizePolicyStatic,
 			}
 			Expect(k8sClient.Create(ctx, volumeClassStatic)).To(Succeed())
-			DeferCleanup(k8sClient.Delete, ctx, volumeClassStatic)
+			DeferCleanup(k8sClient.Delete, volumeClassStatic)
 		})
-		It("should return an empty config chart value map if not storageclasses are present in the cloudprofile", func() {
+		It("should return an empty config chart value map if not storageclasses are present in the cloudprofile", func(ctx SpecContext) {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{}
 			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
 			Expect(err).NotTo(HaveOccurred())
@@ -177,7 +175,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}))
 		})
 
-		It("should return correct config chart values if default and additional storage classes are present in the cloudprofile", func() {
+		It("should return correct config chart values if default and additional storage classes are present in the cloudprofile", func(ctx SpecContext) {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
 					Default: &apisonmetal.StorageClass{
@@ -236,7 +234,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}))
 		})
 
-		It("should return correct config chart values if only additional storage classes are present in the cloudprofile", func() {
+		It("should return correct config chart values if only additional storage classes are present in the cloudprofile", func(ctx SpecContext) {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
 					Additional: []apisonmetal.StorageClass{
@@ -285,7 +283,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}))
 		})
 
-		It("should return error if volumeClass is not available", func() {
+		It("should return error if volumeClass is not available", func(ctx SpecContext) {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
 					Default: &apisonmetal.StorageClass{
@@ -317,7 +315,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	})
 
 	Describe("#GetControlPlaneShootCRDsChartValues", func() {
-		It("should return correct config chart values", func() {
+		It("should return correct config chart values", func(ctx SpecContext) {
 			values, err := vp.GetControlPlaneShootCRDsChartValues(ctx, nil, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(map[string]interface{}{}))
@@ -325,7 +323,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	})
 
 	Describe("#GetControlPlaneShootChartValues", func() {
-		It("should return correct config chart values", func() {
+		It("should return correct config chart values", func(ctx SpecContext) {
 			providerCloudProfile := &apisonmetal.CloudProfileConfig{
 				StorageClasses: apisonmetal.StorageClasses{
 					Default: &apisonmetal.StorageClass{
@@ -381,7 +379,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 	})
 
 	Describe("#GetControlPlaneChartValues", func() {
-		It("should return correct config chart values", func() {
+		It("should return correct config chart values", func(ctx SpecContext) {
 			cp := &extensionsv1alpha1.ControlPlane{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "control-plane",

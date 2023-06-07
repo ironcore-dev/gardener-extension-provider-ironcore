@@ -33,15 +33,12 @@ import (
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 )
 
 var _ = Describe("Bastion Host Reconcile", func() {
-	ctx := testutils.SetupContext()
-	ns := SetupTest(ctx)
+	ns := SetupTest()
 
-	It("should create igntion secret and machine for a given bastion configuration", func() {
-
+	It("should create igntion secret and machine for a given bastion configuration", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
@@ -66,7 +63,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, bastion)).Should(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, bastion)
+		DeferCleanup(k8sClient.Delete, bastion)
 
 		Eventually(Object(bastion)).Should(SatisfyAll(
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeCreate),
@@ -122,7 +119,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			VirtualIP: &commonv1alpha1.IP{Addr: netip.MustParseAddr("10.0.0.10")},
 		}}
 		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(machineBase))).To(Succeed())
-		DeferCleanup(k8sClient.Delete, ctx, bastionHost)
+		DeferCleanup(k8sClient.Delete, bastionHost)
 
 		By("ensuring that bastion host is created and Running")
 		Eventually(Object(bastionHost)).Should(SatisfyAll(
