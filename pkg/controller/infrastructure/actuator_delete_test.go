@@ -22,7 +22,6 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	testutils "github.com/onmetal/onmetal-api/utils/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -33,10 +32,9 @@ import (
 )
 
 var _ = Describe("Infrastructure Reconcile", func() {
-	ctx := testutils.SetupContext()
-	ns := SetupTest(ctx)
+	ns := SetupTest()
 
-	It("should ensure that the network, natgateway and prefix is being deleted", func() {
+	It("should ensure that the network, natgateway and prefix is being deleted", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
