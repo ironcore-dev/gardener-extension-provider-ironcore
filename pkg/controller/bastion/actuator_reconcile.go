@@ -68,13 +68,14 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 		return fmt.Errorf("failed to determine options: %w", err)
 	}
 
+	infraStatus, err := getInfrastructureStatus(ctx, a.Client(), cluster)
+	if err != nil {
+		return fmt.Errorf("failed to get infrastructure status: %w", err)
+	}
+
 	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), cluster.ObjectMeta.Name)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
-	}
-	infraStatus, err := getInfrastructureStatus(ctx, onmetalClient, cluster)
-	if err != nil {
-		return fmt.Errorf("failed to get infrastructure status: %w", err)
 	}
 
 	// TODO: Add NetworkPolicy related implementation
