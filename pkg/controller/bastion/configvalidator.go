@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"net"
 
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -139,5 +141,25 @@ func validateInfrastructureStatus(infrastructureStatus *api.InfrastructureStatus
 		return fmt.Errorf("prefix ref must be not empty for infrastructure provider status")
 	}
 
+	return nil
+}
+
+// validateConfiguration checks whether a bastion configuration is valid.
+func validateConfiguration(config *controllerconfig.BastionConfig) error {
+	if config == nil {
+		return fmt.Errorf("bastionConfig must not be empty")
+	}
+
+	if config.MachineClassName == "" {
+		return fmt.Errorf("MachineClassName is mandatory")
+	}
+
+	if config.VolumeClassName == "" {
+		return fmt.Errorf("VolumeClassName is mandatory")
+	}
+
+	if config.Image == "" {
+		return fmt.Errorf("image is mandatory")
+	}
 	return nil
 }

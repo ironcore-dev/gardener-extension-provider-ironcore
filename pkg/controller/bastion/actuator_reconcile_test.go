@@ -17,6 +17,9 @@ package bastion
 import (
 	"net/netip"
 
+	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -82,9 +85,16 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			HaveField("Spec.MachineClassRef", corev1.LocalObjectReference{
 				Name: "my-machine-class",
 			}),
-			HaveField("Spec.Image", "my-image"),
 			HaveField("Spec.IgnitionRef.Name", getIgnitionNameForMachine(bastionHost.Name)),
 			HaveField("Spec.Power", computev1alpha1.PowerOn),
+			HaveField("Spec.Volumes", ContainElement(SatisfyAll(
+				HaveField("Name", "root"),
+				HaveField("VolumeSource.Ephemeral.VolumeTemplate.Spec.VolumeClassRef.Name", "my-volume-class"),
+				HaveField("VolumeSource.Ephemeral.VolumeTemplate.Spec.Image", "my-image"),
+				HaveField("VolumeSource.Ephemeral.VolumeTemplate.Spec.Resources", Equal(corev1alpha1.ResourceList{
+					corev1alpha1.ResourceStorage: resource.MustParse("10Gi"),
+				})),
+			))),
 			HaveField("Spec.NetworkInterfaces", ContainElement(SatisfyAll(
 				HaveField("Name", "primary"),
 				HaveField("NetworkInterfaceSource.Ephemeral.NetworkInterfaceTemplate.Spec.NetworkRef.Name", "my-network"),
@@ -138,25 +148,36 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		Expect(err).To(MatchError("bastionConfig must not be empty"))
 
 		By("checking for missing Image in bastion config")
-		bastionConfig1 := &controllerconfig.BastionConfig{
+		bastionConfig := &controllerconfig.BastionConfig{
 			MachineClassName: "foo",
+			VolumeClassName:  "bar",
 		}
-		err = validateConfiguration(bastionConfig1)
-		Expect(err).To(MatchError("bastion not supported as no Image is configured for the bastion host machine"))
+		err = validateConfiguration(bastionConfig)
+		Expect(err).To(MatchError("image is mandatory"))
 
 		By("checking for missing MachineClassName in bastion config")
-		bastionConfig2 := &controllerconfig.BastionConfig{
-			Image: "bar",
+		bastionConfig = &controllerconfig.BastionConfig{
+			Image:           "bar",
+			VolumeClassName: "foo",
 		}
-		err = validateConfiguration(bastionConfig2)
-		Expect(err).To(MatchError("bastion not supported as no machine class is configured for the bastion host machine"))
+		err = validateConfiguration(bastionConfig)
+		Expect(err).To(MatchError("MachineClassName is mandatory"))
+
+		By("checking for missing VolumeClassName in bastion config")
+		bastionConfig = &controllerconfig.BastionConfig{
+			Image:            "bar",
+			MachineClassName: "foo",
+		}
+		err = validateConfiguration(bastionConfig)
+		Expect(err).To(MatchError("VolumeClassName is mandatory"))
 
 		By("checking for valid bastion config")
-		bastionConfig3 := &controllerconfig.BastionConfig{
+		bastionConfig = &controllerconfig.BastionConfig{
 			MachineClassName: "foo",
+			VolumeClassName:  "foo",
 			Image:            "bar",
 		}
-		err = validateConfiguration(bastionConfig3)
+		err = validateConfiguration(bastionConfig)
 		Expect(err).To(BeNil())
 	})
 })
