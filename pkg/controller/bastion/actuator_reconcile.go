@@ -180,7 +180,7 @@ func generateIgnitionSecret(namespace string, opt *Options) (*corev1.Secret, err
 	// Construct ignition file config
 	config := &ignition.Config{
 		Hostname:   opt.BastionInstanceName,
-		UserData:   opt.UserData,
+		UserData:   string(opt.UserData),
 		DnsServers: []netip.Addr{netip.MustParseAddr("8.8.8.8")},
 	}
 
