@@ -77,6 +77,8 @@ type ETCDBackup struct {
 type BastionConfig struct {
 	// Image is the URL pointing to an OCI registry containing the operating system image which should be used to boot the Bastion host
 	Image string `json:"image,omitempty"`
-	// MachineClassName the name of the OnMetal MachineClass
+	// MachineClassName is the name of the onmetal MachineClass to use for the Bastion host
 	MachineClassName string `json:"machineClassName,omitempty"`
+	// VolumeClassName is the name of the onmetal VolumeClass to use for the Bastion host root disk volume
+	VolumeClassName string `json:"volumeClassName,omitempty"`
 }

@@ -96,6 +96,7 @@ func RegisterConversions(s *runtime.Scheme) error {
 func autoConvert_v1alpha1_BastionConfig_To_config_BastionConfig(in *BastionConfig, out *config.BastionConfig, s conversion.Scope) error {
 	out.Image = in.Image
 	out.MachineClassName = in.MachineClassName
+	out.VolumeClassName = in.VolumeClassName
 	return nil
 }
 
@@ -107,6 +108,7 @@ func Convert_v1alpha1_BastionConfig_To_config_BastionConfig(in *BastionConfig, o
 func autoConvert_config_BastionConfig_To_v1alpha1_BastionConfig(in *config.BastionConfig, out *BastionConfig, s conversion.Scope) error {
 	out.Image = in.Image
 	out.MachineClassName = in.MachineClassName
+	out.VolumeClassName = in.VolumeClassName
 	return nil
 }
 

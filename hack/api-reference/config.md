@@ -150,7 +150,18 @@ string
 </em>
 </td>
 <td>
-<p>MachineClassName the name of the OnMetal MachineClass</p>
+<p>MachineClassName is the name of the onmetal MachineClass to use for the Bastion host</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumeClassName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>VolumeClassName is the name of the onmetal VolumeClass to use for the Bastion host root disk volume</p>
 </td>
 </tr>
 </tbody>

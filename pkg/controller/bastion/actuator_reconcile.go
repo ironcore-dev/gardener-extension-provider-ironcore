@@ -20,6 +20,10 @@ import (
 	"net/netip"
 	"time"
 
+	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	reconcilerutils "github.com/gardener/gardener/pkg/controllerutils/reconciler"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -143,22 +147,6 @@ func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, e
 	return endpoints, nil
 }
 
-// validateConfiguration checks whether a bastion configuration is valid.
-func validateConfiguration(config *controllerconfig.BastionConfig) error {
-	if config == nil {
-		return fmt.Errorf("bastionConfig must not be empty")
-	}
-
-	if config.MachineClassName == "" {
-		return fmt.Errorf("bastion not supported as no machine class is configured for the bastion host machine")
-	}
-
-	if config.Image == "" {
-		return fmt.Errorf("bastion not supported as no Image is configured for the bastion host machine")
-	}
-	return nil
-}
-
 // applyMachineAndIgnitionSecret applies the configuration to create or update
 // the bastion host machine and the ignition secret used for provisioning the
 // bastion host machine. It first sets the owner reference for the ignition
@@ -225,8 +213,27 @@ func generateMachine(namespace string, bastionConfig *controllerconfig.BastionCo
 			MachineClassRef: corev1.LocalObjectReference{
 				Name: bastionConfig.MachineClassName,
 			},
-			Image: bastionConfig.Image, // TODO: Add root disk check implementation
 			Power: computev1alpha1.PowerOn,
+			Volumes: []computev1alpha1.Volume{
+				{
+					Name: "root",
+					VolumeSource: computev1alpha1.VolumeSource{
+						Ephemeral: &computev1alpha1.EphemeralVolumeSource{
+							VolumeTemplate: &storagev1alpha1.VolumeTemplateSpec{
+								Spec: storagev1alpha1.VolumeSpec{
+									VolumeClassRef: &corev1.LocalObjectReference{
+										Name: bastionConfig.VolumeClassName,
+									},
+									Resources: corev1alpha1.ResourceList{
+										corev1alpha1.ResourceStorage: resource.MustParse("10Gi"),
+									},
+									Image: bastionConfig.Image,
+								},
+							},
+						},
+					},
+				},
+			},
 			NetworkInterfaces: []computev1alpha1.NetworkInterface{
 				{
 					Name: "primary",

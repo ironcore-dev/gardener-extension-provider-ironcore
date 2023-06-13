@@ -202,6 +202,19 @@ func SetupTest() *corev1.Namespace {
 		Expect(k8sClient.Create(ctx, machineClass)).To(Succeed())
 		DeferCleanup(k8sClient.Delete, machineClass)
 
+		By("creating a test volume class")
+		volumeClass := &storagev1alpha1.VolumeClass{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "my-volume-class",
+			},
+			Capabilities: map[corev1alpha1.ResourceName]resource.Quantity{
+				corev1alpha1.ResourceIOPS: resource.MustParse("100"),
+				corev1alpha1.ResourceTPS:  resource.MustParse("100"),
+			},
+		}
+		Expect(k8sClient.Create(ctx, volumeClass)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, volumeClass)
+
 		By("creating a test worker")
 		volumeName := "test-volume"
 		volumeType := "fast"
@@ -291,6 +304,7 @@ func SetupTest() *corev1.Namespace {
 		bastionConfig := controllerconfig.BastionConfig{
 			Image:            "my-image",
 			MachineClassName: machineClass.Name,
+			VolumeClassName:  volumeClass.Name,
 		}
 		Expect(AddToManagerWithOptions(mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
