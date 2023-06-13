@@ -15,8 +15,6 @@
 package bastion
 
 import (
-	"encoding/base64"
-
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
@@ -27,7 +25,7 @@ import (
 // resources, like the nic name, subnet name etc.
 type Options struct {
 	BastionInstanceName string
-	UserData            string
+	UserData            []byte
 	//TODO: add networkPolicy
 }
 
@@ -41,6 +39,6 @@ func DetermineOptions(bastion *extensionsv1alpha1.Bastion, cluster *controller.C
 	}
 	return &Options{
 		BastionInstanceName: baseResourceName,
-		UserData:            base64.StdEncoding.EncodeToString(bastion.Spec.UserData),
+		UserData:            bastion.Spec.UserData,
 	}, nil
 }
