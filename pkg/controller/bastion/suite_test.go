@@ -42,8 +42,6 @@ import (
 
 	"github.com/onmetal/controller-utils/buildutils"
 	"github.com/onmetal/controller-utils/modutils"
-	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
-	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
@@ -52,6 +50,9 @@ import (
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	utilsenvtest "github.com/onmetal/onmetal-api/utils/envtest"
 	"github.com/onmetal/onmetal-api/utils/envtest/apiserver"
+
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
+	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 )
 
 const (
@@ -166,7 +167,7 @@ func SetupTest() *corev1.Namespace {
 						{Name: "bar"},
 					},
 				},
-				Networking: v1beta1.Networking{
+				Networking: &v1beta1.Networking{
 					Nodes: pointer.String("10.0.0.0/24"),
 				},
 				Region: "abc",
