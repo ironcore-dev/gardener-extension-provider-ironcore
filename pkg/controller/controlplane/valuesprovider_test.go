@@ -36,12 +36,13 @@ import (
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
@@ -443,7 +444,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 						Name:      "my-shoot",
 					},
 					Spec: gardencorev1beta1.ShootSpec{
-						Networking: gardencorev1beta1.Networking{
+						Networking: &gardencorev1beta1.Networking{
 							Pods: pointer.String("10.0.0.0/16"),
 						},
 						Kubernetes: gardencorev1beta1.Kubernetes{
