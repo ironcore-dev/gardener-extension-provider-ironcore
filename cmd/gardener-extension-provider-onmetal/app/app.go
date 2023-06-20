@@ -40,8 +40,8 @@ import (
 
 	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
+	onmetalbackupbucket "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/backupbucket"
 	bastioncontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
-	onmetalbastion "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
 	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
 	infrastructurecontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
@@ -66,6 +66,11 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			HealthBindAddress:          ":8081",
 		}
 		configFileOpts = &onmetalcmd.ConfigOptions{}
+
+		// options for the backupbucket controller
+		backupBucketCtrlOpts = &controllercmd.ControllerOptions{
+			MaxConcurrentReconciles: 5,
+		}
 
 		// options for the health care controller
 		healthCheckCtrlOpts = &controllercmd.ControllerOptions{
@@ -129,6 +134,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			controllercmd.PrefixOption("healthcheck-", healthCheckCtrlOpts),
 			controllercmd.PrefixOption("heartbeat-", heartbeatCtrlOpts),
 			controllercmd.PrefixOption("bastion-", bastionCtrlOpts),
+			controllercmd.PrefixOption("backupbucket-", backupBucketCtrlOpts),
 			configFileOpts,
 			controllerSwitches,
 			reconcileOpts,
@@ -185,14 +191,16 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			configFileOpts.Completed().ApplyHealthCheckConfig(&healthcheck.DefaultAddOptions.HealthCheckConfig)
 			healthCheckCtrlOpts.Completed().Apply(&healthcheck.DefaultAddOptions.Controller)
-			configFileOpts.Completed().ApplyBastionConfig(&onmetalbastion.DefaultAddOptions.BastionConfig)
+			configFileOpts.Completed().ApplyBastionConfig(&bastioncontroller.DefaultAddOptions.BastionConfig)
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 			infraCtrlOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.Controller)
-			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&workercontroller.DefaultAddOptions.Controller)
 			bastionCtrlOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.Controller)
+			backupBucketCtrlOpts.Completed().Apply(&onmetalbackupbucket.DefaultAddOptions.Controller)
 			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&onmetalbackupbucket.DefaultAddOptions.IgnoreOperationAnnotation)
 
 			// TODO(rfranzke): Remove the GardenletManagesMCM fields as soon as the general options no longer support the
 			//  GardenletManagesMCM field.
