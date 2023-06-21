@@ -30,10 +30,6 @@ import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-
-	onmetalbastion "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
-	controlplanewebhook "github.com/onmetal/gardener-extension-provider-onmetal/pkg/webhook/controlplane"
-
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
@@ -45,11 +41,13 @@ import (
 	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
 	bastioncontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
+	onmetalbastion "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
 	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
 	infrastructurecontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/infrastructure"
 	workercontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	controlplanewebhook "github.com/onmetal/gardener-extension-provider-onmetal/pkg/webhook/controlplane"
 )
 
 // NewControllerManagerCommand creates a new command for running a onmetal provider controller.

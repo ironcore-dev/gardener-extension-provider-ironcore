@@ -15,11 +15,11 @@
 package install
 
 import (
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
 )
 
 var (

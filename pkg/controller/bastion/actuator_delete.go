@@ -21,10 +21,10 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
+	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
 )
 
 // Delete implements bastion.Actuator.

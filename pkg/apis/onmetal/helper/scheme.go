@@ -20,11 +20,12 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+
+	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 )
 
 var (

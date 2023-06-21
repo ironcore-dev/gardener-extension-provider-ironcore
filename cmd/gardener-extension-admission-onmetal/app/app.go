@@ -18,10 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	admissioncmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission/cmd"
-	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
-	provideronmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
@@ -33,6 +29,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	admissioncmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission/cmd"
+	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
+	provideronmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var log = logf.Log.WithName("gardener-extension-admission-onmetal")

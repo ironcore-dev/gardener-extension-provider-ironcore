@@ -15,9 +15,9 @@
 package cmd
 
 import (
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission/validator"
-
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission/validator"
 )
 
 // GardenWebhookSwitchOptions are the webhookcmd.SwitchOptions for the admission webhooks.

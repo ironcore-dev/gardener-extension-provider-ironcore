@@ -17,12 +17,13 @@ package loader
 import (
 	"os"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config/install"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/runtime/serializer/versioning"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config/install"
 )
 
 var (
