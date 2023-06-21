@@ -17,9 +17,10 @@ package helper
 import (
 	"fmt"
 
+	"k8s.io/utils/pointer"
+
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"k8s.io/utils/pointer"
 )
 
 // FindMachineImage takes a list of machine images and tries to find the first entry

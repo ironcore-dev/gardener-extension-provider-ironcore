@@ -17,9 +17,10 @@ package validation
 import (
 	"fmt"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	corev1 "k8s.io/api/core/v1"
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 // ValidateCloudProviderSecret checks whether the given secret contains a valid onmetal service account.

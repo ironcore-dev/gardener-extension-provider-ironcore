@@ -22,17 +22,17 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/general"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/worker"
-	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	extensionspredicate "github.com/gardener/gardener/extensions/pkg/predicate"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var (
@@ -47,6 +47,8 @@ var (
 			},
 		},
 	}
+	// GardenletManagesMCM specifies whether the machine-controller-manager is managed by gardenlet.
+	GardenletManagesMCM bool
 )
 
 // RegisterHealthChecks registers health checks for each extension resource
@@ -82,6 +84,22 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 		return err
 	}
 
+	var (
+		workerHealthChecks = []healthcheck.ConditionTypeToHealthCheck{{
+			ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
+			HealthCheck:   worker.NewNodesChecker(),
+		}}
+		workerConditionTypesToRemove = sets.New(gardencorev1beta1.ShootControlPlaneHealthy)
+	)
+
+	if !GardenletManagesMCM {
+		workerHealthChecks = append(workerHealthChecks, healthcheck.ConditionTypeToHealthCheck{
+			ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
+			HealthCheck:   general.NewSeedDeploymentHealthChecker(onmetal.MachineControllerManagerName),
+		})
+		workerConditionTypesToRemove = workerConditionTypesToRemove.Delete(gardencorev1beta1.ShootControlPlaneHealthy)
+	}
+
 	return healthcheck.DefaultRegistration(
 		onmetal.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
@@ -90,21 +108,9 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 		mgr,
 		opts,
 		nil,
-		[]healthcheck.ConditionTypeToHealthCheck{
-			{
-				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
-				HealthCheck:   general.CheckManagedResource(genericworkeractuator.McmShootResourceName),
-			},
-			{
-				ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
-				HealthCheck:   general.NewSeedDeploymentHealthChecker(onmetal.MachineControllerManagerName),
-			},
-			{
-				ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
-				HealthCheck:   worker.NewNodesChecker(),
-			},
-		},
-		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy))
+		workerHealthChecks,
+		workerConditionTypesToRemove,
+	)
 }
 
 // AddToManager adds a controller with the default Options.

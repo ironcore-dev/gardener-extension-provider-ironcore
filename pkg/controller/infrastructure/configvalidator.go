@@ -18,17 +18,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 // configValidator implements ConfigValidator for onmetal infrastructure resources.

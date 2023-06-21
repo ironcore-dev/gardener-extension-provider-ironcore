@@ -89,5 +89,7 @@ config:
 #   DisableGardenerServiceAccountCreation: false
 gardener:
   version: ""
+  gardenlet:
+    featureGates: {}
   seed:
     provider: onmetal

@@ -18,12 +18,12 @@ import (
 	"context"
 	"fmt"
 
-	onmetalvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
-
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	onmetalvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
 )
 
 type secret struct{}

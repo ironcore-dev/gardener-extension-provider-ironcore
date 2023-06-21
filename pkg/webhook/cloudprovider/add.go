@@ -17,9 +17,10 @@ package cloudprovider
 import (
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/cloudprovider"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var logger = log.Log.WithName("onmetal-cloudprovider-webhook")

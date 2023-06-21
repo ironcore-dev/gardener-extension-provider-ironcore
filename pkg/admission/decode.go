@@ -15,10 +15,10 @@
 package admission
 
 import (
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-
 	"github.com/gardener/gardener/extensions/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
 
 // DecodeControlPlaneConfig decodes the `ControlPlaneConfig` from the given `RawExtension`.

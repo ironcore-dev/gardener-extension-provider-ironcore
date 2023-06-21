@@ -16,8 +16,9 @@ package imagevector
 
 import (
 	"github.com/gardener/gardener/pkg/utils/imagevector"
-	"github.com/onmetal/gardener-extension-provider-onmetal/charts"
 	"k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/charts"
 )
 
 var imageVector imagevector.ImageVector

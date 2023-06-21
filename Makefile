@@ -121,7 +121,7 @@ $(CLEAN): $(LOCALBIN)
 .PHONY: clean
 clean: $(CLEAN)
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
-	$(CLEAN) ./cmd/... ./pkg/... ./test/...
+	$(CLEAN) ./cmd/... ./pkg/...
 
 $(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERSION))
 	@# CGO_ENABLED has to be set to 1 in order for golangci-lint to be able to load plugins
@@ -156,7 +156,7 @@ docs: gen-crd-api-reference-docs ## Run go generate to generate API reference do
 
 .PHONY: format
 format: $(FORMAT)
-	$(FORMAT) ./cmd ./pkg ./test
+	$(FORMAT) ./cmd ./pkg
 
 .PHONY: fmt
 fmt: goimports ## Run goimports against code.
