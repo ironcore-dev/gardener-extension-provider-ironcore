@@ -30,7 +30,10 @@ import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+
 	onmetalbastion "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
+	controlplanewebhook "github.com/onmetal/gardener-extension-provider-onmetal/pkg/webhook/controlplane"
+
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
@@ -192,6 +195,12 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			workerCtrlOpts.Completed().Apply(&workercontroller.DefaultAddOptions.Controller)
 			bastionCtrlOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.Controller)
 			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+
+			// TODO(rfranzke): Remove the GardenletManagesMCM fields as soon as the general options no longer support the
+			//  GardenletManagesMCM field.
+			workercontroller.DefaultAddOptions.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
+			controlplanewebhook.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
+			healthcheck.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
 
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)

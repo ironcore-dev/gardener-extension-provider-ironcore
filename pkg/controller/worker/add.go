@@ -15,8 +15,9 @@
 package worker
 
 import (
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"k8s.io/utils/pointer"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
@@ -39,6 +40,8 @@ type AddOptions struct {
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
 	RecoverPanic              *bool
+	// GardenletManagesMCM specifies whether the machine-controller-manager should be managed.
+	GardenletManagesMCM bool
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -53,7 +56,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	}
 
 	return worker.Add(mgr, worker.AddArgs{
-		Actuator:          NewActuator(),
+		Actuator:          NewActuator(opts.GardenletManagesMCM),
 		ControllerOptions: opts.Controller,
 		Predicates:        worker.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              onmetal.Type,

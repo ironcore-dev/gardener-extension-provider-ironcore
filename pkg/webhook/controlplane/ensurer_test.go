@@ -66,7 +66,7 @@ var _ = Describe("Ensurer", func() {
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
-		ensurer = NewEnsurer(logger)
+		ensurer = NewEnsurer(logger, false)
 	})
 
 	AfterEach(func() {

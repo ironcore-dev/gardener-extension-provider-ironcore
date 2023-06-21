@@ -26,13 +26,14 @@ import (
 	extensionspredicate "github.com/gardener/gardener/extensions/pkg/predicate"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var (
@@ -47,6 +48,8 @@ var (
 			},
 		},
 	}
+	// GardenletManagesMCM specifies whether the machine-controller-manager is managed by gardenlet.
+	GardenletManagesMCM bool
 )
 
 // RegisterHealthChecks registers health checks for each extension resource
