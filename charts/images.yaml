@@ -16,7 +16,7 @@ images:
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
-  tag: "v0.48.2"
+  tag: "v0.49.2"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -57,7 +57,7 @@ images:
 - name: csi-provisioner
   sourceRepository: github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
-  tag: "v3.4.0"
+  tag: "v3.4.1"
   targetVersion: ">= 1.22"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
