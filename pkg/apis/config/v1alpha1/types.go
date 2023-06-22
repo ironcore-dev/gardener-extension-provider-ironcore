@@ -45,6 +45,8 @@ type ControllerConfiguration struct {
 	// BastionConfig is the config for the Bastion
 	// +optional
 	BastionConfig *BastionConfig `json:"bastionConfig,omitempty"`
+	// BackupBucketConfig is config for Backup Bucket
+	BackupBucketConfig *BackupBucketConfig `json:"backupBucketConfig,omitempty"`
 }
 
 // ETCD is an etcd configuration.
@@ -80,4 +82,10 @@ type BastionConfig struct {
 	MachineClassName string `json:"machineClassName,omitempty"`
 	// VolumeClassName is the name of the onmetal VolumeClass to use for the Bastion host root disk volume
 	VolumeClassName string `json:"volumeClassName,omitempty"`
+}
+
+// BackupBucketConfig is config for Backup Bucket
+type BackupBucketConfig struct {
+	// BucketClassName is the name of the onmetal BucketClass to use for the BackupBucket
+	BucketClassName string `json:"bucketClassName,omitempty"`
 }

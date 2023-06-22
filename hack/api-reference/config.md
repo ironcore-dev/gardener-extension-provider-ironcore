@@ -112,6 +112,49 @@ BastionConfig
 <p>BastionConfig is the config for the Bastion</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>backupBucketConfig</code></br>
+<em>
+<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">
+BackupBucketConfig
+</a>
+</em>
+</td>
+<td>
+<p>BackupBucketConfig is config for Backup Bucket</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">BackupBucketConfig
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
+</p>
+<p>
+<p>BackupBucketConfig is config for Backup Bucket</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>bucketClassName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>BucketClassName is the name of the onmetal BucketClass to use for the BackupBucket</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">BastionConfig

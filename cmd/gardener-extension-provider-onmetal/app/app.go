@@ -40,7 +40,7 @@ import (
 
 	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
-	onmetalbackupbucket "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/backupbucket"
+	backupbucketcontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/backupbucket"
 	bastioncontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion"
 	onmetalcontrolplane "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/controlplane"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/healthcheck"
@@ -196,11 +196,11 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			infraCtrlOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.Controller)
 			workerCtrlOpts.Completed().Apply(&workercontroller.DefaultAddOptions.Controller)
 			bastionCtrlOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.Controller)
-			backupBucketCtrlOpts.Completed().Apply(&onmetalbackupbucket.DefaultAddOptions.Controller)
+			backupBucketCtrlOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.Controller)
 			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&onmetalbackupbucket.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 
 			// TODO(rfranzke): Remove the GardenletManagesMCM fields as soon as the general options no longer support the
 			//  GardenletManagesMCM field.

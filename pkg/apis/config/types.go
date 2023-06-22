@@ -40,6 +40,8 @@ type ControllerConfiguration struct {
 	FeatureGates map[string]bool
 	// BastionConfig is the config for the Bastion
 	BastionConfig *BastionConfig
+	// BackupBucketConfig is config for Backup Bucket
+	BackupBucketConfig *BackupBucketConfig
 }
 
 // ETCD is an etcd configuration.
@@ -72,4 +74,10 @@ type BastionConfig struct {
 	MachineClassName string
 	// VolumeClassName is the name of the onmetal VolumeClass to use for the Bastion host root disk volume
 	VolumeClassName string
+}
+
+// BackupBucketConfig is config for Backup Bucket
+type BackupBucketConfig struct {
+	// BucketClassName is the name of the onmetal BucketClass to use for the BackupBucket
+	BucketClassName string
 }
