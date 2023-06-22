@@ -23,6 +23,8 @@ healthPort: 8081
 controllers:
   backupbucket:
     concurrentSyncs: 5
+  backupentry:
+    concurrentSyncs: 5
   controlplane:
     concurrentSyncs: 5
   healthcheck:

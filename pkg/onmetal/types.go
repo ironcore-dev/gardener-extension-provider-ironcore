@@ -43,6 +43,10 @@ const (
 	// MachineControllerManagerProviderOnmetalImageName is the name of the MachineController onmetal image.
 	MachineControllerManagerProviderOnmetalImageName = "machine-controller-manager-provider-onmetal"
 
+	// AccessKeyID is a constant for the key in a cloud provider secret and backup secret that holds the Bucket access key id.
+	AccessKeyID = "accessKeyID"
+	// SecretAccessKey is a constant for the key in a cloud provider secret and backup secret that holds the Bucket secret access key.
+	SecretAccessKey = "secretAccessKey"
 	// UsernameFieldName is the field in a secret where the namespace is stored at.
 	UsernameFieldName = "username"
 	// NamespaceFieldName is the field in a secret where the namespace is stored at.
