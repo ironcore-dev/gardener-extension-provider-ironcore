@@ -19,6 +19,8 @@ import (
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 )
 
 var (
@@ -32,6 +34,8 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
+	// BackupBucketConfig contains config for the BackupBucket config.
+	BackupBucketConfig controllerconfig.BackupBucketConfig
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.

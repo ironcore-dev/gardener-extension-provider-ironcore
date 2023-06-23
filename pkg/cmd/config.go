@@ -101,3 +101,10 @@ func (c *Config) ApplyBastionConfig(config *config.BastionConfig) {
 		*config = *c.Config.BastionConfig
 	}
 }
+
+// ApplyBackupBucketConfig applies the BackupBucketConfig to the config
+func (c *Config) ApplyBackupbucketConfig(config *config.BackupBucketConfig) {
+	if c.Config.BackupBucketConfig != nil {
+		*config = *c.Config.BackupBucketConfig
+	}
+}

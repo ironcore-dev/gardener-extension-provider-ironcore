@@ -202,6 +202,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 			infraCtrlOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.Controller)
 			workerCtrlOpts.Completed().Apply(&workercontroller.DefaultAddOptions.Controller)
+			configFileOpts.Completed().ApplyBackupbucketConfig(&backupbucketcontroller.DefaultAddOptions.BackupBucketConfig)
 			bastionCtrlOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.Controller)
 			backupBucketCtrlOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.Controller)
 			backupEntryCtrlOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.Controller)
