@@ -43,7 +43,7 @@ func newActuator() backupbucket.Actuator {
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Reconciling backupBucket")
 
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), backupBucket.Spec.SecretRef.Namespace)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecret(ctx, a.Client(), backupBucket.Spec.SecretRef.Name, backupBucket.Spec.SecretRef.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
