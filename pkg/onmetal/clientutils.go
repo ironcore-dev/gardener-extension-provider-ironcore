@@ -72,12 +72,10 @@ func GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx context.Context, cl
 }
 
 // GetOnmetalClientAndNamespaceFromSecret extracts the <onmetalClient, onmetalNamespace> from the
-// provided secretName name and secretNamespace.
-func GetOnmetalClientAndNamespaceFromSecret(ctx context.Context, cl client.Client, secretName string, secretNamespace string) (client.Client, string, error) {
-	secret := &corev1.Secret{}
-	secretKey := client.ObjectKey{Namespace: secretNamespace, Name: secretName}
-	if err := cl.Get(ctx, secretKey, secret); err != nil {
-		return nil, "", fmt.Errorf("failed to get secret: %w", err)
+// provided secret
+func GetOnmetalClientAndNamespaceFromSecret(ctx context.Context, cl client.Client, secret *corev1.Secret) (client.Client, string, error) {
+	if secret.Data == nil {
+		return nil, "", fmt.Errorf("secret does not contain any data")
 	}
 	kubeconfig, ok := secret.Data["kubeconfig"]
 	if !ok {

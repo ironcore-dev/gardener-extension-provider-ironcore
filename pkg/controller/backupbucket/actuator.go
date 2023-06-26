@@ -23,6 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
@@ -43,7 +44,12 @@ func newActuator() backupbucket.Actuator {
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Reconciling backupBucket")
 
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecret(ctx, a.Client(), backupBucket.Spec.SecretRef.Name, backupBucket.Spec.SecretRef.Namespace)
+	secret, err := extensionscontroller.GetSecretByReference(ctx, a.Client(), &backupBucket.Spec.SecretRef)
+	if err != nil {
+		return err
+	}
+
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecret(ctx, a.Client(), secret)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
