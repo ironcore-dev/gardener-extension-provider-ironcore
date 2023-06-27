@@ -36,8 +36,10 @@ type actuator struct {
 	backupBucketConfig *controllerconfig.BackupBucketConfig
 }
 
-func newActuator() backupbucket.Actuator {
-	return &actuator{}
+func newActuator(backupBucketConfig *controllerconfig.BackupBucketConfig) backupbucket.Actuator {
+	return &actuator{
+		backupBucketConfig: backupBucketConfig,
+	}
 }
 
 // Reconcile implements backupbucket.Actuator
@@ -82,7 +84,13 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Deleting Bucket")
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), backupBucket.Spec.SecretRef.Namespace)
+
+	secret, err := extensionscontroller.GetSecretByReference(ctx, a.Client(), &backupBucket.Spec.SecretRef)
+	if err != nil {
+		return err
+	}
+
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecret(ctx, a.Client(), secret)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}

@@ -16,9 +16,10 @@ package backupbucket
 
 import (
 	"github.com/gardener/gardener/extensions/pkg/controller/backupbucket"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 )
@@ -42,7 +43,7 @@ type AddOptions struct {
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return backupbucket.Add(mgr, backupbucket.AddArgs{
-		Actuator:          newActuator(),
+		Actuator:          newActuator(&opts.BackupBucketConfig),
 		ControllerOptions: opts.Controller,
 		Predicates:        backupbucket.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              onmetal.Type,
