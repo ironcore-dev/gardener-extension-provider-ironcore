@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -71,9 +72,14 @@ func GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx context.Context, cl
 	return c, string(namespace), nil
 }
 
-// GetOnmetalClientAndNamespaceFromSecret extracts the <onmetalClient, onmetalNamespace> from the
+// GetOnmetalClientAndNamespaceFromSecretRef extracts the <onmetalClient, onmetalNamespace> from the
 // provided secret
-func GetOnmetalClientAndNamespaceFromSecret(ctx context.Context, cl client.Client, secret *corev1.Secret) (client.Client, string, error) {
+func GetOnmetalClientAndNamespaceFromSecretRef(ctx context.Context, cl client.Client, secretRef *corev1.SecretReference) (client.Client, string, error) {
+	secret, err := extensionscontroller.GetSecretByReference(ctx, cl, secretRef)
+	if err != nil {
+		return nil, "", err
+	}
+
 	if secret.Data == nil {
 		return nil, "", fmt.Errorf("secret does not contain any data")
 	}

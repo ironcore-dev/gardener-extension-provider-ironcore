@@ -29,7 +29,7 @@ import (
 )
 
 // GetS3ClientFromSecretRef creates s3Client from bucket access key ID and secret access key.
-func GetS3ClientFromSecretRef(secret *corev1.Secret) (*s3.S3, error) {
+func GetS3ClientFromBucketAccessSecret(secret *corev1.Secret) (*s3.S3, error) {
 	if secret.Data == nil {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}

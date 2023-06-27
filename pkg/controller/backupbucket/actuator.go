@@ -20,11 +20,9 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller/backupbucket"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
@@ -46,12 +44,7 @@ func newActuator(backupBucketConfig *controllerconfig.BackupBucketConfig) backup
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Reconciling backupBucket")
 
-	secret, err := extensionscontroller.GetSecretByReference(ctx, a.Client(), &backupBucket.Spec.SecretRef)
-	if err != nil {
-		return err
-	}
-
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecret(ctx, a.Client(), secret)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.Client(), &backupBucket.Spec.SecretRef)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
@@ -85,12 +78,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Deleting Bucket")
 
-	secret, err := extensionscontroller.GetSecretByReference(ctx, a.Client(), &backupBucket.Spec.SecretRef)
-	if err != nil {
-		return err
-	}
-
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecret(ctx, a.Client(), secret)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.Client(), &backupBucket.Spec.SecretRef)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}

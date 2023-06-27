@@ -18,11 +18,16 @@ import (
 	"context"
 	"fmt"
 
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/backupentry/genericactuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
 type actuator struct {
@@ -44,12 +49,41 @@ func (a *actuator) GetETCDSecretData(_ context.Context, _ logr.Logger, _ *extens
 
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *extensionsv1alpha1.BackupEntry) error {
 
-	secret, err := extensionscontroller.GetSecretByReference(ctx, a.client, &backupEntry.Spec.SecretRef)
+	// get client for onmetal backup provider using secret reference
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.client, &backupEntry.Spec.SecretRef)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
-	s3Client, err := GetS3ClientFromSecretRef(secret)
+	// get bucket from onmetal backup provider
+	bucket := &storagev1alpha1.Bucket{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      backupEntry.Spec.BucketName,
+			Namespace: namespace,
+		},
+	}
+	if err := onmetalClient.Get(ctx, client.ObjectKeyFromObject(bucket), bucket); err != nil {
+		if apierrors.IsNotFound(err) {
+			return fmt.Errorf("bucket not found: %s", backupEntry.Spec.BucketName)
+		}
+		return fmt.Errorf("could not get bucket: %w", err)
+	}
+
+	// get bucket access secret from onmetal bucket object
+	bucketAccessSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bucket.Status.Access.SecretRef.Name,
+			Namespace: namespace,
+		},
+	}
+	if err := onmetalClient.Get(ctx, client.ObjectKeyFromObject(bucketAccessSecret), bucketAccessSecret); err != nil {
+		if apierrors.IsNotFound(err) {
+			return fmt.Errorf("bucket access secret not found: %s", bucket.Status.Access.SecretRef.Name)
+		}
+		return fmt.Errorf("could not get bucket access secret: %w", err)
+	}
+
+	s3Client, err := GetS3ClientFromBucketAccessSecret(bucketAccessSecret)
 	if err != nil {
 		return err
 	}
