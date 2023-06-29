@@ -16,13 +16,11 @@ package backupentry
 
 import (
 	"context"
-	"encoding/json"
 	"path/filepath"
 	"testing"
 	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/onmetal/controller-utils/buildutils"
 	"github.com/onmetal/controller-utils/modutils"
@@ -34,10 +32,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/komega"
@@ -129,7 +125,7 @@ var _ = BeforeSuite(func() {
 
 func SetupTest() *corev1.Namespace {
 	namespace := &corev1.Namespace{}
-	cluster := &extensionsv1alpha1.Cluster{}
+	// cluster := &extensionsv1alpha1.Cluster{}
 
 	BeforeEach(func(ctx SpecContext) {
 		var mgrCtx context.Context
@@ -143,39 +139,6 @@ func SetupTest() *corev1.Namespace {
 		}
 		Expect(k8sClient.Create(ctx, namespace)).To(Succeed(), "failed to create test namespace")
 		DeferCleanup(k8sClient.Delete, namespace)
-
-		shoot := v1beta1.Shoot{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespace.Name,
-				Name:      "foo",
-			},
-			Spec: v1beta1.ShootSpec{
-				Provider: v1beta1.Provider{
-					Workers: []v1beta1.Worker{
-						{Name: "foo"},
-						{Name: "bar"},
-					},
-				},
-				Networking: &v1beta1.Networking{
-					Nodes: pointer.String("10.0.0.0/24"),
-				},
-			},
-		}
-		shootJson, err := json.Marshal(shoot)
-		Expect(err).NotTo(HaveOccurred())
-
-		*cluster = extensionsv1alpha1.Cluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespace.Name,
-			},
-			Spec: extensionsv1alpha1.ClusterSpec{
-				CloudProfile: runtime.RawExtension{Raw: []byte("{}")},
-				Seed:         runtime.RawExtension{Raw: []byte("{}")},
-				Shoot:        runtime.RawExtension{Raw: shootJson},
-			},
-		}
-		Expect(k8sClient.Create(ctx, cluster)).Should(Succeed())
-		Expect(k8sClient.Delete, cluster)
 
 		mgr, err := manager.New(cfg, manager.Options{
 			Scheme:             scheme.Scheme,
@@ -195,7 +158,7 @@ func SetupTest() *corev1.Namespace {
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespace.Name,
-				Name:      "cloudprovider",
+				Name:      "backupprovider",
 			},
 			Data: map[string][]byte{
 				"namespace":  []byte(namespace.Name),
