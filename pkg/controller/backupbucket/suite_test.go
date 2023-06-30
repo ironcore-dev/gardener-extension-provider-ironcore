@@ -170,7 +170,7 @@ func SetupTest() *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
-
+		DeferCleanup(k8sClient.Delete, secret)
 		By("creating a test bucket class")
 		bucketClass := &storagev1alpha1.BucketClass{
 			ObjectMeta: metav1.ObjectMeta{

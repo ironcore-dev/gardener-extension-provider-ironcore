@@ -55,21 +55,13 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 		if err := validateConfiguration(a.backupBucketConfig); err != nil {
 			return fmt.Errorf("error validating configuration: %w", err)
 		}
-		onmetalBucket, err := a.ensureBackupBucket(ctx, namespace, onmetalClient, backupBucket)
+		err := a.ensureBackupBucket(ctx, namespace, onmetalClient, backupBucket)
 		if err != nil {
 			return fmt.Errorf("failed to create backup bucket: %w", err)
 		}
 
 		log.V(2).Info("Successfully reconciled backupBucket")
 
-		secertRef, err := getBucketGeneratedSecretRef(onmetalBucket)
-
-		if err != nil {
-			return fmt.Errorf("failed to get access secretRef from backup bucket: %w", err)
-		}
-
-		// update status
-		return a.updateBackupBucketStatus(backupBucket, secertRef, onmetalBucket.Namespace, ctx)
 	}
 
 	return nil

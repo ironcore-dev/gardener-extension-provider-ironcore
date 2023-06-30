@@ -29,7 +29,7 @@ import (
 )
 
 // ensureBackupBucket creates onmetal backupBucket object
-func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onmetalClient client.Client, backupBucket *extensionsv1alpha1.BackupBucket) (*storagev1alpha1.Bucket, error) {
+func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onmetalClient client.Client, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	bucket := &storagev1alpha1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      backupBucket.Name,
@@ -43,9 +43,9 @@ func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onm
 	}
 
 	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, bucket, nil); err != nil {
-		return nil, fmt.Errorf("failed to create or patch backup bucket %s: %w", client.ObjectKeyFromObject(bucket), err)
+		return fmt.Errorf("failed to create or patch backup bucket %s: %w", client.ObjectKeyFromObject(bucket), err)
 	}
-	return bucket, nil
+	return nil
 }
 
 // updateBackupBucketStatus updates backupBucket status with secretRef
