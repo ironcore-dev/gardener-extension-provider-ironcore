@@ -85,7 +85,7 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *ext
 
 	s3Client, err := GetS3ClientFromBucketAccessSecret(bucketAccessSecret)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get s3 client from bucket access secret: %w", err)
 	}
 
 	return DeleteObjectsWithPrefix(ctx, s3Client, backupEntry.Spec.Region, backupEntry.Spec.BucketName, fmt.Sprintf("%s/", backupEntry.Name))

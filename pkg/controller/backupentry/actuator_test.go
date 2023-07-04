@@ -15,22 +15,49 @@
 package backupentry
 
 import (
+	"fmt"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/gardener/gardener/extensions/pkg/controller/backupentry/genericactuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/go-logr/logr"
+	gomock "github.com/golang/mock/gomock"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
+	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("BackupEntry Delete", func() {
 	ns := SetupTest()
+
+	var (
+		ctrl               *gomock.Controller
+		a                  genericactuator.BackupEntryDelegate
+		log                logr.Logger
+		mockS3ObjectLister *Mocks3ObjectLister
+	)
+
+	BeforeEach(func(ctx SpecContext) {
+		a = newActuator()
+		Expect(a).NotTo(BeNil())
+		err := a.(inject.Client).InjectClient(k8sClient)
+		Expect(err).NotTo(HaveOccurred())
+
+		ctrl = gomock.NewController(GinkgoT())
+		mockS3ObjectLister = NewMocks3ObjectLister(ctrl)
+
+		objectLister = mockS3ObjectLister
+	})
+
 	It("should delete Backupentry", func(ctx SpecContext) {
 
 		By("creating an Onmetal bucket resource")
@@ -60,6 +87,7 @@ var _ = Describe("BackupEntry Delete", func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, bucket)).Should(Succeed())
+
 		Eventually(Object(bucket)).Should(SatisfyAll(
 			HaveField("Spec.BucketClassRef", &corev1.LocalObjectReference{
 				Name: "test-bucket-class",
@@ -73,8 +101,8 @@ var _ = Describe("BackupEntry Delete", func() {
 				Name:      "test-secret",
 			},
 			Data: map[string][]byte{
-				"AWS_ACCESS_KEY_ID":     []byte("test-access-key"),
-				"AWS_SECRET_ACCESS_KEY": []byte("test-secret-access-key"),
+				"accessKeyID":     []byte("test-access-key"),
+				"secretAccessKey": []byte("test-secret-access-key"),
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
@@ -102,17 +130,21 @@ var _ = Describe("BackupEntry Delete", func() {
 				Region:     "foo",
 				BucketName: bucketName,
 				SecretRef: corev1.SecretReference{
-					Name: "backupprovider",
+					Name:      "backupprovider",
+					Namespace: ns.Name,
 				},
 			},
 		}
 		Expect(k8sClient.Create(ctx, backupEntry)).To(Succeed())
 
-		Expect(k8sClient.Delete(ctx, backupEntry)).To(Succeed())
+		in := &s3.ListObjectsInput{
+			Bucket: aws.String(bucketName),
+			Prefix: aws.String(fmt.Sprintf("%s/", backupEntry.Name)),
+		}
+		mockS3ObjectLister.EXPECT().ListObjectsPages(ctx, gomock.Any(), in, backupEntry.Spec.BucketName).Return(nil)
 
-		By("waiting for the backupEntry to be gone")
-		Eventually(Get(backupEntry)).Should(Satisfy(apierrors.IsNotFound))
-
+		By("deleting the BackupEntry")
+		Expect(a.Delete(ctx, log, backupEntry)).Should(Succeed())
 	})
 
 })

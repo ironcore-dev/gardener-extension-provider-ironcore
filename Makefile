@@ -51,6 +51,7 @@ DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ADDLICENSE ?= $(LOCALBIN)/addlicense
 GENERATE_CRDS ?= $(LOCALBIN)/generate-crds.sh
 GEN_CRD_API_REFERENCE_DOCS ?= $(LOCALBIN)/gen-crd-api-reference-docs
+MOCKGEN ?= $(LOCALBIN)/mockgen
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
@@ -61,6 +62,7 @@ CODE_GENERATOR_VERSION ?= v0.26.3
 ADDLICENSE_VERSION ?= v1.1.1
 GOIMPORTS_VERSION ?= v0.5.0
 GEN_CRD_API_REFERENCE_DOCS_VERSION ?= v0.3.0
+MOCKGEN_VERSION ?= v1.6.0
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.0
@@ -171,7 +173,7 @@ lint: ## Run golangci-lint on the code.
 	golangci-lint run ./...
 
 .PHONY: test
-test: fmt vet envtest ## Run tests.
+test: generate-mocks fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 	go mod tidy
 
@@ -282,3 +284,12 @@ $(GOIMPORTS): $(LOCALBIN)
 gen-crd-api-reference-docs: $(GEN_CRD_API_REFERENCE_DOCS) ## Download gen-crd-api-reference-docs locally if necessary.
 $(GEN_CRD_API_REFERENCE_DOCS): $(LOCALBIN)
 	test -s $(LOCALBIN)/gen-crd-api-reference-docs || GOBIN=$(LOCALBIN) go install github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_REFERENCE_DOCS_VERSION)
+
+.PHONY: generate-mocks
+generate-mocks: mockgen ## Generate code (mocks etc.).
+	MOCKGEN=$(MOCKGEN) go generate ./pkg/controller/...
+
+.PHONY: mockgen
+mockgen: $(MOCKGEN)
+$(MOCKGEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)
