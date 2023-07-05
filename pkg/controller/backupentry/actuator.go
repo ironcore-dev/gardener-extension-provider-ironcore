@@ -23,7 +23,6 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
@@ -56,13 +55,9 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *ext
 	}
 
 	// get bucket from onmetal backup provider
-	bucket := &storagev1alpha1.Bucket{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      backupEntry.Spec.BucketName,
-			Namespace: namespace,
-		},
-	}
-	if err := onmetalClient.Get(ctx, client.ObjectKeyFromObject(bucket), bucket); err != nil {
+	bucket := &storagev1alpha1.Bucket{}
+	bucketKey := client.ObjectKey{Namespace: namespace, Name: backupEntry.Spec.BucketName}
+	if err := onmetalClient.Get(ctx, bucketKey, bucket); err != nil {
 		if apierrors.IsNotFound(err) {
 			return fmt.Errorf("bucket not found: %s", backupEntry.Spec.BucketName)
 		}
@@ -70,13 +65,9 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *ext
 	}
 
 	// get bucket access secret from onmetal bucket object
-	bucketAccessSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      bucket.Status.Access.SecretRef.Name,
-			Namespace: namespace,
-		},
-	}
-	if err := onmetalClient.Get(ctx, client.ObjectKeyFromObject(bucketAccessSecret), bucketAccessSecret); err != nil {
+	bucketAccessSecret := &corev1.Secret{}
+	bucketAccessSecretKey := client.ObjectKey{Namespace: namespace, Name: bucket.Status.Access.SecretRef.Name}
+	if err := onmetalClient.Get(ctx, bucketAccessSecretKey, bucketAccessSecret); err != nil {
 		if apierrors.IsNotFound(err) {
 			return fmt.Errorf("bucket access secret not found: %s", bucket.Status.Access.SecretRef.Name)
 		}

@@ -48,33 +48,6 @@ func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onm
 	return nil
 }
 
-// updateBackupBucketStatus updates backupBucket status with secretRef
-func (a *actuator) updateBackupBucketStatus(backupBucket *extensionsv1alpha1.BackupBucket, secertRef *corev1.LocalObjectReference, namespace string, ctx context.Context) error {
-	patch := client.MergeFrom(backupBucket.DeepCopy())
-	backupBucket.Status.GeneratedSecretRef = &corev1.SecretReference{
-		Name:      secertRef.Name,
-		Namespace: namespace,
-	}
-	return a.Client().Status().Patch(ctx, backupBucket, patch)
-}
-
-// getBucketGeneratedSecretRef returns secretRef from backupBukcet access
-func getBucketGeneratedSecretRef(backupBucket *storagev1alpha1.Bucket) (*corev1.LocalObjectReference, error) {
-	if backupBucket == nil {
-		return nil, fmt.Errorf("backup bucket can not be nil")
-	}
-
-	if backupBucket.Status.State != storagev1alpha1.BucketStateAvailable {
-		return nil, fmt.Errorf("backup bucket not available, status: %s", backupBucket.Status.State)
-	}
-
-	if backupBucket.Status.Access == nil {
-		return nil, fmt.Errorf("backup bucket is not provisioned, access: %s", backupBucket.Status.Access)
-	}
-
-	return backupBucket.Status.Access.SecretRef, nil
-}
-
 // validateConfiguration checks whether a backup bucket configuration is valid.
 func validateConfiguration(config *controllerconfig.BackupBucketConfig) error {
 	if config == nil {
