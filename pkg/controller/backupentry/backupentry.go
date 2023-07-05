@@ -39,7 +39,7 @@ var objectLister s3ObjectLister = s3ObjectListerImpl{}
 
 func (o s3ObjectListerImpl) ListObjectsPages(ctx aws.Context, s3Client *s3.S3, input *s3.ListObjectsInput, bucketName string) error {
 	var delErr error
-	s3Client.ListObjectsPagesWithContext(ctx, input, func(page *s3.ListObjectsOutput, lastPage bool) bool {
+	if err := s3Client.ListObjectsPagesWithContext(ctx, input, func(page *s3.ListObjectsOutput, lastPage bool) bool {
 		objectIDs := make([]*s3.ObjectIdentifier, 0)
 		for _, key := range page.Contents {
 			obj := &s3.ObjectIdentifier{
@@ -60,7 +60,9 @@ func (o s3ObjectListerImpl) ListObjectsPages(ctx aws.Context, s3Client *s3.S3, i
 			}
 		}
 		return !lastPage
-	})
+	}); err != nil {
+		return fmt.Errorf("error listing objects pages from bucket %s: %w", bucketName, err)
+	}
 
 	if delErr != nil {
 		if aerr, ok := delErr.(awserr.Error); ok && aerr.Code() == s3.ErrCodeNoSuchKey {
