@@ -26,7 +26,6 @@ import (
 type Options struct {
 	BastionInstanceName string
 	UserData            []byte
-	//TODO: add networkPolicy
 }
 
 // DetermineOptions determines the required information that are required to reconcile a Bastion on onmetal. This

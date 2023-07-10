@@ -16,7 +16,9 @@ package bastion
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net"
 	"net/netip"
 	"time"
 
@@ -31,6 +33,7 @@ import (
 	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -40,6 +43,11 @@ import (
 	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion/ignition"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+)
+
+const (
+	// sshPort is the default SSH Port used for bastion ingress firewall rule
+	sshPort = 22
 )
 
 // bastionEndpoints collects the endpoints the bastion host provides; the
@@ -78,12 +86,17 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
-	// TODO: Add NetworkPolicy related implementation
-
 	machine, err := a.applyMachineAndIgnitionSecret(ctx, namespace, onmetalClient, infraStatus, opt)
 	if err != nil {
 		return fmt.Errorf("failed to create machine: %w", err)
 	}
+
+	err = ensureNetworkPolicy(ctx, namespace, bastion, onmetalClient, infraStatus, machine)
+	if err != nil {
+		return fmt.Errorf("failed to create network policy: %w", err)
+	}
+
+	// TODO: NetworkPolicy to be added for shoot worker nodes
 
 	endpoints, err := getMachineEndpoints(machine)
 	if err != nil {
@@ -236,6 +249,11 @@ func generateMachine(namespace string, bastionConfig *controllerconfig.BastionCo
 					NetworkInterfaceSource: computev1alpha1.NetworkInterfaceSource{
 						Ephemeral: &computev1alpha1.EphemeralNetworkInterfaceSource{
 							NetworkInterfaceTemplate: &networkingv1alpha1.NetworkInterfaceTemplateSpec{
+								ObjectMeta: metav1.ObjectMeta{
+									Labels: map[string]string{
+										"bastion-host": BastionInstanceName,
+									},
+								},
 								Spec: networkingv1alpha1.NetworkInterfaceSpec{
 									NetworkRef: corev1.LocalObjectReference{
 										Name: infraStatus.NetworkRef.Name,
@@ -309,4 +327,79 @@ func (be *bastionEndpoints) Ready() bool {
 // IngressReady returns true if either an IP or a hostname or both are set.
 func IngressReady(ingress *corev1.LoadBalancerIngress) bool {
 	return ingress != nil && (ingress.Hostname != "" || ingress.IP != "")
+}
+
+func ensureNetworkPolicy(ctx context.Context, namespace string, bastion *extensionsv1alpha1.Bastion, onmetalClient client.Client, infraStatus *api.InfrastructureStatus, bastionHost *computev1alpha1.Machine) error {
+	cidrs, err := getBastionIngressCIDR(bastion)
+	if err != nil {
+		return fmt.Errorf("failed to get CIDR from bastion ingress: %w", err)
+	}
+
+	networkPolicy := &networkingv1alpha1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bastionHost.Name,
+			Namespace: namespace,
+		},
+		Spec: networkingv1alpha1.NetworkPolicySpec{
+			NetworkRef: corev1.LocalObjectReference{
+				Name: infraStatus.NetworkRef.Name,
+			},
+			NetworkInterfaceSelector: metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"bastion-host": bastionHost.Name,
+				},
+			},
+			Ingress: []networkingv1alpha1.NetworkPolicyIngressRule{},
+			PolicyTypes: []networkingv1alpha1.PolicyType{
+				networkingv1alpha1.PolicyTypeIngress,
+			},
+		},
+	}
+
+	for _, cidr := range cidrs {
+		ingressRule := networkingv1alpha1.NetworkPolicyIngressRule{
+			Ports: []networkingv1alpha1.NetworkPolicyPort{
+				{
+					Port: sshPort,
+				},
+			},
+			From: []networkingv1alpha1.NetworkPolicyPeer{
+				{
+					IPBlock: &networkingv1alpha1.IPBlock{
+						CIDR: commonv1alpha1.MustParseIPPrefix(cidr),
+					},
+				},
+			},
+		}
+		networkPolicy.Spec.Ingress = append(networkPolicy.Spec.Ingress, ingressRule)
+	}
+
+	if err := controllerutil.SetOwnerReference(bastionHost, networkPolicy, onmetalClient.Scheme()); err != nil {
+		return fmt.Errorf("failed to set owner reference for network policy %s: %w", client.ObjectKeyFromObject(networkPolicy), err)
+	}
+
+	if _, err = controllerutil.CreateOrPatch(ctx, onmetalClient, networkPolicy, nil); err != nil {
+		return fmt.Errorf("failed to create or patch network policy %s: %w", client.ObjectKeyFromObject(networkPolicy), err)
+	}
+
+	return err
+}
+
+func getBastionIngressCIDR(bastion *extensionsv1alpha1.Bastion) ([]string, error) {
+	var cidrs []string
+	for _, ingress := range bastion.Spec.Ingress {
+		cidr := ingress.IPBlock.CIDR
+		ip, ipNet, err := net.ParseCIDR(cidr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid ingress CIDR %q: %w", cidr, err)
+		}
+		normalisedCIDR := ipNet.String()
+
+		if ip.To4() != nil {
+			cidrs = append(cidrs, normalisedCIDR)
+		} else if ip.To16() != nil {
+			return nil, errors.New("IPv6 is currently not fully supported")
+		}
+	}
+	return cidrs, nil
 }
