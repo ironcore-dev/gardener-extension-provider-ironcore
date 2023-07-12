@@ -22,7 +22,9 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
@@ -55,12 +57,21 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 		if err := validateConfiguration(a.backupBucketConfig); err != nil {
 			return fmt.Errorf("error validating configuration: %w", err)
 		}
-		err := a.ensureBackupBucket(ctx, namespace, onmetalClient, backupBucket)
+
+		bucketAccess, err := a.ensureBackupBucket(ctx, namespace, onmetalClient, backupBucket)
 		if err != nil {
 			return fmt.Errorf("failed to create backup bucket: %w", err)
 		}
 
+		accessSecret := &corev1.Secret{}
+		if err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: bucketAccess.SecretRef.Name}, accessSecret); err != nil {
+			return fmt.Errorf("error getting bucket access secret")
+		}
+
 		log.V(2).Info("Successfully reconciled backupBucket")
+
+		// update backupBucket status with secret ref
+		return a.updateBackupBucketStatus(backupBucket, accessSecret.Data, bucketAccess.Endpoint, ctx)
 
 	}
 

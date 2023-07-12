@@ -15,7 +15,7 @@ metadata:
   name: shoot--foobar--onmetal--sd34f
 spec:
   type: onmetal
-  region: eu-west-1
+  region: europe-central
   bucketName: cloud--onmetal--fg2d6
   secretRef:
     name: backupprovider

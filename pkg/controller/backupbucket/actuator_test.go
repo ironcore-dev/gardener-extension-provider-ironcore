@@ -16,6 +16,7 @@ package backupbucket
 
 import (
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -23,10 +24,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -50,7 +52,7 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 					Type:           onmetal.Type,
 					ProviderConfig: nil,
 				},
-				Region: " eu-west-1",
+				Region: "europe-central",
 				SecretRef: corev1.SecretReference{
 					Name:      "backupprovider",
 					Namespace: ns.Name,
@@ -78,6 +80,18 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 			}),
 		))
 
+		bucketAccesSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      "my-bucket-secret",
+			},
+			Data: map[string][]byte{
+				"AWS_ACCESS_KEY_ID":     []byte("YXdzQWNjZXNzS2V5Cg=="),
+				"AWS_SECRET_ACCESS_KEY": []byte("YXdzQWNjZXNzU2VjcmV0S2V5Cg==ss"),
+			},
+		}
+		Expect(k8sClient.Create(ctx, bucketAccesSecret)).To(Succeed())
+
 		By("patching backup bucket with available state and access details")
 		bucketBase := bucket.DeepCopy()
 		bucket.Status.State = storagev1alpha1.BucketStateAvailable
@@ -97,6 +111,31 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 		))
 
 		Eventually(Get(bucket)).Should(Succeed())
+
+		By("ensuring that bucket updated with access secret and endpoint")
+		Eventually(Object(backupBucket)).Should(SatisfyAll(
+			HaveField("Status.GeneratedSecretRef.Name", v1beta1constants.SecretPrefixGeneratedBackupBucket+backupBucket.Name),
+		))
+
+		generatedSecretRef := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: backupBucket.Status.GeneratedSecretRef.Namespace,
+				Name:      backupBucket.Status.GeneratedSecretRef.Name,
+			},
+		}
+
+		Eventually(Object(generatedSecretRef)).Should(SatisfyAll(
+			HaveField("ObjectMeta.OwnerReferences", ContainElement(SatisfyAll(
+				HaveField("Name", backupBucket.Name),
+				HaveField("Kind", "BackupBucket"),
+				HaveField("UID", backupBucket.UID),
+			))),
+			HaveField("Data", map[string][]byte{
+				"endpoint":        []byte("endpoint-efef-ihfbd-ssadd.s3.storage"),
+				"secretAccessKey": []byte("YXdzQWNjZXNzU2VjcmV0S2V5Cg==ss"),
+				"accessKeyID":     []byte("YXdzQWNjZXNzS2V5Cg=="),
+			}),
+		))
 
 		By("ensuring backupbucket is delete successfully")
 		Expect(k8sClient.Delete(ctx, backupBucket)).To(Succeed())

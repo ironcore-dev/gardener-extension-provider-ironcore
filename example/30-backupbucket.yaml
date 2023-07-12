@@ -15,7 +15,7 @@ metadata:
   name: cloud--onmetal--fg2d6
 spec:
   type: onmetal
-  region: northeurope
+  region: europe-central
   secretRef:
     name: backupprovider
     namespace: garden
