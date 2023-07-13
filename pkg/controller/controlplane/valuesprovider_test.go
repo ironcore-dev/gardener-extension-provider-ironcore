@@ -18,6 +18,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -430,6 +432,15 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
 			Expect(err).NotTo(HaveOccurred())
+			networkProviderConfig := &unstructured.Unstructured{Object: map[string]any{
+				"kind":       "FooNetworkConfig",
+				"apiVersion": "v1alpha1",
+				"overlay": map[string]any{
+					"enabled": true,
+				},
+			}}
+			networkProviderConfigData, err := runtime.Encode(unstructured.UnstructuredJSONScheme, networkProviderConfig)
+			Expect(err).NotTo(HaveOccurred())
 			cluster := &controller.Cluster{
 				CloudProfile: &gardencorev1beta1.CloudProfile{
 					Spec: gardencorev1beta1.CloudProfileSpec{
@@ -445,7 +456,8 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					},
 					Spec: gardencorev1beta1.ShootSpec{
 						Networking: &gardencorev1beta1.Networking{
-							Pods: pointer.String("10.0.0.0/16"),
+							ProviderConfig: &runtime.RawExtension{Raw: networkProviderConfigData},
+							Pods:           pointer.String("10.0.0.0/16"),
 						},
 						Kubernetes: gardencorev1beta1.Kubernetes{
 							Version: "1.26.0",
@@ -493,7 +505,8 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					"featureGates": map[string]bool{
 						"CustomResourceValidation": true,
 					},
-					"podNetwork": "10.0.0.0/16",
+					"podNetwork":           "10.0.0.0/16",
+					"configureCloudRoutes": true,
 				},
 				"csi-driver-controller": map[string]interface{}{
 					"enabled":  true,
