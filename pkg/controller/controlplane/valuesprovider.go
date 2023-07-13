@@ -20,6 +20,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+
 	"github.com/Masterminds/semver"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
@@ -320,7 +324,6 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 }
 
 func isExpandable(ctx context.Context, onmetalClient client.Client, namespace, volumeClassName string) (bool, error) {
-
 	volumeClass := &storagev1alpha1.VolumeClass{}
 	if err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: volumeClassName}, volumeClass); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -402,7 +405,39 @@ func getCCMChartValues(
 		values["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
 	}
 
+	configureCloudRoutes, err := isOverlayEnabled(cluster.Shoot.Spec.Networking)
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine if overlay is enabled: %w", err)
+	}
+	values["configureCloudRoutes"] = configureCloudRoutes
+
 	return values, nil
+}
+
+func isOverlayEnabled(networking *gardencorev1beta1.Networking) (bool, error) {
+	if networking == nil {
+		return false, nil
+	}
+
+	obj, err := runtime.Decode(unstructured.UnstructuredJSONScheme, networking.ProviderConfig.Raw)
+	if err != nil {
+		return false, err
+	}
+
+	u, ok := obj.(*unstructured.Unstructured)
+	if !ok {
+		return false, fmt.Errorf("object %T is not an unstructured.Unstructured", obj)
+	}
+
+	enabled, ok, err := unstructured.NestedBool(u.UnstructuredContent(), "overlay", "enabled")
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+
+	return enabled, nil
 }
 
 // getCSIControllerChartValues collects and returns the CSIController chart values.
@@ -421,9 +456,7 @@ func getCSIControllerChartValues(
 }
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
-func (vp *valuesProvider) getControlPlaneShootChartValues(
-	cluster *extensionscontroller.Cluster,
-) (map[string]interface{}, error) {
+func (vp *valuesProvider) getControlPlaneShootChartValues(cluster *extensionscontroller.Cluster) (map[string]interface{}, error) {
 	if cluster.Shoot == nil {
 		return nil, fmt.Errorf("cluster %s does not contain a shoot object", cluster.ObjectMeta.Name)
 	}

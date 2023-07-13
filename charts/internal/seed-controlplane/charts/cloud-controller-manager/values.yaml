@@ -10,7 +10,7 @@ images:
   cloud-controller-manager: image-repository:image-tag
 resources:
   requests:
-    cpu: 100m 
+    cpu: 100m
     memory: 75Mi
   limits:
     memory: 400Mi
@@ -22,3 +22,5 @@ vpa:
     maxAllowed:
       cpu: 4
       memory: 10G
+
+configureCloudRoutes: false
