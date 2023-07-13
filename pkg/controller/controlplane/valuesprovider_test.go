@@ -23,9 +23,6 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
-	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -42,10 +39,13 @@ import (
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
-	ns, vp := SetupTest()
+	ns, vp, cluster := SetupTest()
 
 	var (
 		fakeClient         client.Client
@@ -117,6 +117,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			Expect(yaml.Unmarshal([]byte(config.Data["cloudprovider.conf"]), &cloudProviderConfig)).NotTo(HaveOccurred())
 			Expect(cloudProviderConfig["networkName"]).To(Equal("my-network"))
 			Expect(cloudProviderConfig["prefixName"]).To(Equal("my-prefix"))
+			Expect(cloudProviderConfig["clusterName"]).To(Equal(cluster.Name))
 		})
 	})
 

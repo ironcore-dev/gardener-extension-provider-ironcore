@@ -7,3 +7,4 @@ data:
   cloudprovider.conf: |
     networkName: {{ .Values.networkName }}
     prefixName: {{ .Values.prefixName }}
+    clusterName: {{ .Values.clusterName }}
