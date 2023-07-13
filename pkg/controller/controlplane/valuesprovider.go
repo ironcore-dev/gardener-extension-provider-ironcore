@@ -33,7 +33,6 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
@@ -46,6 +45,7 @@ import (
 	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
 const (
@@ -214,6 +214,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	return map[string]interface{}{
 		onmetal.NetworkFieldName: infrastructureStatus.NetworkRef.Name,
 		onmetal.PrefixFieldName:  infrastructureStatus.PrefixRef.Name,
+		onmetal.ClusterFieldName: cluster.ObjectMeta.Name,
 	}, nil
 }
 
