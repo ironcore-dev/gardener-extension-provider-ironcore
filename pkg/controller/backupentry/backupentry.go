@@ -23,8 +23,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 //go:generate $MOCKGEN -package backupentry -destination=mock_backupentry.go -source backupentry.go S3ClientGetter,S3ObjectLister
@@ -105,8 +106,15 @@ func GetS3ClientFromBucketAccessSecret(secret *corev1.Secret) (*s3.S3, error) {
 		return nil, fmt.Errorf("missing %q field in secret", onmetal.SecretAccessKey)
 	}
 
+	endpoint, ok := secret.Data[onmetal.Endpoint]
+	if !ok {
+		return nil, fmt.Errorf("missing %q field in secret", onmetal.Endpoint)
+	}
+
+	endpointStr := string(endpoint)
 	awsConfig := &aws.Config{
 		Credentials: credentials.NewStaticCredentials(string(accessKeyID), string(secretAccessKey), ""),
+		Endpoint:    &endpointStr,
 	}
 
 	s, err := session.NewSession(awsConfig)

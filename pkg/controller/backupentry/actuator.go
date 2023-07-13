@@ -24,9 +24,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
 type actuator struct {
@@ -48,35 +45,20 @@ func (a *actuator) GetETCDSecretData(_ context.Context, _ logr.Logger, _ *extens
 
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *extensionsv1alpha1.BackupEntry) error {
 
-	// get client for onmetal backup provider using secret reference
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.client, &backupEntry.Spec.SecretRef)
-	if err != nil {
-		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
-	}
-
-	// get bucket from onmetal backup provider
-	bucket := &storagev1alpha1.Bucket{}
-	bucketKey := client.ObjectKey{Namespace: namespace, Name: backupEntry.Spec.BucketName}
-	if err := onmetalClient.Get(ctx, bucketKey, bucket); err != nil {
+	// get s3Client credentials from secret reference
+	s3ClientSecret := &corev1.Secret{}
+	s3ClientClientSecretKey := client.ObjectKey{Namespace: backupEntry.Spec.SecretRef.Namespace, Name: backupEntry.Spec.SecretRef.Name}
+	if err := a.client.Get(ctx, s3ClientClientSecretKey, s3ClientSecret); err != nil {
 		if apierrors.IsNotFound(err) {
-			return fmt.Errorf("bucket not found: %s", backupEntry.Spec.BucketName)
+			return fmt.Errorf("s3 client secret not found: %s", backupEntry.Spec.SecretRef.Name)
 		}
-		return fmt.Errorf("could not get bucket: %w", err)
+		return fmt.Errorf("could not get s3 client secret: %w", err)
 	}
 
-	// get bucket access secret from onmetal bucket object
-	bucketAccessSecret := &corev1.Secret{}
-	bucketAccessSecretKey := client.ObjectKey{Namespace: namespace, Name: bucket.Status.Access.SecretRef.Name}
-	if err := onmetalClient.Get(ctx, bucketAccessSecretKey, bucketAccessSecret); err != nil {
-		if apierrors.IsNotFound(err) {
-			return fmt.Errorf("bucket access secret not found: %s", bucket.Status.Access.SecretRef.Name)
-		}
-		return fmt.Errorf("could not get bucket access secret: %w", err)
-	}
-
-	s3Client, err := GetS3ClientFromBucketAccessSecret(bucketAccessSecret)
+	// get s3 client from s3 client secret
+	s3Client, err := GetS3ClientFromBucketAccessSecret(s3ClientSecret)
 	if err != nil {
-		return fmt.Errorf("failed to get s3 client from bucket access secret: %w", err)
+		return fmt.Errorf("failed to get s3 client from s3 client secret: %w", err)
 	}
 
 	return DeleteObjectsWithPrefix(ctx, s3Client, backupEntry.Spec.Region, backupEntry.Spec.BucketName, fmt.Sprintf("%s/", backupEntry.Name))

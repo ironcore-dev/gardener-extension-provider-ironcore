@@ -22,16 +22,10 @@ import (
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/onmetal/controller-utils/buildutils"
-	"github.com/onmetal/controller-utils/modutils"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
-	utilsenvtest "github.com/onmetal/onmetal-api/utils/envtest"
-	"github.com/onmetal/onmetal-api/utils/envtest/apiserver"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,7 +35,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	"github.com/onmetal/controller-utils/buildutils"
+	"github.com/onmetal/controller-utils/modutils"
 	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	utilsenvtest "github.com/onmetal/onmetal-api/utils/envtest"
+	"github.com/onmetal/onmetal-api/utils/envtest/apiserver"
 )
 
 const (
@@ -125,7 +124,6 @@ var _ = BeforeSuite(func() {
 
 func SetupTest() *corev1.Namespace {
 	namespace := &corev1.Namespace{}
-	// cluster := &extensionsv1alpha1.Cluster{}
 
 	BeforeEach(func(ctx SpecContext) {
 		var mgrCtx context.Context

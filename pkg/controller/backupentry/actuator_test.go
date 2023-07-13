@@ -23,17 +23,17 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	gomock "github.com/golang/mock/gomock"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
 var _ = Describe("BackupEntry Delete", func() {
@@ -103,6 +103,7 @@ var _ = Describe("BackupEntry Delete", func() {
 			Data: map[string][]byte{
 				"accessKeyID":     []byte("test-access-key"),
 				"secretAccessKey": []byte("test-secret-access-key"),
+				"endpoint":        []byte("endpoint-efef-ihfbd-ssadd.s3.storage"),
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
@@ -130,7 +131,7 @@ var _ = Describe("BackupEntry Delete", func() {
 				Region:     "foo",
 				BucketName: bucketName,
 				SecretRef: corev1.SecretReference{
-					Name:      "backupprovider",
+					Name:      secret.Name,
 					Namespace: ns.Name,
 				},
 			},
