@@ -47,8 +47,8 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *ext
 
 	// get s3Client credentials from secret reference
 	s3ClientSecret := &corev1.Secret{}
-	s3ClientClientSecretKey := client.ObjectKey{Namespace: backupEntry.Spec.SecretRef.Namespace, Name: backupEntry.Spec.SecretRef.Name}
-	if err := a.client.Get(ctx, s3ClientClientSecretKey, s3ClientSecret); err != nil {
+	s3ClientSecretKey := client.ObjectKey{Namespace: backupEntry.Spec.SecretRef.Namespace, Name: backupEntry.Spec.SecretRef.Name}
+	if err := a.client.Get(ctx, s3ClientSecretKey, s3ClientSecret); err != nil {
 		if apierrors.IsNotFound(err) {
 			return fmt.Errorf("s3 client secret not found: %s", backupEntry.Spec.SecretRef.Name)
 		}
@@ -56,7 +56,7 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *ext
 	}
 
 	// get s3 client from s3 client secret
-	s3Client, err := GetS3ClientFromBucketAccessSecret(s3ClientSecret)
+	s3Client, err := GetS3ClientFromS3ClientSecret(s3ClientSecret)
 	if err != nil {
 		return fmt.Errorf("failed to get s3 client from s3 client secret: %w", err)
 	}

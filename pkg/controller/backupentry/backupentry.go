@@ -89,9 +89,9 @@ func DeleteObjectsWithPrefix(ctx context.Context, s3Client *s3.S3, region, bucke
 	return nil
 }
 
-// GetS3ClientFromBucketAccessSecret creates s3Client from bucket access key ID
+// GetS3ClientFromS3ClientSecret creates s3Client from bucket access key ID
 // and secret access key.
-func GetS3ClientFromBucketAccessSecret(secret *corev1.Secret) (*s3.S3, error) {
+func GetS3ClientFromS3ClientSecret(secret *corev1.Secret) (*s3.S3, error) {
 	if secret.Data == nil {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}
