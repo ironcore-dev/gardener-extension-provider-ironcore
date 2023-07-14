@@ -103,7 +103,7 @@ var _ = Describe("BackupEntry Delete", func() {
 			Data: map[string][]byte{
 				"accessKeyID":     []byte("test-access-key"),
 				"secretAccessKey": []byte("test-secret-access-key"),
-				"endpoint":        []byte("endpoint-efef-ihfbd-ssadd.s3.storage"),
+				"endpoint":        []byte("endpoint-efef-ihfbd-ssadd.storage"),
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())

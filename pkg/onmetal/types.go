@@ -44,9 +44,9 @@ const (
 	MachineControllerManagerProviderOnmetalImageName = "machine-controller-manager-provider-onmetal"
 
 	// AccessKeyID is a constant for the key in a onmetal bucket access secret that holds the Bucket access key id.
-	AwsAccessKeyID = "AWS_ACCESS_KEY_ID"
+	BucketAccessKeyID = "AWS_ACCESS_KEY_ID"
 	// AwsSecretAccessKey is a constant for the key in a onmetal bucket access secret that holds the Bucket secret access key.
-	AwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
+	BucketSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
 	// AccessKeyID is a constant for the key in a cloud provider secret and backup secret that holds the Bucket access key id.
 	AccessKeyID = "accessKeyID"
 	// SecretAccessKey is a constant for the key in a cloud provider secret and backup secret that holds the Bucket secret access key.

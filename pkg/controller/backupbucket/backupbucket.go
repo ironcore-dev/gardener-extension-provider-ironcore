@@ -33,7 +33,7 @@ import (
 )
 
 // ensureBackupBucket creates onmetal backupBucket object and returns access to bucket
-func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onmetalClient client.Client, backupBucket *extensionsv1alpha1.BackupBucket) (*storagev1alpha1.BucketAccess, error) {
+func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onmetalClient client.Client, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	bucket := &storagev1alpha1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      backupBucket.Name,
@@ -45,11 +45,11 @@ func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onm
 			},
 		},
 	}
-
+	//create onmetal bucket
 	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, bucket, nil); err != nil {
-		return nil, fmt.Errorf("failed to create or patch backup bucket %s: %w", client.ObjectKeyFromObject(bucket), err)
+		return fmt.Errorf("failed to create or patch backup bucket %s: %w", client.ObjectKeyFromObject(bucket), err)
 	}
-
+	//wait for bucket creation
 	if err := wait.PollUntilWithContext(ctx, 1*time.Second, func(ctx context.Context) (done bool, err error) {
 		err = onmetalClient.Get(ctx, client.ObjectKey{Namespace: bucket.Namespace, Name: bucket.Name}, bucket)
 		if err == nil && bucket.Status.State == storagev1alpha1.BucketStateAvailable && isBucketAccessDetailsAvailable(bucket) {
@@ -57,10 +57,18 @@ func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onm
 		}
 		return false, nil
 	}); err != nil {
-		return nil, fmt.Errorf("could not determine status of backup bucket")
+		return fmt.Errorf("could not determine status of backup bucket")
 	}
 
-	return bucket.Status.Access, nil
+	accessSecret := &corev1.Secret{}
+	if err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: bucket.Status.Access.SecretRef.Name}, accessSecret); err != nil {
+		return fmt.Errorf("error bucket access secret")
+	}
+	//update backupBucket secret
+	if err := a.updateBackupBucketStatus(ctx, backupBucket, accessSecret.Data, bucket.Status.Access.Endpoint); err != nil {
+		return fmt.Errorf("error while updating backupbucket status")
+	}
+	return nil
 }
 
 func isBucketAccessDetailsAvailable(bucket *storagev1alpha1.Bucket) bool {
@@ -68,19 +76,19 @@ func isBucketAccessDetailsAvailable(bucket *storagev1alpha1.Bucket) bool {
 }
 
 // updateBackupBucketStatus updates backupBucket status with access secretRef
-func (a *actuator) updateBackupBucketStatus(backupBucket *extensionsv1alpha1.BackupBucket, secretData map[string][]byte, endpoint string, ctx context.Context) error {
+func (a *actuator) updateBackupBucketStatus(ctx context.Context, backupBucket *extensionsv1alpha1.BackupBucket, secretData map[string][]byte, endpoint string) error {
 	if secretData == nil {
 		return fmt.Errorf("secret does not contain any data")
 	}
 
-	accessKeyID, ok := secretData[onmetal.AwsAccessKeyID]
+	accessKeyID, ok := secretData[onmetal.BucketAccessKeyID]
 	if !ok {
-		return fmt.Errorf("missing %q field in secret", onmetal.AwsAccessKeyID)
+		return fmt.Errorf("missing %q field in secret", onmetal.BucketAccessKeyID)
 	}
 
-	secretAccessKey, ok := secretData[onmetal.AwsSecretAccessKey]
+	secretAccessKey, ok := secretData[onmetal.BucketSecretAccessKey]
 	if !ok {
-		return fmt.Errorf("missing %q field in secret", onmetal.AwsSecretAccessKey)
+		return fmt.Errorf("missing %q field in secret", onmetal.BucketSecretAccessKey)
 	}
 
 	accessSecretData := map[string][]byte{}
@@ -101,7 +109,7 @@ func (a *actuator) updateBackupBucketStatus(backupBucket *extensionsv1alpha1.Bac
 	if err := controllerutil.SetOwnerReference(backupBucket, backupBucketSecret, a.Client().Scheme()); err != nil {
 		return fmt.Errorf("failed to set owner reference for bucket generated secret %s: %w", client.ObjectKeyFromObject(backupBucketSecret), err)
 	}
-
+	//create backupbucket secret
 	if _, err := controllerutil.CreateOrPatch(ctx, a.Client(), backupBucketSecret, nil); err != nil {
 		return fmt.Errorf("failed to create backup bucket generated secret %s: %w", client.ObjectKeyFromObject(backupBucketSecret), err)
 	}

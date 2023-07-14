@@ -99,7 +99,7 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 			SecretRef: &corev1.LocalObjectReference{
 				Name: "my-bucket-secret",
 			},
-			Endpoint: "endpoint-efef-ihfbd-ssadd.s3.storage",
+			Endpoint: "endpoint-efef-ihfbd-ssadd.storage",
 		}
 		Expect(k8sClient.Status().Patch(ctx, bucket, client.MergeFrom(bucketBase))).To(Succeed())
 
@@ -107,7 +107,7 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 		Eventually(Object(bucket)).Should(SatisfyAll(
 			HaveField("Status.State", storagev1alpha1.BucketStateAvailable),
 			HaveField("Status.Access.SecretRef.Name", "my-bucket-secret"),
-			HaveField("Status.Access.Endpoint", "endpoint-efef-ihfbd-ssadd.s3.storage"),
+			HaveField("Status.Access.Endpoint", "endpoint-efef-ihfbd-ssadd.storage"),
 		))
 
 		Eventually(Get(bucket)).Should(Succeed())
@@ -131,7 +131,7 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 				HaveField("UID", backupBucket.UID),
 			))),
 			HaveField("Data", map[string][]byte{
-				"endpoint":        []byte("endpoint-efef-ihfbd-ssadd.s3.storage"),
+				"endpoint":        []byte("endpoint-efef-ihfbd-ssadd.storage"),
 				"secretAccessKey": []byte("YXdzQWNjZXNzU2VjcmV0S2V5Cg==ss"),
 				"accessKeyID":     []byte("YXdzQWNjZXNzS2V5Cg=="),
 			}),

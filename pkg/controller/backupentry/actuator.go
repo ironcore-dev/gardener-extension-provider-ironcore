@@ -44,7 +44,6 @@ func (a *actuator) GetETCDSecretData(_ context.Context, _ logr.Logger, _ *extens
 }
 
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *extensionsv1alpha1.BackupEntry) error {
-
 	// get s3Client credentials from secret reference
 	s3ClientSecret := &corev1.Secret{}
 	s3ClientSecretKey := client.ObjectKey{Namespace: backupEntry.Spec.SecretRef.Namespace, Name: backupEntry.Spec.SecretRef.Name}
