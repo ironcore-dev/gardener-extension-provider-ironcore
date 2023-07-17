@@ -436,7 +436,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 				"kind":       "FooNetworkConfig",
 				"apiVersion": "v1alpha1",
 				"overlay": map[string]any{
-					"enabled": true,
+					"enabled": false,
 				},
 			}}
 			networkProviderConfigData, err := runtime.Encode(unstructured.UnstructuredJSONScheme, networkProviderConfig)

@@ -405,11 +405,11 @@ func getCCMChartValues(
 		values["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
 	}
 
-	configureCloudRoutes, err := isOverlayEnabled(cluster.Shoot.Spec.Networking)
+	overlayEnabled, err := isOverlayEnabled(cluster.Shoot.Spec.Networking)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine if overlay is enabled: %w", err)
 	}
-	values["configureCloudRoutes"] = configureCloudRoutes
+	values["configureCloudRoutes"] = !overlayEnabled
 
 	return values, nil
 }
