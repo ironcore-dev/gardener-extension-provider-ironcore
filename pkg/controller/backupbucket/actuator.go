@@ -53,11 +53,11 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 	// no backupbucket exists and it need to be created.
 	if backupBucket.Status.GeneratedSecretRef == nil {
 		if err := validateConfiguration(a.backupBucketConfig); err != nil {
-			return fmt.Errorf("error validating configuration: %w", err)
+			return fmt.Errorf("failed to validate configuration: %w", err)
 		}
 
 		if err := a.ensureBackupBucket(ctx, namespace, onmetalClient, backupBucket); err != nil {
-			return fmt.Errorf("error updating backupbucket")
+			return fmt.Errorf("failed to ensure backupbucket: %w", err)
 		}
 		log.V(2).Info("Reconciled BackupBucket")
 	}

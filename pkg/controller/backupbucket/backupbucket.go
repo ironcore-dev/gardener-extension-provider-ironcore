@@ -57,16 +57,16 @@ func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onm
 		}
 		return false, nil
 	}); err != nil {
-		return fmt.Errorf("could not determine status of backup bucket")
+		return fmt.Errorf("could not determine status of backup bucket %w", err)
 	}
 
 	accessSecret := &corev1.Secret{}
 	if err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: bucket.Status.Access.SecretRef.Name}, accessSecret); err != nil {
-		return fmt.Errorf("error bucket access secret")
+		return fmt.Errorf("failed to get bucket access secret %s: %w", client.ObjectKeyFromObject(accessSecret), err)
 	}
 	//update backupBucket secret
-	if err := a.updateBackupBucketStatus(ctx, backupBucket, accessSecret.Data, bucket.Status.Access.Endpoint); err != nil {
-		return fmt.Errorf("error while updating backupbucket status")
+	if err := a.patchBackupBucketStatus(ctx, backupBucket, accessSecret.Data, bucket.Status.Access.Endpoint); err != nil {
+		return fmt.Errorf("failed to patch backupbucket status %s: %w", client.ObjectKeyFromObject(bucket), err)
 	}
 	return nil
 }
@@ -75,8 +75,8 @@ func isBucketAccessDetailsAvailable(bucket *storagev1alpha1.Bucket) bool {
 	return bucket.Status.Access != nil && bucket.Status.Access.SecretRef != nil && bucket.Status.Access.Endpoint != ""
 }
 
-// updateBackupBucketStatus updates backupBucket status with access secretRef
-func (a *actuator) updateBackupBucketStatus(ctx context.Context, backupBucket *extensionsv1alpha1.BackupBucket, secretData map[string][]byte, endpoint string) error {
+// patchBackupBucketStatus updates backupBucket status with access secretRef
+func (a *actuator) patchBackupBucketStatus(ctx context.Context, backupBucket *extensionsv1alpha1.BackupBucket, secretData map[string][]byte, endpoint string) error {
 	if secretData == nil {
 		return fmt.Errorf("secret does not contain any data")
 	}
