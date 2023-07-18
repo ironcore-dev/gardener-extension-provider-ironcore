@@ -60,7 +60,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 				UserData: []byte("abcd"),
 				Ingress: []extensionsv1alpha1.BastionIngressPolicy{
 					{IPBlock: networkingv1.IPBlock{
-						CIDR: "213.69.151.0/24",
+						CIDR: "10.0.0.0/24",
 					}},
 				},
 			},
@@ -74,6 +74,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 
 		By("ensuring bastion host is created with correct spec")
 		bastionHostName, err := generateBastionHostResourceName(cluster.ObjectMeta.Name, bastion)
+		Expect(err).ShouldNot(HaveOccurred())
 		bastionHost := &computev1alpha1.Machine{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -120,7 +121,6 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		))
 
 		By("ensuring bastion network policy is created with correct spec")
-		Expect(err).ShouldNot(HaveOccurred())
 		networkPolicy := &networkingv1alpha1.NetworkPolicy{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      bastionHost.Name,
@@ -136,7 +136,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 					HaveField("Port", int32(sshPort)),
 				))),
 				HaveField("From", ContainElement(SatisfyAll(
-					HaveField("IPBlock.CIDR", commonv1alpha1.MustParseIPPrefix("213.69.151.0/24")),
+					HaveField("IPBlock.CIDR", commonv1alpha1.MustParseIPPrefix("10.0.0.0/24")),
 				))),
 			))),
 		))

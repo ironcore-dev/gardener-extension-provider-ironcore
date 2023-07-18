@@ -57,7 +57,7 @@ var _ = Describe("Bastion Host Delete", func() {
 				UserData: []byte("my-user"),
 				Ingress: []extensionsv1alpha1.BastionIngressPolicy{
 					{IPBlock: networkingv1.IPBlock{
-						CIDR: "213.69.151.0/24",
+						CIDR: "10.0.0.0/24",
 					}},
 				}},
 		}

@@ -16,7 +16,6 @@ package bastion
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/netip"
@@ -48,6 +47,8 @@ import (
 const (
 	// sshPort is the default SSH Port used for bastion ingress firewall rule
 	sshPort = 22
+	// name is the network interface label key
+	name = "bastion-host"
 )
 
 // bastionEndpoints collects the endpoints the bastion host provides; the
@@ -91,12 +92,9 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 		return fmt.Errorf("failed to create machine: %w", err)
 	}
 
-	err = ensureNetworkPolicy(ctx, namespace, bastion, onmetalClient, infraStatus, machine)
-	if err != nil {
+	if err = ensureNetworkPolicy(ctx, namespace, bastion, onmetalClient, infraStatus, machine); err != nil {
 		return fmt.Errorf("failed to create network policy: %w", err)
 	}
-
-	// TODO: NetworkPolicy to be added for shoot worker nodes
 
 	endpoints, err := getMachineEndpoints(machine)
 	if err != nil {
@@ -251,7 +249,7 @@ func generateMachine(namespace string, bastionConfig *controllerconfig.BastionCo
 							NetworkInterfaceTemplate: &networkingv1alpha1.NetworkInterfaceTemplateSpec{
 								ObjectMeta: metav1.ObjectMeta{
 									Labels: map[string]string{
-										"bastion-host": BastionInstanceName,
+										name: BastionInstanceName,
 									},
 								},
 								Spec: networkingv1alpha1.NetworkInterfaceSpec{
@@ -346,7 +344,7 @@ func ensureNetworkPolicy(ctx context.Context, namespace string, bastion *extensi
 			},
 			NetworkInterfaceSelector: metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"bastion-host": bastionHost.Name,
+					name: bastionHost.Name,
 				},
 			},
 			Ingress: []networkingv1alpha1.NetworkPolicyIngressRule{},
@@ -389,17 +387,12 @@ func getBastionIngressCIDR(bastion *extensionsv1alpha1.Bastion) ([]string, error
 	var cidrs []string
 	for _, ingress := range bastion.Spec.Ingress {
 		cidr := ingress.IPBlock.CIDR
-		ip, ipNet, err := net.ParseCIDR(cidr)
+		_, ipNet, err := net.ParseCIDR(cidr)
 		if err != nil {
 			return nil, fmt.Errorf("invalid ingress CIDR %q: %w", cidr, err)
 		}
 		normalisedCIDR := ipNet.String()
-
-		if ip.To4() != nil {
-			cidrs = append(cidrs, normalisedCIDR)
-		} else if ip.To16() != nil {
-			return nil, errors.New("IPv6 is currently not fully supported")
-		}
+		cidrs = append(cidrs, normalisedCIDR)
 	}
 	return cidrs, nil
 }
