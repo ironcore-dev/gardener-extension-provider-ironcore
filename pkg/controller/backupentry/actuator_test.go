@@ -29,10 +29,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
@@ -77,22 +75,9 @@ var _ = Describe("BackupEntry Delete", func() {
 				BucketPoolRef: &corev1.LocalObjectReference{
 					Name: "my-bucket-pool",
 				},
-				Tolerations: []commonv1alpha1.Toleration{
-					{
-						Key:      "key",
-						Operator: "Equal",
-						Value:    "value",
-					},
-				},
 			},
 		}
 		Expect(k8sClient.Create(ctx, bucket)).Should(Succeed())
-
-		Eventually(Object(bucket)).Should(SatisfyAll(
-			HaveField("Spec.BucketClassRef", &corev1.LocalObjectReference{
-				Name: "test-bucket-class",
-			}),
-		))
 
 		By("creating a secret with credentials data to access onmetal bucket")
 		secret := &corev1.Secret{

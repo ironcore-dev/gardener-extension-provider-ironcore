@@ -60,26 +60,22 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, backupBucket)).Should(Succeed())
-
 		Eventually(Object(backupBucket)).Should(SatisfyAll(
 			HaveField("Status.LastOperation.Type", gardencorev1beta1.LastOperationTypeCreate),
 		))
 
 		By("ensuring backup bucket is created with correct spec")
-
 		bucket = &storagev1alpha1.Bucket{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
 				Name:      "my-backup-bucket",
 			},
 		}
-
 		Eventually(Object(bucket)).Should(SatisfyAll(
 			HaveField("Spec.BucketClassRef", &corev1.LocalObjectReference{
 				Name: "my-bucket-class",
 			}),
 		))
-
 		bucketAccesSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -102,15 +98,6 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 			Endpoint: "endpoint-efef-ihfbd-ssadd.storage",
 		}
 		Expect(k8sClient.Status().Patch(ctx, bucket, client.MergeFrom(bucketBase))).To(Succeed())
-
-		By("ensuring that bucket is created and Available")
-		Eventually(Object(bucket)).Should(SatisfyAll(
-			HaveField("Status.State", storagev1alpha1.BucketStateAvailable),
-			HaveField("Status.Access.SecretRef.Name", "my-bucket-secret"),
-			HaveField("Status.Access.Endpoint", "endpoint-efef-ihfbd-ssadd.storage"),
-		))
-
-		Eventually(Get(bucket)).Should(Succeed())
 
 		By("ensuring that bucket updated with access secret and endpoint")
 		Eventually(Object(backupBucket)).Should(SatisfyAll(
@@ -145,25 +132,18 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 	})
 
 	It("should check backup bucket configuration", func(ctx SpecContext) {
+		By("validating backupbucket config")
+		Expect(validateConfiguration(nil)).To(MatchError("backupBucketConfig must not be empty"))
 
-		By("creating backupbucketconfig")
+		By("validating bucketclassname is not empty")
 		config := &controllerconfig.BackupBucketConfig{
 			BucketClassName: "",
 		}
-
-		By("validating backupbucket config")
-		err := validateConfiguration(nil)
-		Expect(err).To(MatchError("backupBucketConfig must not be empty"))
-
-		By("validating bucketclassname is not empty")
-		err = validateConfiguration(config)
-		Expect(err).To(MatchError("BucketClassName is mandatory"))
-
-		config.BucketClassName = "foo"
+		Expect(validateConfiguration(config)).To(MatchError("BucketClassName is mandatory"))
 
 		By("validating backupbucketconfig is valid")
-		ret := validateConfiguration(config)
-		Expect(ret).To(BeNil())
+		config.BucketClassName = "foo"
+		Expect(validateConfiguration(config)).To(BeNil())
 
 	})
 

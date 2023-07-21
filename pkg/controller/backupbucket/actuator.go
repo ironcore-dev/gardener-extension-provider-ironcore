@@ -59,8 +59,8 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 		if err := a.ensureBackupBucket(ctx, namespace, onmetalClient, backupBucket); err != nil {
 			return fmt.Errorf("failed to ensure backupbucket: %w", err)
 		}
-		log.V(2).Info("Reconciled BackupBucket")
 	}
+	log.V(2).Info("Reconciled BackupBucket")
 	return nil
 }
 

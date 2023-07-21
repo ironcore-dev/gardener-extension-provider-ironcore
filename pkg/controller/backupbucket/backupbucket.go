@@ -32,6 +32,12 @@ import (
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
+const (
+	waitBucketInitDelay   = 1 * time.Second
+	waitBucketFactor      = 1.2
+	waitBucketActiveSteps = 19
+)
+
 // ensureBackupBucket creates onmetal backupBucket object and returns access to bucket
 func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onmetalClient client.Client, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	bucket := &storagev1alpha1.Bucket{
@@ -50,13 +56,7 @@ func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onm
 		return fmt.Errorf("failed to create or patch backup bucket %s: %w", client.ObjectKeyFromObject(bucket), err)
 	}
 	//wait for bucket creation
-	if err := wait.PollUntilWithContext(ctx, 1*time.Second, func(ctx context.Context) (done bool, err error) {
-		err = onmetalClient.Get(ctx, client.ObjectKey{Namespace: bucket.Namespace, Name: bucket.Name}, bucket)
-		if err == nil && bucket.Status.State == storagev1alpha1.BucketStateAvailable && isBucketAccessDetailsAvailable(bucket) {
-			return true, nil
-		}
-		return false, nil
-	}); err != nil {
+	if err := waitBackupBucketToAvailable(ctx, onmetalClient, bucket); err != nil {
 		return fmt.Errorf("could not determine status of backup bucket %w", err)
 	}
 
@@ -69,6 +69,28 @@ func (a *actuator) ensureBackupBucket(ctx context.Context, namespace string, onm
 		return fmt.Errorf("failed to patch backupbucket status %s: %w", client.ObjectKeyFromObject(bucket), err)
 	}
 	return nil
+}
+
+func waitBackupBucketToAvailable(ctx context.Context, onmetalClient client.Client, bucket *storagev1alpha1.Bucket) error {
+	backoff := wait.Backoff{
+		Duration: waitBucketInitDelay,
+		Factor:   waitBucketFactor,
+		Steps:    waitBucketActiveSteps,
+	}
+
+	err := wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
+		err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: bucket.Namespace, Name: bucket.Name}, bucket)
+		if err == nil && bucket.Status.State == storagev1alpha1.BucketStateAvailable && isBucketAccessDetailsAvailable(bucket) {
+			return true, nil
+		}
+		return false, err
+	})
+
+	if err == wait.ErrWaitTimeout {
+		return fmt.Errorf("timeout waiting for the onmetal Bucket %s status: %w", client.ObjectKeyFromObject(bucket), err)
+	}
+
+	return err
 }
 
 func isBucketAccessDetailsAvailable(bucket *storagev1alpha1.Bucket) bool {
