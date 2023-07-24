@@ -18,6 +18,7 @@ import (
 	"net/netip"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
@@ -59,7 +60,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 				UserData: []byte("abcd"),
 				Ingress: []extensionsv1alpha1.BastionIngressPolicy{
 					{IPBlock: networkingv1.IPBlock{
-						CIDR: "213.69.151.0/24",
+						CIDR: "10.0.0.0/24",
 					}},
 				},
 			},
@@ -106,7 +107,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		By("ensuring ignition secret is created and owned by bastion host machine")
 		ignitionSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      getIgnitionNameForMachine(bastionHostName),
+				Name:      getIgnitionNameForMachine(bastionHost.Name),
 				Namespace: ns.Name,
 			},
 		}
@@ -117,6 +118,27 @@ var _ = Describe("Bastion Host Reconcile", func() {
 				HaveField("Name", bastionHost.Name),
 			))),
 			HaveField("Data", HaveLen(1)),
+		))
+
+		By("ensuring bastion network policy is created with correct spec")
+		networkPolicy := &networkingv1alpha1.NetworkPolicy{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      bastionHost.Name,
+				Namespace: ns.Name,
+			},
+		}
+		Eventually(Object(networkPolicy)).Should(SatisfyAll(
+			HaveField("Spec.NetworkRef.Name", "my-network"),
+			HaveField("Spec.NetworkInterfaceSelector.MatchLabels", HaveKeyWithValue("bastion-host", bastionHost.Name)),
+			HaveField("Spec.PolicyTypes", ContainElement(networkingv1alpha1.PolicyTypeIngress)),
+			HaveField("Spec.Ingress", ContainElement(SatisfyAll(
+				HaveField("Ports", ContainElement(SatisfyAll(
+					HaveField("Port", int32(sshPort)),
+				))),
+				HaveField("From", ContainElement(SatisfyAll(
+					HaveField("IPBlock.CIDR", commonv1alpha1.MustParseIPPrefix("10.0.0.0/24")),
+				))),
+			))),
 		))
 
 		By("patching bastion host with running state and network interfaces with private and virtual ip")

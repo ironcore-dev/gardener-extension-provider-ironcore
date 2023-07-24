@@ -22,9 +22,11 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
+	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -53,8 +55,11 @@ var _ = Describe("Bastion Host Delete", func() {
 					ProviderConfig: nil,
 				},
 				UserData: []byte("my-user"),
-				Ingress:  []extensionsv1alpha1.BastionIngressPolicy{},
-			},
+				Ingress: []extensionsv1alpha1.BastionIngressPolicy{
+					{IPBlock: networkingv1.IPBlock{
+						CIDR: "10.0.0.0/24",
+					}},
+				}},
 		}
 		Expect(k8sClient.Create(ctx, bastion)).Should(Succeed())
 		Eventually(Object(bastion)).Should(SatisfyAll(
@@ -86,6 +91,22 @@ var _ = Describe("Bastion Host Delete", func() {
 				HaveField("UID", bastionHost.UID),
 			))),
 			HaveField("Data", HaveLen(1)),
+		))
+
+		By("ensuring network policy is created and owned by bastion host machine")
+		networkPolicy := &networkingv1alpha1.NetworkPolicy{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      bastionHostName,
+				Namespace: ns.Name,
+			},
+		}
+		Eventually(Object(networkPolicy)).Should(SatisfyAll(
+			HaveField("Spec.NetworkRef.Name", "my-network"),
+			HaveField("ObjectMeta.OwnerReferences", ContainElement(SatisfyAll(
+				HaveField("Name", bastionHost.Name),
+				HaveField("Kind", "Machine"),
+				HaveField("UID", bastionHost.UID),
+			))),
 		))
 
 		By("patching bastion host with Running state")
