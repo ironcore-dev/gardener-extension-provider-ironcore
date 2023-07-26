@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backupprovider
+  namespace: garden
+type: Opaque
+data:
+# namespace: base64(namespace)
+# kubeconfig: base64(kubecconfig)
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: BackupBucket
+metadata:
+  name: cloud--onmetal--fg2d6
+spec:
+  type: onmetal
+  region: europe-central
+  secretRef:
+    name: backupprovider
+    namespace: garden
