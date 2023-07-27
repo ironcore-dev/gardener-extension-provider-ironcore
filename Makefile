@@ -62,7 +62,7 @@ CODE_GENERATOR_VERSION ?= v0.26.3
 ADDLICENSE_VERSION ?= v1.1.1
 GOIMPORTS_VERSION ?= v0.5.0
 GEN_CRD_API_REFERENCE_DOCS_VERSION ?= v0.3.0
-MOCKGEN_VERSION ?= v1.6.0
+MOCKGEN_VERSION ?= v0.2.0
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.0
@@ -142,7 +142,7 @@ check-license: addlicense ## Check that every file has a license header present.
 check: generate add-license fmt lint test # Generate manifests, code, lint, add licenses, test
 
 .PHONY: generate
-generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen generate-crds docs
+generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen generate-crds docs generate-mocks
 	VGOPATH=$(VGOPATH) \
 	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
 	DEFAULTER_GEN=$(DEFAULTER_GEN) \
@@ -191,6 +191,10 @@ verify: check format test
 .PHONY: verify-extended
 verify-extended: check-generate check format test-cov test-clean
 
+.PHONY: generate-mocks
+generate-mocks: mockgen ## Generate code (mocks etc.).
+	MOCKGEN=$(MOCKGEN) go generate ./pkg/controller/...
+
 ###
 ### Download tooling
 ###
@@ -235,6 +239,21 @@ addlicense: $(ADDLICENSE) ## Download addlicense locally if necessary.
 $(ADDLICENSE): $(LOCALBIN)
 	test -s $(LOCALBIN)/addlicense || GOBIN=$(LOCALBIN) go install github.com/google/addlicense@$(ADDLICENSE_VERSION)
 
+.PHONY: goimports
+goimports: $(GOIMPORTS) ## Download goimports locally if necessary.
+$(GOIMPORTS): $(LOCALBIN)
+	test -s $(LOCALBIN)/goimports || GOBIN=$(LOCALBIN) go install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION)
+
+.PHONY: gen-crd-api-reference-docs
+gen-crd-api-reference-docs: $(GEN_CRD_API_REFERENCE_DOCS) ## Download gen-crd-api-reference-docs locally if necessary.
+$(GEN_CRD_API_REFERENCE_DOCS): $(LOCALBIN)
+	test -s $(LOCALBIN)/gen-crd-api-reference-docs || GOBIN=$(LOCALBIN) go install github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_REFERENCE_DOCS_VERSION)
+
+.PHONY: mockgen
+mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
+$(MOCKGEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
+
 ###
 ### Download Gardener hack scripts
 ###
@@ -274,22 +293,3 @@ INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/maste
 $(INSTALL): $(LOCALBIN)
 	curl -Ss $(INSTALL_SCRIPT_URL) -o $(INSTALL)
 	chmod +x $(INSTALL)
-
-.PHONY: goimports
-goimports: $(GOIMPORTS) ## Download goimports locally if necessary.
-$(GOIMPORTS): $(LOCALBIN)
-	test -s $(LOCALBIN)/goimports || GOBIN=$(LOCALBIN) go install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION)
-
-.PHONY: gen-crd-api-reference-docs
-gen-crd-api-reference-docs: $(GEN_CRD_API_REFERENCE_DOCS) ## Download gen-crd-api-reference-docs locally if necessary.
-$(GEN_CRD_API_REFERENCE_DOCS): $(LOCALBIN)
-	test -s $(LOCALBIN)/gen-crd-api-reference-docs || GOBIN=$(LOCALBIN) go install github.com/ahmetb/gen-crd-api-reference-docs@$(GEN_CRD_API_REFERENCE_DOCS_VERSION)
-
-.PHONY: generate-mocks
-generate-mocks: mockgen ## Generate code (mocks etc.).
-	MOCKGEN=$(MOCKGEN) go generate ./pkg/controller/...
-
-.PHONY: mockgen
-mockgen: $(MOCKGEN)
-$(MOCKGEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)

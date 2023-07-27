@@ -9,7 +9,7 @@ import (
 
 	aws "github.com/aws/aws-sdk-go/aws"
 	s3 "github.com/aws/aws-sdk-go/service/s3"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // Mocks3ObjectLister is a mock of s3ObjectLister interface.
