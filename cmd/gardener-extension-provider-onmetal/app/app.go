@@ -30,14 +30,6 @@ import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/spf13/cobra"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
-	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	"k8s.io/component-base/version/verflag"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-
 	onmetalinstall "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 	onmetalcmd "github.com/onmetal/gardener-extension-provider-onmetal/pkg/cmd"
 	backupbucketcontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/backupbucket"
@@ -49,6 +41,13 @@ import (
 	workercontroller "github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/worker"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	controlplanewebhook "github.com/onmetal/gardener-extension-provider-onmetal/pkg/webhook/controlplane"
+	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
+	"k8s.io/component-base/version/verflag"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // NewControllerManagerCommand creates a new command for running a onmetal provider controller.
@@ -223,7 +222,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 			onmetalcontrolplane.DefaultAddOptions.WebhookServerNamespace = webhookOptions.Server.Namespace
 
-			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
+			if err := controllerSwitches.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add controllers to manager: %w", err)
 			}
 

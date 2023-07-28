@@ -18,11 +18,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -31,28 +32,26 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
-
-	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var _ = Describe("Machines", func() {
 	ns, _ := SetupTest()
 
 	It("should create the correct kind of the machine class", func() {
-		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(nil, nil, nil), "", nil, nil)
+		workerDelegate, err := NewWorkerDelegate(nil, nil, nil, "", nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workerDelegate.MachineClassKind()).To(Equal("MachineClass"))
 	})
 
 	It("should create the correct type for the machine class", func() {
-		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(nil, nil, nil), "", nil, nil)
+		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
+		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, clusterWithoutImages)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workerDelegate.MachineClass()).To(Equal(&machinecontrollerv1alpha1.MachineClass{}))
 	})
 
 	It("should create the correct type for the machine class list", func() {
-		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(nil, nil, nil), "", nil, nil)
+		workerDelegate, err := NewWorkerDelegate(k8sClient, nil, k8sClient.Scheme(), "", w, cluster)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(workerDelegate.MachineClassList()).To(Equal(&machinecontrollerv1alpha1.MachineClassList{}))
 	})
@@ -77,7 +76,7 @@ var _ = Describe("Machines", func() {
 
 		By("deploying the machine class for a given multi zone cluster")
 		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
-		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(k8sClient, k8sClient.Scheme(), decoder), "", w, cluster)
+		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, cluster)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = workerDelegate.DeployMachineClasses(ctx)
@@ -159,7 +158,7 @@ var _ = Describe("Machines", func() {
 			className2      = fmt.Sprintf("%s-%s", deploymentName2, workerPoolHash)
 		)
 		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
-		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(k8sClient, k8sClient.Scheme(), decoder), "", w, cluster)
+		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, cluster)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("generating the machine deployments")

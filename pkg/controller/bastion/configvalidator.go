@@ -20,7 +20,6 @@ import (
 	"net"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/go-logr/logr"
@@ -35,7 +34,6 @@ import (
 
 // configValidator implements ConfigValidator for onmetal bastion resources.
 type configValidator struct {
-	common.ClientContext
 	client client.Client
 	logger logr.Logger
 }

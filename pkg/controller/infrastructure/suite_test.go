@@ -208,7 +208,7 @@ func SetupTest() *corev1.Namespace {
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-		Expect(AddToManagerWithOptions(mgr, AddOptions{
+		Expect(AddToManagerWithOptions(mgrCtx, mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
 		})).NotTo(HaveOccurred())
 

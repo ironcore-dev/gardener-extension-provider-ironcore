@@ -77,12 +77,12 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 		return fmt.Errorf("failed to determine options: %w", err)
 	}
 
-	infraStatus, err := getInfrastructureStatus(ctx, a.Client(), cluster)
+	infraStatus, err := getInfrastructureStatus(ctx, a.client, cluster)
 	if err != nil {
 		return fmt.Errorf("failed to get infrastructure status: %w", err)
 	}
 
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.Client(), cluster.ObjectMeta.Name)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.client, cluster.ObjectMeta.Name)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
@@ -115,7 +115,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 	log.V(2).Info("Reconciled bastion host")
 	patch := client.MergeFrom(bastion.DeepCopy())
 	bastion.Status.Ingress = endpoints.public
-	return a.Client().Status().Patch(ctx, bastion, patch)
+	return a.client.Status().Patch(ctx, bastion, patch)
 }
 
 // getMachineEndpoints function returns the bastion endpoints of a running

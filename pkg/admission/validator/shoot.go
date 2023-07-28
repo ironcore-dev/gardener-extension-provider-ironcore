@@ -23,14 +23,14 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission"
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	onmetalvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	onmetalvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type shoot struct {
@@ -40,21 +40,10 @@ type shoot struct {
 }
 
 // NewShootValidator returns a new instance of a shoot validator.
-func NewShootValidator() extensionswebhook.Validator {
-	return &shoot{}
-}
-
-// InjectScheme injects the given scheme into the validator.
-func (s *shoot) InjectScheme(scheme *runtime.Scheme) error {
-	s.decoder = serializer.NewCodecFactory(scheme, serializer.EnableStrict).UniversalDecoder()
-	s.lenientDecoder = serializer.NewCodecFactory(scheme).UniversalDecoder()
-	return nil
-}
-
-// InjectClient injects the given client into the validator.
-func (s *shoot) InjectClient(client client.Client) error {
-	s.client = client
-	return nil
+func NewShootValidator(mgr manager.Manager) extensionswebhook.Validator {
+	return &shoot{
+		decoder: serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
+	}
 }
 
 // Validate validates the given shoot objects.

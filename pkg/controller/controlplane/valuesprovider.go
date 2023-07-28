@@ -20,15 +20,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"github.com/Masterminds/semver"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -37,19 +33,22 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 const (
@@ -81,8 +80,8 @@ func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfig
 	}
 }
 
-func shootAccessSecretsFunc(namespace string) []*gutil.ShootAccessSecret {
-	return []*gutil.ShootAccessSecret{
+func shootAccessSecretsFunc(namespace string) []*gutil.AccessSecret {
+	return []*gutil.AccessSecret{
 		gutil.NewShootAccessSecret(cloudControllerManagerDeploymentName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIProvisionerName, namespace),
 		gutil.NewShootAccessSecret(onmetal.CSIAttacherName, namespace),
@@ -193,15 +192,26 @@ var (
 	}
 )
 
-// NewValuesProvider creates a new ValuesProvider for the generic actuator.
-func NewValuesProvider() genericactuator.ValuesProvider {
-	return &valuesProvider{}
-}
-
 // valuesProvider is a ValuesProvider that provides onmetal-specific values for the 2 charts applied by the generic actuator.
 type valuesProvider struct {
-	genericactuator.NoopValuesProvider
-	common.ClientContext
+	client  client.Client
+	decoder runtime.Decoder
+}
+
+// NewValuesProvider creates a new ValuesProvider for the generic actuator.
+func NewValuesProvider(mgr manager.Manager) genericactuator.ValuesProvider {
+	return &valuesProvider{
+		client:  mgr.GetClient(),
+		decoder: serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
+	}
+}
+
+func (vp *valuesProvider) GetControlPlaneExposureChartValues(ctx context.Context,
+	cp *extensionsv1alpha1.ControlPlane,
+	cluster *extensionscontroller.Cluster,
+	secretsReader secretsmanager.Reader,
+	checksums map[string]string) (map[string]interface{}, error) {
+	return map[string]interface{}{}, nil
 }
 
 // GetConfigChartValues returns the values for the config chart applied by the generic actuator.
@@ -211,7 +221,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
 	infrastructureStatus := &apisonmetal.InfrastructureStatus{}
-	if _, _, err := vp.Decoder().Decode(cp.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
+	if _, _, err := vp.decoder.Decode(cp.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
 		return nil, fmt.Errorf("failed to decode infrastructure status: %w", err)
 	}
 	// Collect config chart values
@@ -236,7 +246,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 ) {
 	cpConfig := &apisonmetal.ControlPlaneConfig{}
 	if cp.Spec.ProviderConfig != nil {
-		if _, _, err := vp.Decoder().Decode(cp.Spec.ProviderConfig.Raw, nil, cpConfig); err != nil {
+		if _, _, err := vp.decoder.Decode(cp.Spec.ProviderConfig.Raw, nil, cpConfig); err != nil {
 			return nil, fmt.Errorf("could not decode providerConfig of controlplane '%s': %w", kutil.ObjectName(cp), err)
 		}
 	}
@@ -276,7 +286,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 ) (map[string]interface{}, error) {
 	providerConfig := apisonmetal.CloudProfileConfig{}
 	if config := cluster.CloudProfile.Spec.ProviderConfig; config != nil {
-		if _, _, err := vp.Decoder().Decode(config.Raw, nil, &providerConfig); err != nil {
+		if _, _, err := vp.decoder.Decode(config.Raw, nil, &providerConfig); err != nil {
 			return nil, fmt.Errorf("could not decode cloudprofile providerConfig for controlplane '%s': %w", client.ObjectKeyFromObject(controlPlane), err)
 		}
 	}
@@ -288,7 +298,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	}
 
 	// get onmetal credentials from infrastructure config
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, vp.Client(), cluster.ObjectMeta.Name)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, vp.client, cluster.ObjectMeta.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}

@@ -28,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
@@ -228,13 +229,14 @@ func SetupTest() (*corev1.Namespace, *valuesProvider, *extensionsv1alpha1.Cluste
 		Expect(k8sClient.Create(ctx, cloudproviderSecret)).To(Succeed())
 		DeferCleanup(k8sClient.Delete, cloudproviderSecret)
 
-		Expect(AddToManagerWithOptions(mgr, AddOptions{
+		Expect(AddToManagerWithOptions(mgrCtx, mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
 		})).NotTo(HaveOccurred())
 
-		*vp = valuesProvider{}
-		Expect(vp.InjectScheme(scheme.Scheme)).NotTo(HaveOccurred())
-		Expect(vp.InjectClient(k8sClient)).NotTo(HaveOccurred())
+		*vp = valuesProvider{
+			client:  mgr.GetClient(),
+			decoder: serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
+		}
 
 		go func() {
 			defer GinkgoRecover()

@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
@@ -33,7 +32,6 @@ import (
 
 // configValidator implements ConfigValidator for onmetal infrastructure resources.
 type configValidator struct {
-	common.ClientContext
 	client client.Client
 	logger logr.Logger
 }

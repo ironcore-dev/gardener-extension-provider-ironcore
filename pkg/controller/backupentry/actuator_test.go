@@ -27,15 +27,13 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 
+	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
-
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
 )
 
 var _ = Describe("BackupEntry Delete", func() {
-	ns := SetupTest()
+	mgr, ns := SetupTest()
 
 	var (
 		ctrl               *gomock.Controller
@@ -45,10 +43,8 @@ var _ = Describe("BackupEntry Delete", func() {
 	)
 
 	BeforeEach(func(ctx SpecContext) {
-		a = newActuator()
+		a = newActuator(*mgr)
 		Expect(a).NotTo(BeNil())
-		err := a.(inject.Client).InjectClient(k8sClient)
-		Expect(err).NotTo(HaveOccurred())
 
 		ctrl = gomock.NewController(GinkgoT())
 		mockS3ObjectLister = NewMocks3ObjectLister(ctrl)

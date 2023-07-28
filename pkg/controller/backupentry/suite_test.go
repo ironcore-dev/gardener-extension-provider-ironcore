@@ -122,8 +122,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 })
 
-func SetupTest() *corev1.Namespace {
+func SetupTest() (*manager.Manager, *corev1.Namespace) {
 	namespace := &corev1.Namespace{}
+	var mgr manager.Manager
 
 	BeforeEach(func(ctx SpecContext) {
 		var mgrCtx context.Context
@@ -138,7 +139,8 @@ func SetupTest() *corev1.Namespace {
 		Expect(k8sClient.Create(ctx, namespace)).To(Succeed(), "failed to create test namespace")
 		DeferCleanup(k8sClient.Delete, namespace)
 
-		mgr, err := manager.New(cfg, manager.Options{
+		var err error
+		mgr, err = manager.New(cfg, manager.Options{
 			Scheme:             scheme.Scheme,
 			MetricsBindAddress: "0",
 		})
@@ -166,7 +168,7 @@ func SetupTest() *corev1.Namespace {
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-		Expect(AddToManagerWithOptions(mgr, AddOptions{
+		Expect(AddToManagerWithOptions(ctx, mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
 		})).NotTo(HaveOccurred())
 
@@ -176,5 +178,5 @@ func SetupTest() *corev1.Namespace {
 		}()
 	})
 
-	return namespace
+	return &mgr, namespace
 }
