@@ -187,7 +187,7 @@ func SetupTest() *corev1.Namespace {
 		backupBucketConfig := controllerconfig.BackupBucketConfig{
 			BucketClassName: "my-bucket-class",
 		}
-		Expect(AddToManagerWithOptions(mgr, AddOptions{
+		Expect(AddToManagerWithOptions(ctx, mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
 			BackupBucketConfig:        backupBucketConfig,
 		})).NotTo(HaveOccurred())

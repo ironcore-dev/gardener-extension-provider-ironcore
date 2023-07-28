@@ -15,7 +15,6 @@
 package worker
 
 import (
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -51,7 +50,7 @@ var _ = Describe("MachinesImages", func() {
 
 		By("creating a worker delegate")
 		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
-		workerDelegate, err := NewWorkerDelegate(common.NewClientContext(k8sClient, k8sClient.Scheme(), decoder), "", w, cluster)
+		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, cluster)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("calling the updating machine image status")

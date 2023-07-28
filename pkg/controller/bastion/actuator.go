@@ -16,19 +16,20 @@ package bastion
 
 import (
 	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
-
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type actuator struct {
-	common.RESTConfigContext
+	client        client.Client
 	bastionConfig *controllerconfig.BastionConfig
 }
 
 // NewActuator creates a new bastion.Actuator.
-func NewActuator(bastionConfig *controllerconfig.BastionConfig) bastion.Actuator {
+func NewActuator(mgr manager.Manager, bastionConfig *controllerconfig.BastionConfig) bastion.Actuator {
 	return &actuator{
+		client:        mgr.GetClient(),
 		bastionConfig: bastionConfig,
 	}
 }

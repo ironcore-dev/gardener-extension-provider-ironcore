@@ -45,7 +45,7 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Path:       "/webhooks/validate",
 		Predicates: []predicate.Predicate{extensionspredicate.GardenCoreProviderType(onmetal.Type)},
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
-			NewShootValidator():         {{Obj: &core.Shoot{}}},
+			NewShootValidator(mgr):      {{Obj: &core.Shoot{}}},
 			NewSecretBindingValidator(): {{Obj: &core.SecretBinding{}}},
 		},
 	})

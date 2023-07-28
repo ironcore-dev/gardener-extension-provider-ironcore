@@ -128,11 +128,11 @@ func (a *actuator) patchBackupBucketStatus(ctx context.Context, backupBucket *ex
 		Data: accessSecretData,
 	}
 
-	if err := controllerutil.SetOwnerReference(backupBucket, backupBucketSecret, a.Client().Scheme()); err != nil {
+	if err := controllerutil.SetOwnerReference(backupBucket, backupBucketSecret, a.client.Scheme()); err != nil {
 		return fmt.Errorf("failed to set owner reference for bucket generated secret %s: %w", client.ObjectKeyFromObject(backupBucketSecret), err)
 	}
 	//create backupbucket secret
-	if _, err := controllerutil.CreateOrPatch(ctx, a.Client(), backupBucketSecret, nil); err != nil {
+	if _, err := controllerutil.CreateOrPatch(ctx, a.client, backupBucketSecret, nil); err != nil {
 		return fmt.Errorf("failed to create backup bucket generated secret %s: %w", client.ObjectKeyFromObject(backupBucketSecret), err)
 	}
 
@@ -140,7 +140,7 @@ func (a *actuator) patchBackupBucketStatus(ctx context.Context, backupBucket *ex
 		Name:      backupBucketSecret.Name,
 		Namespace: backupBucketSecret.Namespace,
 	}
-	return a.Client().Status().Patch(ctx, backupBucket, patch)
+	return a.client.Status().Patch(ctx, backupBucket, patch)
 }
 
 // validateConfiguration checks whether a backup bucket configuration is valid.

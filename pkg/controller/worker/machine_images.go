@@ -70,7 +70,7 @@ func (w *workerDelegate) findMachineImage(name, version string, architecture *st
 	// Try to look up machine image in worker provider status as it was not found in componentconfig.
 	if providerStatus := w.worker.Status.ProviderStatus; providerStatus != nil {
 		workerStatus := &apiv1alpha1.WorkerStatus{}
-		if _, _, err := w.Decoder().Decode(providerStatus.Raw, nil, workerStatus); err != nil {
+		if _, _, err := w.decoder.Decode(providerStatus.Raw, nil, workerStatus); err != nil {
 			return "", fmt.Errorf("could not decode worker status of worker '%s': %w", kutil.ObjectName(w.worker), err)
 		}
 
@@ -99,7 +99,7 @@ func (w *workerDelegate) decodeWorkerProviderStatus() (*apiv1alpha1.WorkerStatus
 		return workerStatus, nil
 	}
 
-	if _, _, err := w.Decoder().Decode(w.worker.Status.ProviderStatus.Raw, nil, workerStatus); err != nil {
+	if _, _, err := w.decoder.Decode(w.worker.Status.ProviderStatus.Raw, nil, workerStatus); err != nil {
 		return nil, fmt.Errorf("could not decode WorkerStatus '%s': %w", kutil.ObjectName(w.worker), err)
 	}
 
@@ -109,7 +109,7 @@ func (w *workerDelegate) decodeWorkerProviderStatus() (*apiv1alpha1.WorkerStatus
 func (w *workerDelegate) updateWorkerProviderStatus(ctx context.Context, workerStatus *apiv1alpha1.WorkerStatus) error {
 	status := &apiv1alpha1.WorkerStatus{}
 
-	if err := w.Scheme().Convert(workerStatus, status, nil); err != nil {
+	if err := w.scheme.Convert(workerStatus, status, nil); err != nil {
 		return err
 	}
 
@@ -120,5 +120,5 @@ func (w *workerDelegate) updateWorkerProviderStatus(ctx context.Context, workerS
 
 	patch := client.MergeFrom(w.worker.DeepCopy())
 	w.worker.Status.ProviderStatus = &runtime.RawExtension{Object: status}
-	return w.Client().Status().Patch(ctx, w.worker, patch)
+	return w.client.Status().Patch(ctx, w.worker, patch)
 }

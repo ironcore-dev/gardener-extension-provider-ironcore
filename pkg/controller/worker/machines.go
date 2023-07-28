@@ -59,12 +59,12 @@ func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 
 	// apply machine classes and machine secrets
 	for _, class := range machineClasses {
-		if _, err := controllerutil.CreateOrPatch(ctx, w.Client(), class, nil); err != nil {
+		if _, err := controllerutil.CreateOrPatch(ctx, w.client, class, nil); err != nil {
 			return fmt.Errorf("failed to create/patch machineclass %s: %w", client.ObjectKeyFromObject(class), err)
 		}
 	}
 	for _, secret := range machineClassSecrets {
-		if _, err := controllerutil.CreateOrPatch(ctx, w.Client(), secret, nil); err != nil {
+		if _, err := controllerutil.CreateOrPatch(ctx, w.client, secret, nil); err != nil {
 			return fmt.Errorf("failed to create/patch machineclass secret %s: %w", client.ObjectKeyFromObject(secret), err)
 		}
 	}
@@ -117,7 +117,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 	)
 
 	infrastructureStatus := &onmetalextensionv1alpha1.InfrastructureStatus{}
-	if _, _, err := w.Decoder().Decode(w.worker.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
+	if _, _, err := w.decoder.Decode(w.worker.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
 		return nil, nil, fmt.Errorf("failed to decode infra status: %w", err)
 	}
 

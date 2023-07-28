@@ -19,23 +19,24 @@ import (
 	"fmt"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/backupbucket"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
 	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type actuator struct {
-	common.RESTConfigContext
 	backupBucketConfig *controllerconfig.BackupBucketConfig
+	client             client.Client
 }
 
-func newActuator(backupBucketConfig *controllerconfig.BackupBucketConfig) backupbucket.Actuator {
+func newActuator(mgr manager.Manager, backupBucketConfig *controllerconfig.BackupBucketConfig) backupbucket.Actuator {
 	return &actuator{
+		client:             mgr.GetClient(),
 		backupBucketConfig: backupBucketConfig,
 	}
 }
@@ -44,13 +45,13 @@ func newActuator(backupBucketConfig *controllerconfig.BackupBucketConfig) backup
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Reconciling BackupBucket")
 
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.Client(), &backupBucket.Spec.SecretRef)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.client, &backupBucket.Spec.SecretRef)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
 
 	// If the generated secret in the backupbucket status not exists that means
-	// no backupbucket exists and it need to be created.
+	// no backupbucket exists, and it needs to be created.
 	if backupBucket.Status.GeneratedSecretRef == nil {
 		if err := validateConfiguration(a.backupBucketConfig); err != nil {
 			return fmt.Errorf("failed to validate configuration: %w", err)
@@ -66,7 +67,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Deleting BackupBucket")
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.Client(), &backupBucket.Spec.SecretRef)
+	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.client, &backupBucket.Spec.SecretRef)
 	if err != nil {
 		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}

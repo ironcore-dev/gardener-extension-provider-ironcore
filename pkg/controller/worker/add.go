@@ -15,14 +15,16 @@
 package worker
 
 import (
+	"context"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	apiextensionsscheme "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var (
@@ -45,24 +47,29 @@ type AddOptions struct {
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
-func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
-	scheme := mgr.GetScheme()
-	if err := apiextensionsscheme.AddToScheme(scheme); err != nil {
-		return err
-	}
-	if err := machinescheme.AddToScheme(scheme); err != nil {
+func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
+	schemeBuilder := runtime.NewSchemeBuilder(
+		apiextensionsscheme.AddToScheme,
+		machinescheme.AddToScheme,
+	)
+	if err := schemeBuilder.AddToScheme(mgr.GetScheme()); err != nil {
 		return err
 	}
 
-	return worker.Add(mgr, worker.AddArgs{
-		Actuator:          NewActuator(opts.GardenletManagesMCM),
+	actuator, err := NewActuator(mgr, opts.GardenletManagesMCM)
+	if err != nil {
+		return err
+	}
+
+	return worker.Add(ctx, mgr, worker.AddArgs{
+		Actuator:          actuator,
 		ControllerOptions: opts.Controller,
-		Predicates:        worker.DefaultPredicates(opts.IgnoreOperationAnnotation),
+		Predicates:        worker.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              onmetal.Type,
 	})
 }
 
 // AddToManager adds a controller with the default Options.
-func AddToManager(mgr manager.Manager) error {
-	return AddToManagerWithOptions(mgr, DefaultAddOptions)
+func AddToManager(ctx context.Context, mgr manager.Manager) error {
+	return AddToManagerWithOptions(ctx, mgr, DefaultAddOptions)
 }
