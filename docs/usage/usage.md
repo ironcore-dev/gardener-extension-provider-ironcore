@@ -65,8 +65,9 @@ cloudControllerManager:
 ```
 
 The `cloudControllerManager.featureGates` contains a map of explicitly enabled or disabled feature gates.
-For production usage it's not recommend to use this field at all as you can enable alpha features or disable beta/stable features, potentially impacting the cluster stability.
-If you don't want to configure anything for the `cloudControllerManager` simply omit the key in the YAML specification.
+For production usage it's not recommend to use this field at all as you can enable alpha features or disable beta/stable 
+features, potentially impacting the cluster stability. If you don't want to configure anything for the
+`cloudControllerManager` simply omit the key in the YAML specification.
 
 ## WorkerConfig
 
