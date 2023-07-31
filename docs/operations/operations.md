@@ -3,7 +3,7 @@
 The [`core.gardener.cloud/v1beta1.CloudProfile` resource](https://github.com/gardener/gardener/blob/master/example/30-cloudprofile.yaml) 
 declares a `providerConfig` field that is meant to contain provider-specific configuration.
 The [`core.gardener.cloud/v1beta1.Seed` resource](https://github.com/gardener/gardener/blob/master/example/50-seed.yaml) 
-is structured similarly. Additionally, it allows configuring settings for the backups of the main etcds' data of shoot 
+is structured similarly. Additionally, it allows configuring settings for the backups of the main etcd's data of shoot 
 clusters control planes running in this seed cluster.
 
 This document explains the necessary configuration for this provider extension.
