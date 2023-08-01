@@ -425,7 +425,7 @@ func getCCMChartValues(
 }
 
 func isOverlayEnabled(networking *gardencorev1beta1.Networking) (bool, error) {
-	if networking == nil {
+	if networking == nil || networking.ProviderConfig == nil {
 		return false, nil
 	}
 
