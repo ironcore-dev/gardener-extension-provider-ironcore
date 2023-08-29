@@ -1,6 +1,8 @@
 module github.com/onmetal/gardener-extension-provider-onmetal
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/Masterminds/semver v1.5.0
@@ -9,10 +11,9 @@ require (
 	github.com/coreos/butane v0.18.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid/api v0.6.0
-	github.com/gardener/gardener v1.76.2
+	github.com/gardener/gardener v1.77.1
 	github.com/gardener/machine-controller-manager v0.49.3
 	github.com/go-logr/logr v1.2.4
-	github.com/golang/mock v1.6.0
 	github.com/imdario/mergo v0.3.16
 	github.com/onmetal/controller-utils v0.7.0
 	github.com/onmetal/onmetal-api v0.1.2-0.20230425083928-00b302f8455b
@@ -20,6 +21,7 @@ require (
 	github.com/onsi/gomega v1.27.10
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
+	go.uber.org/mock v0.2.0
 	go.uber.org/zap v1.25.0
 	k8s.io/api v0.26.3
 	k8s.io/apiextensions-apiserver v0.26.3
@@ -114,6 +116,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	istio.io/api v0.0.0-20230217221049-9d422bf48675 // indirect
 	istio.io/client-go v1.17.1 // indirect
+	k8s.io/apiserver v0.26.3 // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-aggregator v0.26.3 // indirect
