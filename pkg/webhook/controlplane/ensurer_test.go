@@ -285,6 +285,7 @@ var _ = Describe("Ensurer", func() {
 						"--port=10259",
 						"--target-kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig",
 						"--v=3",
+						"--onmetal-kubeconfig=/etc/onmetal/kubeconfig",
 					},
 					LivenessProbe: &corev1.Probe{
 						ProbeHandler: corev1.ProbeHandler{
@@ -300,11 +301,26 @@ var _ = Describe("Ensurer", func() {
 						SuccessThreshold:    1,
 						FailureThreshold:    3,
 					},
-					VolumeMounts: []corev1.VolumeMount{{
-						Name:      "kubeconfig",
-						MountPath: "/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig",
-						ReadOnly:  true,
-					}},
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							Name:      "kubeconfig",
+							MountPath: "/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig",
+							ReadOnly:  true,
+						},
+						{
+							Name:      "cloudprovider",
+							MountPath: "/etc/onmetal",
+							ReadOnly:  true,
+						},
+					},
+				}))
+				Expect(deployment.Spec.Template.Spec.Volumes).To(ContainElement(corev1.Volume{
+					Name: "cloudprovider",
+					VolumeSource: corev1.VolumeSource{
+						Secret: &corev1.SecretVolumeSource{
+							SecretName: "cloudprovider",
+						},
+					},
 				}))
 			})
 		})
