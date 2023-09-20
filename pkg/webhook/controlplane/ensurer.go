@@ -71,10 +71,32 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 		return err
 	}
 
-	newObj.Spec.Template.Spec.Containers = extensionswebhook.EnsureContainerWithName(
+	template := &newObj.Spec.Template
+	ps := &template.Spec
+
+	ps.Containers = extensionswebhook.EnsureContainerWithName(
 		newObj.Spec.Template.Spec.Containers,
 		machinecontrollermanager.ProviderSidecarContainer(newObj.Namespace, onmetal.ProviderName, image.String()),
 	)
+
+	if c := extensionswebhook.ContainerWithName(ps.Containers, "machine-controller-manager-provider-onmetal"); c != nil {
+		ensureMCMCommandLineArgs(c)
+		c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, corev1.VolumeMount{
+			Name:      "cloudprovider",
+			MountPath: "/etc/onmetal",
+			ReadOnly:  true,
+		})
+	}
+
+	ps.Volumes = extensionswebhook.EnsureVolumeWithName(ps.Volumes, corev1.Volume{
+		Name: "cloudprovider",
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: "cloudprovider",
+			},
+		},
+	})
+
 	return nil
 }
 
@@ -140,6 +162,10 @@ func (e *ensurer) EnsureClusterAutoscalerDeployment(_ context.Context, _ gcontex
 	return nil
 }
 
+func ensureMCMCommandLineArgs(c *corev1.Container) {
+	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--onmetal-kubeconfig=", "/etc/onmetal/kubeconfig")
+}
+
 func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
 	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-provider=")
 	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-config=")
@@ -174,24 +200,20 @@ func ensureKubeletCommandLineArgs(command []string) []string {
 
 // EnsureKubeletConfiguration ensures that the kubelet configuration conforms to the provider requirements.
 func (e *ensurer) EnsureKubeletConfiguration(_ context.Context, _ gcontext.GardenContext, _ *semver.Version, _, _ *kubeletconfigv1beta1.KubeletConfiguration) error {
-
 	return nil
 }
 
 // EnsureKubernetesGeneralConfiguration ensures that the kubernetes general configuration conforms to the provider requirements.
 func (e *ensurer) EnsureKubernetesGeneralConfiguration(_ context.Context, _ gcontext.GardenContext, _, _ *string) error {
-
 	return nil
 }
 
 // EnsureAdditionalUnits ensures that additional required system units are added.
 func (e *ensurer) EnsureAdditionalUnits(_ context.Context, _ gcontext.GardenContext, _, _ *[]extensionsv1alpha1.Unit) error {
-
 	return nil
 }
 
 // EnsureAdditionalFiles ensures that additional required system files are added.
 func (e *ensurer) EnsureAdditionalFiles(_ context.Context, _ gcontext.GardenContext, _, _ *[]extensionsv1alpha1.File) error {
-
 	return nil
 }
