@@ -62,7 +62,7 @@ CODE_GENERATOR_VERSION ?= v0.26.3
 ADDLICENSE_VERSION ?= v1.1.1
 GOIMPORTS_VERSION ?= v0.5.0
 GEN_CRD_API_REFERENCE_DOCS_VERSION ?= v0.3.0
-MOCKGEN_VERSION ?= v1.6.0
+MOCKGEN_VERSION ?= v0.3.0
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.0
@@ -290,6 +290,6 @@ generate-mocks: mockgen ## Generate code (mocks etc.).
 	MOCKGEN=$(MOCKGEN) go generate ./pkg/controller/...
 
 .PHONY: mockgen
-mockgen: $(MOCKGEN)
+mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
 $(MOCKGEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)
+	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
