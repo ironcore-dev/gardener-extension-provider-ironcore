@@ -16,23 +16,22 @@ package cloudprovider
 
 import (
 	"context"
+	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
+	"go.uber.org/mock/gomock"
 	"testing"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/webhook/cloudprovider"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	"github.com/golang/mock/gomock"
+	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
+	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
-
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/install"
 )
 
 const namespace = "test"
@@ -46,6 +45,8 @@ var _ = Describe("Ensurer", func() {
 	var (
 		ctrl   *gomock.Controller
 		ctx    = context.TODO()
+		mgr    *mockmanager.MockManager
+		c      *mockclient.MockClient
 		scheme *runtime.Scheme
 
 		cloudProfileConfig = &api.CloudProfileConfig{
@@ -83,6 +84,12 @@ var _ = Describe("Ensurer", func() {
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
+		c = mockclient.NewMockClient(ctrl)
+		scheme = &runtime.Scheme{}
+
+		mgr = mockmanager.NewMockManager(ctrl)
+		mgr.EXPECT().GetClient().Return(c)
+		mgr.EXPECT().GetScheme().Return(scheme)
 	})
 
 	AfterEach(func() {
@@ -99,9 +106,6 @@ var _ = Describe("Ensurer", func() {
 		)
 
 		BeforeEach(func() {
-			scheme = runtime.NewScheme()
-			install.Install(scheme)
-
 			secret = &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespace,
@@ -147,9 +151,7 @@ var _ = Describe("Ensurer", func() {
 				},
 			}
 
-			ensurer = NewEnsurer(logger)
-			err := ensurer.(inject.Scheme).InjectScheme(scheme)
-			Expect(err).NotTo(HaveOccurred())
+			ensurer = NewEnsurer(logger, mgr)
 		})
 
 		It("should add a kubeconfig to the cloudprovider secret", func() {

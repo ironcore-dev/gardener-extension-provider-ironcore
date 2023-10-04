@@ -54,12 +54,6 @@ type ensurer struct {
 // ImageVector is exposed for testing.
 var ImageVector = imagevector.ImageVector()
 
-// InjectClient injects the given client into the ensurer.
-func (e *ensurer) InjectClient(client client.Client) error {
-	e.client = client
-	return nil
-}
-
 // EnsureMachineControllerManagerDeployment ensures that the machine-controller-manager deployment conforms to the provider requirements.
 func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
 	if !e.gardenletManagesMCM {
