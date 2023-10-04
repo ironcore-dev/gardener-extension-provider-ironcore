@@ -25,15 +25,13 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/component/machinecontrollermanager"
 	"github.com/go-logr/logr"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal/imagevector"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal/imagevector"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 // NewEnsurer creates a new controlplane ensurer.
@@ -46,7 +44,6 @@ func NewEnsurer(logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ens
 
 type ensurer struct {
 	genericmutator.NoopEnsurer
-	client              client.Client
 	logger              logr.Logger
 	gardenletManagesMCM bool
 }

@@ -16,9 +16,10 @@ package cloudprovider
 
 import (
 	"context"
+	"testing"
+
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	"go.uber.org/mock/gomock"
-	"testing"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/webhook/cloudprovider"
