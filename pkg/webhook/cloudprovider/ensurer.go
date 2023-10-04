@@ -18,24 +18,27 @@ import (
 	"context"
 	"fmt"
 
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+
 	"github.com/gardener/gardener/extensions/pkg/webhook/cloudprovider"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/go-logr/logr"
+	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
+	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	clientcmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 // NewEnsurer creates cloudprovider ensurer.
-func NewEnsurer(logger logr.Logger) cloudprovider.Ensurer {
+func NewEnsurer(logger logr.Logger, mgr manager.Manager) cloudprovider.Ensurer {
 	return &ensurer{
-		logger: logger,
+		logger:  logger,
+		client:  mgr.GetClient(),
+		decoder: serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
 	}
 }
 
@@ -43,17 +46,6 @@ type ensurer struct {
 	logger  logr.Logger
 	client  client.Client
 	decoder runtime.Decoder
-}
-
-// InjectClient injects the given client into the ensurer.
-func (e *ensurer) InjectClient(client client.Client) error {
-	e.client = client
-	return nil
-}
-
-func (e *ensurer) InjectScheme(scheme *runtime.Scheme) error {
-	e.decoder = serializer.NewCodecFactory(scheme, serializer.EnableStrict).UniversalDecoder()
-	return nil
 }
 
 // EnsureCloudProviderSecret ensures that cloudprovider secret contains

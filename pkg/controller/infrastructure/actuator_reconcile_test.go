@@ -103,14 +103,9 @@ var _ = Describe("Infrastructure Reconcile", func() {
 
 		Eventually(Object(natGateway)).Should(SatisfyAll(
 			HaveField("Spec.Type", networkingv1alpha1.NATGatewayTypePublic),
-			HaveField("Spec.IPFamilies", []corev1.IPFamily{corev1.IPv4Protocol}),
+			HaveField("Spec.IPFamily", corev1.IPv4Protocol),
 			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
 				Name: network.Name,
-			}),
-			HaveField("Spec.NetworkInterfaceSelector", &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					onmetal.ClusterNameLabel: cluster.ObjectMeta.Name,
-				},
 			}),
 		))
 
@@ -208,15 +203,9 @@ var _ = Describe("Infrastructure Reconcile", func() {
 
 		Eventually(Object(natGateway)).Should(SatisfyAll(
 			HaveField("Spec.Type", networkingv1alpha1.NATGatewayTypePublic),
-			HaveField("Spec.IPFamilies", []corev1.IPFamily{corev1.IPv4Protocol}),
-			HaveField("Spec.IPs", []networkingv1alpha1.NATGatewayIP{{Name: "primary"}}),
+			HaveField("Spec.IPFamily", corev1.IPv4Protocol),
 			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
 				Name: network.Name,
-			}),
-			HaveField("Spec.NetworkInterfaceSelector", &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					onmetal.ClusterNameLabel: cluster.ObjectMeta.Name,
-				},
 			}),
 		))
 

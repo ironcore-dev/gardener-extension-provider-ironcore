@@ -78,7 +78,7 @@ func waitBackupBucketToAvailable(ctx context.Context, onmetalClient client.Clien
 		Steps:    waitBucketActiveSteps,
 	}
 
-	err := wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
+	err := wait.ExponentialBackoffWithContext(ctx, backoff, func(ctx context.Context) (bool, error) {
 		err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: bucket.Namespace, Name: bucket.Name}, bucket)
 		if err == nil && bucket.Status.State == storagev1alpha1.BucketStateAvailable && isBucketAccessDetailsAvailable(bucket) {
 			return true, nil
@@ -86,7 +86,7 @@ func waitBackupBucketToAvailable(ctx context.Context, onmetalClient client.Clien
 		return false, err
 	})
 
-	if err == wait.ErrWaitTimeout {
+	if wait.Interrupted(err) {
 		return fmt.Errorf("timeout waiting for the onmetal Bucket %s status: %w", client.ObjectKeyFromObject(bucket), err)
 	}
 
@@ -131,7 +131,7 @@ func (a *actuator) patchBackupBucketStatus(ctx context.Context, backupBucket *ex
 	if err := controllerutil.SetOwnerReference(backupBucket, backupBucketSecret, a.client.Scheme()); err != nil {
 		return fmt.Errorf("failed to set owner reference for bucket generated secret %s: %w", client.ObjectKeyFromObject(backupBucketSecret), err)
 	}
-	//create backupbucket secret
+
 	if _, err := controllerutil.CreateOrPatch(ctx, a.client, backupBucketSecret, nil); err != nil {
 		return fmt.Errorf("failed to create backup bucket generated secret %s: %w", client.ObjectKeyFromObject(backupBucketSecret), err)
 	}

@@ -30,6 +30,6 @@ func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	logger.Info("adding webhook to manager")
 	return cloudprovider.New(mgr, cloudprovider.Args{
 		Provider: onmetal.Type,
-		Mutator:  cloudprovider.NewMutator(mgr, logger, NewEnsurer(logger)),
+		Mutator:  cloudprovider.NewMutator(mgr, logger, NewEnsurer(logger, mgr)),
 	})
 }

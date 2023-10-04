@@ -29,7 +29,7 @@ import (
 const (
 	// Name is a name for a validation webhook.
 	Name = "validator"
-	// SecretsValidatorName is the name of the secrets validator.
+	// SecretsValidatorName is the name of the secrets' validator.
 	SecretsValidatorName = "secrets." + Name
 )
 
@@ -45,8 +45,8 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Path:       "/webhooks/validate",
 		Predicates: []predicate.Predicate{extensionspredicate.GardenCoreProviderType(onmetal.Type)},
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
-			NewShootValidator(mgr):      {{Obj: &core.Shoot{}}},
-			NewSecretBindingValidator(): {{Obj: &core.SecretBinding{}}},
+			NewShootValidator(mgr):         {{Obj: &core.Shoot{}}},
+			NewSecretBindingValidator(mgr): {{Obj: &core.SecretBinding{}}},
 		},
 	})
 }

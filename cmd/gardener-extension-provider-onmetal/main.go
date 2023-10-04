@@ -18,10 +18,9 @@ import (
 	"os"
 
 	"github.com/gardener/gardener/pkg/logger"
+	"github.com/onmetal/gardener-extension-provider-onmetal/cmd/gardener-extension-provider-onmetal/app"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/cmd/gardener-extension-provider-onmetal/app"
 )
 
 func main() {

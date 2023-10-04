@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
@@ -32,15 +34,11 @@ type secretBinding struct {
 	apiReader client.Reader
 }
 
-// InjectAPIReader injects the given apiReader into the validator.
-func (sb *secretBinding) InjectAPIReader(apiReader client.Reader) error {
-	sb.apiReader = apiReader
-	return nil
-}
-
 // NewSecretBindingValidator returns a new instance of a secret binding validator.
-func NewSecretBindingValidator() extensionswebhook.Validator {
-	return &secretBinding{}
+func NewSecretBindingValidator(mgr manager.Manager) extensionswebhook.Validator {
+	return &secretBinding{
+		apiReader: mgr.GetAPIReader(),
+	}
 }
 
 // Validate checks whether the given SecretBinding refers to a Secret with a valid onmetal service account.
