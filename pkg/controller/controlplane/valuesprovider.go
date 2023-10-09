@@ -298,7 +298,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	}
 
 	// get onmetal credentials from infrastructure config
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, vp.client, cluster.ObjectMeta.Name)
+	onmetalClient, _, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, vp.client, cluster.ObjectMeta.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
 	}
@@ -306,7 +306,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	var expandable bool
 	storageClasses := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.Additional)+defaultStorageClass)
 	if providerConfig.StorageClasses.Default != nil {
-		if expandable, err = isExpandable(ctx, onmetalClient, namespace, providerConfig.StorageClasses.Default.Type); err != nil {
+		if expandable, err = isVolumeClassExpandable(ctx, onmetalClient, providerConfig.StorageClasses.Default); err != nil {
 			return nil, fmt.Errorf("could not get resize policy from volumeclass : %w", err)
 		}
 
@@ -318,7 +318,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		})
 	}
 	for _, sc := range providerConfig.StorageClasses.Additional {
-		if expandable, err = isExpandable(ctx, onmetalClient, namespace, sc.Type); err != nil {
+		if expandable, err = isVolumeClassExpandable(ctx, onmetalClient, &sc); err != nil {
 			return nil, fmt.Errorf("could not get resize policy from volumeclass : %w", err)
 		}
 		storageClasses = append(storageClasses, map[string]interface{}{
@@ -333,9 +333,9 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	return values, nil
 }
 
-func isExpandable(ctx context.Context, onmetalClient client.Client, namespace, volumeClassName string) (bool, error) {
+func isVolumeClassExpandable(ctx context.Context, onmetalClient client.Client, storageClass *apisonmetal.StorageClass) (bool, error) {
 	volumeClass := &storagev1alpha1.VolumeClass{}
-	if err := onmetalClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: volumeClassName}, volumeClass); err != nil {
+	if err := onmetalClient.Get(ctx, client.ObjectKey{Name: storageClass.Type}, volumeClass); err != nil {
 		if apierrors.IsNotFound(err) {
 			return false, fmt.Errorf("VolumeClass not found")
 		}
