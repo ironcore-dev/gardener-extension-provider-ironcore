@@ -242,39 +242,41 @@ $(ADDLICENSE): $(LOCALBIN)
 ###
 ### Download Gardener hack scripts
 ###
-GENERATE_CRDS_SCRIPT ?= https://raw.githubusercontent.com/gardener/gardener/master/hack/generate-crds.sh
+GARDENER_VERSION=v1.80.3
+
+GENERATE_CRDS_SCRIPT ?= https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/generate-crds.sh
 .PHONY: generate-crds
 generate-crds: $(GENERATE_CRDS) ## Download generate-crds.sh locally if necessary.
 $(GENERATE_CRDS): $(LOCALBIN)
 	test -s $(LOCALBIN)/generate-crds.sh || curl -Ss $(GENERATE_CRDS_SCRIPT) -o $(GENERATE_CRDS)
 	chmod +x $(GENERATE_CRDS)
 
-TEST_COV_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover.sh"
+TEST_COV_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/test-cover.sh"
 $(TEST_COV): $(LOCALBIN)
 	curl -Ss $(TEST_COV_SCRIPT_URL) -o $(TEST_COV)
 	chmod +x $(TEST_COV)
 
-TEST_CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/test-cover-clean.sh"
+TEST_CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/test-cover-clean.sh"
 $(TEST_CLEAN): $(LOCALBIN)
 	curl -Ss $(TEST_CLEAN_SCRIPT_URL) -o $(TEST_CLEAN)
 	chmod +x $(TEST_CLEAN)
 
-FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/format.sh"
+FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/format.sh"
 $(FORMAT): $(LOCALBIN)
 	curl -Ss $(FORMAT_SCRIPT_URL) -o $(FORMAT)
 	chmod +x $(FORMAT)
 
-CHECK_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check.sh"
+CHECK_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/check.sh"
 $(CHECK): $(LOCALBIN)
 	curl -Ss $(CHECK_SCRIPT_URL) -o $(CHECK)
 	chmod +x $(CHECK)
 
-CHECK_CHARTS_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/check-charts.sh"
+CHECK_CHARTS_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/check-charts.sh"
 $(CHECK_CHARTS): $(LOCALBIN)
 	curl -Ss $(CHECK_CHARTS_SCRIPT_URL) -o $(CHECK_CHARTS)
 	chmod +x $(CHECK_CHARTS)
 
-INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/install.sh"
+INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/install.sh"
 $(INSTALL): $(LOCALBIN)
 	curl -Ss $(INSTALL_SCRIPT_URL) -o $(INSTALL)
 	chmod +x $(INSTALL)
