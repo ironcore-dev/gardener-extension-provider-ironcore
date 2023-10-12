@@ -90,7 +90,7 @@ spec:
         args:
         - --csi-address=$(ADDRESS)
         - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-        - --feature-gates=Topology=true
+        - --feature-gates=Topology=false
         - --volume-name-prefix=pv-
         - --default-fstype=ext4
         - --leader-election=true

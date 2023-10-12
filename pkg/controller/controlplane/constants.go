@@ -21,4 +21,6 @@ const (
 	StorageClassTypeKeyName = "type"
 	// StorageClassDefaultKeyName is the default key name of the StorageClass value map
 	StorageClassDefaultKeyName = "default"
+	// StorageClassPoolKeyName is the pool key name of the StorageClass value map
+	StorageClassPoolKeyName = "pool"
 )

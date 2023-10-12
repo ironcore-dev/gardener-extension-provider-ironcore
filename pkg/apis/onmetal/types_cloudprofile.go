@@ -48,6 +48,8 @@ type StorageClass struct {
 	Name string
 	// Type is referring to the VolumeClass to use for this StorageClass
 	Type string
+	// PoolName is referring to the VolumePool to use for this StorageClass
+	PoolName *string
 }
 
 // MachineImages is a mapping from logical names and versions to provider-specific identifiers.

@@ -51,6 +51,8 @@ type StorageClass struct {
 	Name string `json:"name"`
 	// Type is referring to the VolumeClass to use for this StorageClass
 	Type string `json:"type"`
+	// PoolName is referring to the VolumePool to use for this StorageClass
+	PoolName *string `json:"poolName,omitempty"`
 }
 
 // MachineImages is a mapping from logical names and versions to provider-specific identifiers.

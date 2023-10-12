@@ -13,6 +13,9 @@ metadata:
     {{- end }}
 parameters:
   type: {{ $value.type }}
+  {{- if $value.pool }}
+  volume_pool: {{ $value.pool }}
+  {{- end }}
 allowVolumeExpansion: false
 provisioner: csi.onmetal.de
 reclaimPolicy: Delete

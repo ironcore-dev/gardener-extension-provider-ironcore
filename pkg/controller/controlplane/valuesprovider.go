@@ -276,17 +276,28 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 
 	storageClasses := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.Additional)+defaultStorageClass)
 	if providerConfig.StorageClasses.Default != nil {
-		storageClasses = append(storageClasses, map[string]interface{}{
+		defaultStorageClass := map[string]interface{}{
 			StorageClassNameKeyName:    providerConfig.StorageClasses.Default.Name,
 			StorageClassTypeKeyName:    providerConfig.StorageClasses.Default.Type,
 			StorageClassDefaultKeyName: true,
-		})
+		}
+
+		if providerConfig.StorageClasses.Default.PoolName != nil {
+			defaultStorageClass[StorageClassPoolKeyName] = *providerConfig.StorageClasses.Default.PoolName
+		}
+		storageClasses = append(storageClasses, defaultStorageClass)
 	}
 	for _, sc := range providerConfig.StorageClasses.Additional {
-		storageClasses = append(storageClasses, map[string]interface{}{
+		additionalStorageClass := map[string]interface{}{
 			StorageClassNameKeyName: sc.Name,
 			StorageClassTypeKeyName: sc.Type,
-		})
+		}
+
+		if sc.PoolName != nil {
+			additionalStorageClass[StorageClassPoolKeyName] = *sc.PoolName
+		}
+
+		storageClasses = append(storageClasses, additionalStorageClass)
 	}
 
 	values["storageClasses"] = storageClasses
