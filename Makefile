@@ -55,17 +55,14 @@ MOCKGEN ?= $(LOCALBIN)/mockgen
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
-CONTROLLER_TOOLS_VERSION ?= v0.11.3
-GOLANGCI_LINT_VERSION ?= v1.52.1
-VGOPATH_VERSION ?= v0.0.2
-CODE_GENERATOR_VERSION ?= v0.26.3
+CONTROLLER_TOOLS_VERSION ?= v0.13.0
+GOLANGCI_LINT_VERSION ?= v1.54.2
+VGOPATH_VERSION ?= v0.1.2
+CODE_GENERATOR_VERSION ?= v0.28.3
 ADDLICENSE_VERSION ?= v1.1.1
-GOIMPORTS_VERSION ?= v0.5.0
+GOIMPORTS_VERSION ?= v0.14.0
 GEN_CRD_API_REFERENCE_DOCS_VERSION ?= v0.3.0
 MOCKGEN_VERSION ?= v0.3.0
-
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.26.0
 
 #########################################
 # Rules for local development scenarios #
@@ -139,17 +136,25 @@ check-license: addlicense ## Check that every file has a license header present.
 	find . -name '*.go' -exec $(ADDLICENSE) -check -c 'OnMetal authors' {} +
 
 .PHONY: check
-check: generate add-license fmt lint test # Generate manifests, code, lint, add licenses, test
+check: generate generate-charts add-license fmt lint test # Generate manifests, code, lint, add licenses, test
 
 .PHONY: generate
-generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen generate-crds docs
+generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen docs generate-charts generate-crds
 	VGOPATH=$(VGOPATH) \
 	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
 	DEFAULTER_GEN=$(DEFAULTER_GEN) \
 	CONVERSION_GEN=$(CONVERSION_GEN) \
 	./hack/update-codegen.sh
+
+.PHONY: generate-crds
+generate-crds: vgopath controller-gen generate-crds-sh
+	VGOPATH=$(VGOPATH) \
+	CONTROLLER_GEN=$(CONTROLLER_GEN) \
+	go generate ./example/...
+
+.PHONY: generate-charts
+generate-charts:
 	go generate ./charts/...
-	VGOPATH=$(VGOPATH) go generate ./example/...
 
 .PHONY: docs
 docs: gen-crd-api-reference-docs ## Run go generate to generate API reference documentation.
@@ -245,8 +250,8 @@ $(ADDLICENSE): $(LOCALBIN)
 GARDENER_VERSION=v1.80.3
 
 GENERATE_CRDS_SCRIPT ?= https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/generate-crds.sh
-.PHONY: generate-crds
-generate-crds: $(GENERATE_CRDS) ## Download generate-crds.sh locally if necessary.
+.PHONY: generate-crds-sh
+generate-crds-sh: $(GENERATE_CRDS) ## Download generate-crds.sh locally if necessary.
 $(GENERATE_CRDS): $(LOCALBIN)
 	test -s $(LOCALBIN)/generate-crds.sh || curl -Ss $(GENERATE_CRDS_SCRIPT) -o $(GENERATE_CRDS)
 	chmod +x $(GENERATE_CRDS)
