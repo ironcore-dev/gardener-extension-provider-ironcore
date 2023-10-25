@@ -5,7 +5,6 @@ set -o nounset
 set -o pipefail
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-CODEGEN_PKG="${CODEGEN_PKG:-"$( (go mod download > /dev/null 2>&1) && go list -m -f '{{.Dir}}' k8s.io/code-generator)"}"
 PATH="$SCRIPT_DIR/../bin/:$PATH"
 
 export TERM="xterm-256color"
@@ -48,12 +47,13 @@ function qualify-gs() {
 }
 
 VGOPATH="$VGOPATH"
+CONTROLLER_GEN="$CONTROLLER_GEN"
 
 VIRTUAL_GOPATH="$(mktemp -d)"
 trap 'rm -rf "$GOPATH"' EXIT
 
 # Setup virtual GOPATH so the codegen tools work as expected.
-(cd "$SCRIPT_DIR/.."; go mod download && "$VGOPATH" "$VIRTUAL_GOPATH")
+(cd "$SCRIPT_DIR/.."; go mod download && "$VGOPATH" -o "$VIRTUAL_GOPATH")
 
 export GOROOT="${GOROOT:-"$(go env GOROOT)"}"
 export GOPATH="$VIRTUAL_GOPATH"
