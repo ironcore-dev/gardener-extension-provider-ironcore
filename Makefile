@@ -35,23 +35,18 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-INSTALL ?= $(LOCALBIN)/install.sh
-CLEAN ?= $(LOCALBIN)/clean.sh
-FORMAT ?= $(LOCALBIN)/format.sh
-TEST_COV ?= $(LOCALBIN)/test-cov.sh
-TEST_CLEAN ?= $(LOCALBIN)/test-clean.sh
 GOIMPORTS ?= $(LOCALBIN)/goimports
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
-CHECK ?= $(LOCALBIN)/check.sh
-CHECK_CHARTS ?= $(LOCALBIN)/check-charts.sh
 VGOPATH ?= $(LOCALBIN)/vgopath
 DEEPCOPY_GEN ?= $(LOCALBIN)/deepcopy-gen
 CONVERSION_GEN ?= $(LOCALBIN)/conversion-gen
 DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ADDLICENSE ?= $(LOCALBIN)/addlicense
-GENERATE_CRDS ?= $(LOCALBIN)/generate-crds.sh
 GEN_CRD_API_REFERENCE_DOCS ?= $(LOCALBIN)/gen-crd-api-reference-docs
 MOCKGEN ?= $(LOCALBIN)/mockgen
+
+## Gardener hack scripts
+GARDENER_GENERATE_CRDS ?= $(LOCALBIN)/generate-crds.sh
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
@@ -112,11 +107,6 @@ docker-images:
 # Rules for verification, formatting, linting, testing and cleaning #
 #####################################################################
 
-CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/master/hack/clean.sh"
-$(CLEAN): $(LOCALBIN)
-	curl -Ss $(CLEAN_SCRIPT_URL) -o $(CLEAN)
-	chmod +x $(CLEAN)
-
 .PHONY: clean
 clean: $(CLEAN)
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
@@ -147,9 +137,10 @@ generate: vgopath deepcopy-gen defaulter-gen conversion-gen controller-gen docs 
 	./hack/update-codegen.sh
 
 .PHONY: generate-crds
-generate-crds: vgopath controller-gen generate-crds-sh
+generate-crds: vgopath controller-gen gardener-generate-crds
 	VGOPATH=$(VGOPATH) \
 	CONTROLLER_GEN=$(CONTROLLER_GEN) \
+	GARDENER_GENERATE_CRDS=$(GARDENER_GENERATE_CRDS) \
 	go generate ./example/...
 
 .PHONY: generate-charts
@@ -185,20 +176,6 @@ generate-mocks: mockgen ## Generate code (mocks etc.).
 test: generate-mocks fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 	go mod tidy
-
-.PHONY: test-clean
-test-clean: $(TEST_CLEAN)
-	$(TEST_CLEAN)
-
-.PHONY: test-cov
-test-cov: $(TEST_COV)
-	$(TEST_COV) -mod=mod ./cmd/... ./pkg/...
-
-.PHONY: verify
-verify: check format test
-
-.PHONY: verify-extended
-verify-extended: check-generate check format test-cov test-clean
 
 ###
 ### Download tooling
@@ -247,44 +224,14 @@ $(ADDLICENSE): $(LOCALBIN)
 ###
 ### Download Gardener hack scripts
 ###
-GARDENER_VERSION=v1.80.3
+### Gardener hack scripts location
+GARDENER_BASE_DIR=$(shell go mod download -json | jq 'select(.Path == "github.com/gardener/gardener") | .Dir')
 
-GENERATE_CRDS_SCRIPT ?= https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/generate-crds.sh
-.PHONY: generate-crds-sh
-generate-crds-sh: $(GENERATE_CRDS) ## Download generate-crds.sh locally if necessary.
-$(GENERATE_CRDS): $(LOCALBIN)
-	test -s $(LOCALBIN)/generate-crds.sh || curl -Ss $(GENERATE_CRDS_SCRIPT) -o $(GENERATE_CRDS)
-	chmod +x $(GENERATE_CRDS)
-
-TEST_COV_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/test-cover.sh"
-$(TEST_COV): $(LOCALBIN)
-	curl -Ss $(TEST_COV_SCRIPT_URL) -o $(TEST_COV)
-	chmod +x $(TEST_COV)
-
-TEST_CLEAN_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/test-cover-clean.sh"
-$(TEST_CLEAN): $(LOCALBIN)
-	curl -Ss $(TEST_CLEAN_SCRIPT_URL) -o $(TEST_CLEAN)
-	chmod +x $(TEST_CLEAN)
-
-FORMAT_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/format.sh"
-$(FORMAT): $(LOCALBIN)
-	curl -Ss $(FORMAT_SCRIPT_URL) -o $(FORMAT)
-	chmod +x $(FORMAT)
-
-CHECK_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/check.sh"
-$(CHECK): $(LOCALBIN)
-	curl -Ss $(CHECK_SCRIPT_URL) -o $(CHECK)
-	chmod +x $(CHECK)
-
-CHECK_CHARTS_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/check-charts.sh"
-$(CHECK_CHARTS): $(LOCALBIN)
-	curl -Ss $(CHECK_CHARTS_SCRIPT_URL) -o $(CHECK_CHARTS)
-	chmod +x $(CHECK_CHARTS)
-
-INSTALL_SCRIPT_URL ?= "https://raw.githubusercontent.com/gardener/gardener/$(GARDENER_VERSION)/hack/install.sh"
-$(INSTALL): $(LOCALBIN)
-	curl -Ss $(INSTALL_SCRIPT_URL) -o $(INSTALL)
-	chmod +x $(INSTALL)
+.PHONY: gardener-generate-crds
+gardener-generate-crds: $(GARDENER_GENERATE_CRDS) ## Download generate-crds.sh locally if necessary.
+$(GARDENER_GENERATE_CRDS): $(LOCALBIN)
+	test -s $(GARDENER_GENERATE_CRDS) || cp $(GARDENER_BASE_DIR)/hack/generate-crds.sh $(GARDENER_GENERATE_CRDS)
+	chmod +x $(GARDENER_GENERATE_CRDS)
 
 .PHONY: goimports
 goimports: $(GOIMPORTS) ## Download goimports locally if necessary.

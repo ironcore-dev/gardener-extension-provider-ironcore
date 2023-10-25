@@ -48,6 +48,7 @@ function qualify-gs() {
 
 VGOPATH="$VGOPATH"
 CONTROLLER_GEN="$CONTROLLER_GEN"
+GARDENER_GENERATE_CRDS="$GARDENER_GENERATE_CRDS"
 
 VIRTUAL_GOPATH="$(mktemp -d)"
 trap 'rm -rf "$GOPATH"' EXIT
@@ -59,4 +60,4 @@ export GOROOT="${GOROOT:-"$(go env GOROOT)"}"
 export GOPATH="$VIRTUAL_GOPATH"
 export GO111MODULE=off
 
-$SCRIPT_DIR/../bin/generate-crds.sh "$@"
+"$GARDENER_GENERATE_CRDS" "$@"
