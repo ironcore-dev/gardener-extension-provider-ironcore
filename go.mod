@@ -11,7 +11,7 @@ require (
 	github.com/gardener/etcd-druid/api v0.6.0
 	github.com/gardener/gardener v1.80.3
 	github.com/gardener/machine-controller-manager v0.50.0
-	github.com/go-logr/logr v1.2.4
+	github.com/go-logr/logr v1.3.0
 	github.com/imdario/mergo v0.3.16
 	github.com/onmetal/controller-utils v0.8.2
 	github.com/onmetal/onmetal-api v0.1.2-0.20230928225058-754dd4d16010
