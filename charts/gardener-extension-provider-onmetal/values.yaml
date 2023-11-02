@@ -87,6 +87,8 @@ config:
     image: ""
     machineClassName: ""
     volumeClassName: ""
+  backupBucketConfig:
+    bucketClassName: ""
 #   DisableGardenerServiceAccountCreation: false
 gardener:
   version: ""
