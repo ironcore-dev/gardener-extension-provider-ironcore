@@ -33,7 +33,7 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
-replace k8s.io/client-go => k8s.io/client-go v0.28.2
+replace k8s.io/client-go => k8s.io/client-go v0.28.3
 
 require (
 	github.com/BurntSushi/toml v1.0.0 // indirect

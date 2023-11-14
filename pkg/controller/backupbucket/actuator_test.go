@@ -125,7 +125,7 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 		))
 
 		By("ensuring backupbucket is delete successfully")
-		Expect(k8sClient.Delete(ctx, backupBucket)).To(Succeed())
+		Expect(k8sClient.Delete(ctx, backupBucket)).Should(Succeed())
 
 		By("waiting for the bucket to be gone")
 		Eventually(Get(bucket)).Should(Satisfy(apierrors.IsNotFound))
@@ -143,8 +143,6 @@ var _ = Describe("Backupbucket Reconcile", Ordered, func() {
 
 		By("validating backupbucketconfig is valid")
 		config.BucketClassName = "foo"
-		Expect(validateConfiguration(config)).To(BeNil())
-
+		Expect(validateConfiguration(config)).To(Succeed())
 	})
-
 })

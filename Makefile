@@ -56,13 +56,13 @@ MOCKGEN ?= $(LOCALBIN)/mockgen
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
 CONTROLLER_TOOLS_VERSION ?= v0.13.0
-GOLANGCI_LINT_VERSION ?= v1.54.2
 VGOPATH_VERSION ?= v0.1.2
 CODE_GENERATOR_VERSION ?= v0.28.3
 ADDLICENSE_VERSION ?= v1.1.1
 GOIMPORTS_VERSION ?= v0.14.0
 GEN_CRD_API_REFERENCE_DOCS_VERSION ?= v0.3.0
 MOCKGEN_VERSION ?= v0.3.0
+GOLANGCI_LINT_VERSION ?= v1.55.2
 
 #########################################
 # Rules for local development scenarios #
@@ -122,11 +122,6 @@ clean: $(CLEAN)
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
 	$(CLEAN) ./cmd/... ./pkg/...
 
-$(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERSION))
-	@# CGO_ENABLED has to be set to 1 in order for golangci-lint to be able to load plugins
-	@# see https://github.com/golangci/golangci-lint/issues/1276
-	GOBIN=$(abspath $(LOCALBIN)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
-
 .PHONY: add-license
 add-license: addlicense ## Add license headers to all go files.
 	find . -name '*.go' -exec $(ADDLICENSE) -c 'OnMetal authors' {} +
@@ -174,8 +169,8 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: lint
-lint: ## Run golangci-lint on the code.
-	golangci-lint run ./...
+lint: golangci-lint ## Run golangci-lint on the code.
+	$(GOLANGCI_LINT) run ./...
 
 .PHONY: generate-mocks
 generate-mocks: mockgen ## Generate code (mocks etc.).
@@ -184,7 +179,6 @@ generate-mocks: mockgen ## Generate code (mocks etc.).
 .PHONY: test
 test: generate-mocks fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
-	go mod tidy
 
 .PHONY: test-clean
 test-clean: $(TEST_CLEAN)
@@ -300,3 +294,8 @@ $(GEN_CRD_API_REFERENCE_DOCS): $(LOCALBIN)
 mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
 $(MOCKGEN): $(LOCALBIN)
 	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
+
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT): $(LOCALBIN)
+	test -s $(LOCALBIN)/golangci-lint || GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)

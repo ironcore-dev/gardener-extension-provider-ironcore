@@ -250,7 +250,7 @@ var _ = Describe("Ensurer", func() {
 
 			It("should do nothing", func() {
 				deploymentBefore := deployment.DeepCopy()
-				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(BeNil())
+				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(Succeed())
 				Expect(deployment).To(Equal(deploymentBefore))
 			})
 		})
@@ -267,7 +267,7 @@ var _ = Describe("Ensurer", func() {
 
 			It("should inject the sidecar container", func() {
 				Expect(deployment.Spec.Template.Spec.Containers).To(BeEmpty())
-				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(BeNil())
+				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(Succeed())
 				Expect(deployment.Spec.Template.Spec.Containers).To(ConsistOf(corev1.Container{
 					Name:            "machine-controller-manager-provider-onmetal",
 					Image:           "foo:bar",
@@ -343,7 +343,7 @@ var _ = Describe("Ensurer", func() {
 
 			It("should do nothing", func() {
 				vpaBefore := vpa.DeepCopy()
-				Expect(ensurer.EnsureMachineControllerManagerVPA(ctx, nil, vpa, nil)).To(BeNil())
+				Expect(ensurer.EnsureMachineControllerManagerVPA(ctx, nil, vpa, nil)).To(Succeed())
 				Expect(vpa).To(Equal(vpaBefore))
 			})
 		})
@@ -355,7 +355,7 @@ var _ = Describe("Ensurer", func() {
 
 			It("should inject the sidecar container policy", func() {
 				Expect(vpa.Spec.ResourcePolicy).To(BeNil())
-				Expect(ensurer.EnsureMachineControllerManagerVPA(ctx, nil, vpa, nil)).To(BeNil())
+				Expect(ensurer.EnsureMachineControllerManagerVPA(ctx, nil, vpa, nil)).To(Succeed())
 
 				ccv := vpaautoscalingv1.ContainerControlledValuesRequestsOnly
 				Expect(vpa.Spec.ResourcePolicy.ContainerPolicies).To(ConsistOf(vpaautoscalingv1.ContainerResourcePolicy{

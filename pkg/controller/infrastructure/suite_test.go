@@ -178,7 +178,7 @@ func SetupTest() *corev1.Namespace {
 			},
 		}
 		Expect(k8sClient.Create(ctx, cluster)).Should(Succeed())
-		Expect(k8sClient.Delete, cluster)
+		DeferCleanup(k8sClient.Delete, cluster)
 
 		mgr, err := manager.New(cfg, manager.Options{
 			Scheme: scheme.Scheme,
