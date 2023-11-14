@@ -199,6 +199,6 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			Image:            "bar",
 		}
 		err = validateConfiguration(bastionConfig)
-		Expect(err).To(BeNil())
+		Expect(err).NotTo(HaveOccurred())
 	})
 })

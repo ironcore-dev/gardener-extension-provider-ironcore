@@ -119,7 +119,7 @@ var _ = Describe("Bastion Host Delete", func() {
 		}}
 		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(bastionHostBase))).To(Succeed())
 
-		Expect(k8sClient.Delete(ctx, bastion)).To(Succeed())
+		Expect(k8sClient.Delete(ctx, bastion)).Should(Succeed())
 
 		By("waiting for the bastion to be gone")
 		Eventually(Get(bastion)).Should(Satisfy(apierrors.IsNotFound))
