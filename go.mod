@@ -23,7 +23,7 @@ require (
 	go.uber.org/zap v1.26.0
 	k8s.io/api v0.28.3
 	k8s.io/apiextensions-apiserver v0.28.3
-	k8s.io/apimachinery v0.28.3
+	k8s.io/apimachinery v0.28.4
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.0.0
 	k8s.io/client-go v0.28.3
 	k8s.io/component-base v0.28.3
