@@ -13,7 +13,7 @@ require (
 	github.com/gardener/machine-controller-manager v0.50.1
 	github.com/go-logr/logr v1.3.0
 	github.com/imdario/mergo v0.3.16
-	github.com/onmetal/controller-utils v0.8.2
+	github.com/onmetal/controller-utils v0.8.3
 	github.com/onmetal/onmetal-api v0.1.2-0.20230928225058-754dd4d16010
 	github.com/onsi/ginkgo/v2 v2.13.1
 	github.com/onsi/gomega v1.30.0
