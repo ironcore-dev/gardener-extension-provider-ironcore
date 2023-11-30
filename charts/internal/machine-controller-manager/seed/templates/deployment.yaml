@@ -38,12 +38,12 @@ spec:
       serviceAccountName: machine-controller-manager
       terminationGracePeriodSeconds: 5
       containers:
-      - name: machine-controller-manager-provider-onmetal
-        image: {{ index .Values.images "machine-controller-manager-provider-onmetal" }}
+      - name: machine-controller-manager-provider-ironcore
+        image: {{ index .Values.images "machine-controller-manager-provider-ironcore" }}
         imagePullPolicy: IfNotPresent
         command:
         - ./machine-controller
-        - --onmetal-kubeconfig=/etc/onmetal/kubeconfig
+        - --ironcore-kubeconfig=/etc/ironcore/kubeconfig
         - --control-kubeconfig=inClusterConfig
         - --machine-creation-timeout=20m
         - --machine-drain-timeout=2h
@@ -52,14 +52,14 @@ spec:
         - --machine-safety-apiserver-statuscheck-period=1m
         - --machine-safety-orphan-vms-period=30m
         - --namespace={{ .Release.Namespace }}
-        - --port={{ .Values.metricsPortOnmetal }}
+        - --port={{ .Values.metricsPortIroncore }}
         - --target-kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
         - --v=4
         livenessProbe:
           failureThreshold: 3
           httpGet:
             path: /healthz
-            port: {{ .Values.metricsPortOnmetal }}
+            port: {{ .Values.metricsPortIroncore }}
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -68,15 +68,15 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         resources:
-{{ toYaml .Values.resources.mcmProviderOnmetal | indent 10 }}
+{{ toYaml .Values.resources.mcmProviderIroncore | indent 10 }}
         volumeMounts:
         - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
           name: kubeconfig
           readOnly: true
-        - mountPath: /etc/onmetal
+        - mountPath: /etc/ironcore
           name: cloudprovider
           readOnly: true
-      - name: onmetal-machine-controller-manager
+      - name: ironcore-machine-controller-manager
         image: {{ index .Values.images "machine-controller-manager" }}
         imagePullPolicy: IfNotPresent
         command:

@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ type Options struct {
 	UserData            []byte
 }
 
-// DetermineOptions determines the required information that are required to reconcile a Bastion on onmetal. This
+// DetermineOptions determines the required information that are required to reconcile a Bastion on ironcore. This
 // function does not create any IaaS resources.
 func DetermineOptions(bastion *extensionsv1alpha1.Bastion, cluster *controller.Cluster) (*Options, error) {
 	clusterName := cluster.ObjectMeta.Name

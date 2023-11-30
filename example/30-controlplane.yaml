@@ -2,17 +2,17 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: shoot--foobar--onmetal
+  name: shoot--foobar--ironcore
   labels:
-#    backup.gardener.cloud/provider: onmetal
-#    seed.gardener.cloud/provider: onmetal
-    shoot.gardener.cloud/provider: onmetal
+#    backup.gardener.cloud/provider: ironcore
+#    seed.gardener.cloud/provider: ironcore
+    shoot.gardener.cloud/provider: ironcore
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: cloudprovider
-  namespace: shoot--foobar--onmetal
+  namespace: shoot--foobar--ironcore
 type: Opaque
 data:
   namespace: my-namespace
@@ -22,7 +22,7 @@ data:
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
 metadata:
-  name: shoot--foobar--onmetal
+  name: shoot--foobar--ironcore
 spec:
   cloudProfile:
     apiVersion: core.gardener.cloud/v1beta1
@@ -48,21 +48,21 @@ apiVersion: extensions.gardener.cloud/v1alpha1
 kind: ControlPlane
 metadata:
   name: control-plane
-  namespace: shoot--foobar--onmetal
+  namespace: shoot--foobar--ironcore
 spec:
-  type: onmetal
+  type: ironcore
   region: my-region
   secretRef:
     name: cloudprovider
-    namespace: shoot--foobar--onmetal
+    namespace: shoot--foobar--ironcore
   providerConfig:
-    apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+    apiVersion: ironcore.provider.extensions.gardener.cloud/v1alpha1
     kind: ControlPlaneConfig
     cloudControllerManager:
       featureGates:
         CustomResourceValidation: true
   infrastructureProviderStatus:
-    apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+    apiVersion: ironcore.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureStatus
     #networkRef: # (optional)
     #  name: my-network

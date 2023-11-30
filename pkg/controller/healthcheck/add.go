@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var (
@@ -55,7 +55,7 @@ var (
 // RegisterHealthChecks registers health checks for each extension resource
 func RegisterHealthChecks(ctx context.Context, mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
 	if err := healthcheck.DefaultRegistration(ctx,
-		onmetal.Type,
+		ironcore.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.ControlPlaneResource),
 		func() client.ObjectList { return &extensionsv1alpha1.ControlPlaneList{} },
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.ControlPlane{} },
@@ -65,11 +65,11 @@ func RegisterHealthChecks(ctx context.Context, mgr manager.Manager, opts healthc
 		[]healthcheck.ConditionTypeToHealthCheck{
 			{
 				ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
-				HealthCheck:   general.NewSeedDeploymentHealthChecker(onmetal.CloudControllerManagerName),
+				HealthCheck:   general.NewSeedDeploymentHealthChecker(ironcore.CloudControllerManagerName),
 			},
 			{
 				ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
-				HealthCheck:   general.NewSeedDeploymentHealthChecker(onmetal.CSIControllerName),
+				HealthCheck:   general.NewSeedDeploymentHealthChecker(ironcore.CSIControllerName),
 			},
 			{
 				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
@@ -96,13 +96,13 @@ func RegisterHealthChecks(ctx context.Context, mgr manager.Manager, opts healthc
 	if !GardenletManagesMCM {
 		workerHealthChecks = append(workerHealthChecks, healthcheck.ConditionTypeToHealthCheck{
 			ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
-			HealthCheck:   general.NewSeedDeploymentHealthChecker(onmetal.MachineControllerManagerName),
+			HealthCheck:   general.NewSeedDeploymentHealthChecker(ironcore.MachineControllerManagerName),
 		})
 		workerConditionTypesToRemove = workerConditionTypesToRemove.Delete(gardencorev1beta1.ShootControlPlaneHealthy)
 	}
 
 	return healthcheck.DefaultRegistration(ctx,
-		onmetal.Type,
+		ironcore.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
 		func() client.ObjectList { return &extensionsv1alpha1.WorkerList{} },
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.Worker{} },

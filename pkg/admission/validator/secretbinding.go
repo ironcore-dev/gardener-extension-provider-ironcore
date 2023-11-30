@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	onmetalvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
+	ironcorevalidation "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/validation"
 )
 
 type secretBinding struct {
@@ -41,7 +41,7 @@ func NewSecretBindingValidator(mgr manager.Manager) extensionswebhook.Validator 
 	}
 }
 
-// Validate checks whether the given SecretBinding refers to a Secret with a valid onmetal service account.
+// Validate checks whether the given SecretBinding refers to a Secret with a valid ironcore service account.
 func (sb *secretBinding) Validate(ctx context.Context, newObj, oldObj client.Object) error {
 	secretBinding, ok := newObj.(*core.SecretBinding)
 	if !ok {
@@ -70,5 +70,5 @@ func (sb *secretBinding) Validate(ctx context.Context, newObj, oldObj client.Obj
 		return err
 	}
 
-	return onmetalvalidation.ValidateCloudProviderSecret(secret)
+	return ironcorevalidation.ValidateCloudProviderSecret(secret)
 }

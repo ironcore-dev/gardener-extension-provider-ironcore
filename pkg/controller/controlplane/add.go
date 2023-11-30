@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal/imagevector"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -35,7 +35,7 @@ var (
 	DefaultAddOptions = AddOptions{}
 )
 
-// AddOptions are options to apply when adding the onmetal controlplane controller to the manager.
+// AddOptions are options to apply when adding the ironcore controlplane controller to the manager.
 type AddOptions struct {
 	// Controller are the controller.Options.
 	Controller controller.Options
@@ -56,11 +56,11 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		return fmt.Errorf("expected *webhook.DefaultServer, got %T", webhookServer)
 	}
 
-	genericActuator, err := genericactuator.NewActuator(mgr, onmetal.ProviderName,
+	genericActuator, err := genericactuator.NewActuator(mgr, ironcore.ProviderName,
 		secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
 		configChart, controlPlaneChart, controlPlaneShootChart, nil, storageClassChart, nil,
 		NewValuesProvider(mgr), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-		imagevector.ImageVector(), onmetal.CloudProviderConfigName, nil, opts.WebhookServerNamespace, defaultServer.Options.Port)
+		imagevector.ImageVector(), ironcore.CloudProviderConfigName, nil, opts.WebhookServerNamespace, defaultServer.Options.Port)
 
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		Actuator:          genericActuator,
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
-		Type:              onmetal.Type,
+		Type:              ironcore.Type,
 	})
 }
 

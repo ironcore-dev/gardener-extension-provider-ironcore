@@ -37,12 +37,12 @@ spec:
       automountServiceAccountToken: false
       priorityClassName: gardener-system-300
       containers:
-      - name: onmetal-csi-driver
+      - name: ironcore-csi-driver
         image: {{ index .Values.images "csi-driver" }}
         imagePullPolicy: IfNotPresent
         args :
         - --target-kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-        - --onmetal-kubeconfig=/srv/cloudprovider/kubeconfig
+        - --ironcore-kubeconfig=/srv/cloudprovider/kubeconfig
         env:
         - name: CSI_ENDPOINT
           value: unix://{{ .Values.socketPath }}/csi.sock
@@ -84,7 +84,7 @@ spec:
           name: kubeconfig-csi-driver
           readOnly: true
 
-      - name: onmetal-csi-provisioner
+      - name: ironcore-csi-provisioner
         image: {{ index .Values.images "csi-provisioner" }}
         imagePullPolicy: IfNotPresent
         args:
@@ -110,7 +110,7 @@ spec:
           name: kubeconfig-csi-provisioner
           readOnly: true
 
-      - name: onmetal-csi-attacher
+      - name: ironcore-csi-attacher
         image: {{ index .Values.images "csi-attacher" }}
         imagePullPolicy: IfNotPresent
         args:
@@ -133,7 +133,7 @@ spec:
           name: kubeconfig-csi-attacher
           readOnly: true
 
-      - name: onmetal-csi-resizer
+      - name: ironcore-csi-resizer
         image: {{ index .Values.images "csi-resizer" }}
         imagePullPolicy: IfNotPresent
         args:
@@ -157,7 +157,7 @@ spec:
           name: kubeconfig-csi-resizer
           readOnly: true
 
-      - name: onmetal-csi-liveness-probe
+      - name: ironcore-csi-liveness-probe
         image: {{ index .Values.images "csi-liveness-probe" }}
         args:
         - --csi-address=/csi/csi.sock

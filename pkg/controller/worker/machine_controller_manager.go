@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,30 +27,30 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var (
 	mcmChart = &chart.Chart{
-		Name:   onmetal.MachineControllerManagerName,
-		Path:   filepath.Join(onmetal.InternalChartsPath, onmetal.MachineControllerManagerName, "seed"),
-		Images: []string{onmetal.MachineControllerManagerImageName, onmetal.MachineControllerManagerProviderOnmetalImageName},
+		Name:   ironcore.MachineControllerManagerName,
+		Path:   filepath.Join(ironcore.InternalChartsPath, ironcore.MachineControllerManagerName, "seed"),
+		Images: []string{ironcore.MachineControllerManagerImageName, ironcore.MachineControllerManagerProviderIroncoreImageName},
 		Objects: []*chart.Object{
-			{Type: &appsv1.Deployment{}, Name: onmetal.MachineControllerManagerName},
-			{Type: &corev1.Service{}, Name: onmetal.MachineControllerManagerName},
-			{Type: &corev1.ServiceAccount{}, Name: onmetal.MachineControllerManagerName},
-			{Type: &corev1.Secret{}, Name: onmetal.MachineControllerManagerName},
-			{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: onmetal.MachineControllerManagerVpaName},
-			{Type: &corev1.ConfigMap{}, Name: onmetal.MachineControllerManagerMonitoringConfigName},
+			{Type: &appsv1.Deployment{}, Name: ironcore.MachineControllerManagerName},
+			{Type: &corev1.Service{}, Name: ironcore.MachineControllerManagerName},
+			{Type: &corev1.ServiceAccount{}, Name: ironcore.MachineControllerManagerName},
+			{Type: &corev1.Secret{}, Name: ironcore.MachineControllerManagerName},
+			{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: ironcore.MachineControllerManagerVpaName},
+			{Type: &corev1.ConfigMap{}, Name: ironcore.MachineControllerManagerMonitoringConfigName},
 		},
 	}
 
 	mcmShootChart = &chart.Chart{
-		Name: onmetal.MachineControllerManagerName,
-		Path: filepath.Join(onmetal.InternalChartsPath, onmetal.MachineControllerManagerName, "shoot"),
+		Name: ironcore.MachineControllerManagerName,
+		Path: filepath.Join(ironcore.InternalChartsPath, ironcore.MachineControllerManagerName, "shoot"),
 		Objects: []*chart.Object{
-			{Type: &rbacv1.ClusterRole{}, Name: fmt.Sprintf("extensions.gardener.cloud:%s:%s", onmetal.ProviderName, onmetal.MachineControllerManagerName)},
-			{Type: &rbacv1.ClusterRoleBinding{}, Name: fmt.Sprintf("extensions.gardener.cloud:%s:%s", onmetal.ProviderName, onmetal.MachineControllerManagerName)},
+			{Type: &rbacv1.ClusterRole{}, Name: fmt.Sprintf("extensions.gardener.cloud:%s:%s", ironcore.ProviderName, ironcore.MachineControllerManagerName)},
+			{Type: &rbacv1.ClusterRoleBinding{}, Name: fmt.Sprintf("extensions.gardener.cloud:%s:%s", ironcore.ProviderName, ironcore.MachineControllerManagerName)},
 		},
 	}
 )
@@ -62,7 +62,7 @@ func (w *workerDelegate) GetMachineControllerManagerChartValues(ctx context.Cont
 	}
 
 	return map[string]interface{}{
-		"providerName": onmetal.ProviderName,
+		"providerName": ironcore.ProviderName,
 		"namespace": map[string]interface{}{
 			"uid": namespace.UID,
 		},
@@ -74,6 +74,6 @@ func (w *workerDelegate) GetMachineControllerManagerChartValues(ctx context.Cont
 
 func (w *workerDelegate) GetMachineControllerManagerShootChartValues(ctx context.Context) (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"providerName": onmetal.ProviderName,
+		"providerName": ironcore.ProviderName,
 	}, nil
 }

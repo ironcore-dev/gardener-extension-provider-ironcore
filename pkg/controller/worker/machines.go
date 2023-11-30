@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	ironcoreextensionv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
-// MachineClassKind yields the name of the machine class kind used by onmetal provider.
+// MachineClassKind yields the name of the machine class kind used by ironcore provider.
 func (w *workerDelegate) MachineClassKind() string {
 	return "MachineClass"
 }
@@ -50,7 +50,7 @@ func (w *workerDelegate) MachineClassList() client.ObjectList {
 	return &machinecontrollerv1alpha1.MachineClassList{}
 }
 
-// DeployMachineClasses generates and creates the onmetal specific machine classes.
+// DeployMachineClasses generates and creates the ironcore specific machine classes.
 func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 	machineClasses, machineClassSecrets, err := w.generateMachineClassAndSecrets()
 	if err != nil {
@@ -116,7 +116,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 		machineClassSecrets []*corev1.Secret
 	)
 
-	infrastructureStatus := &onmetalextensionv1alpha1.InfrastructureStatus{}
+	infrastructureStatus := &ironcoreextensionv1alpha1.InfrastructureStatus{}
 	if _, _, err := w.decoder.Decode(w.worker.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
 		return nil, nil, fmt.Errorf("failed to decode infra status: %w", err)
 	}
@@ -134,13 +134,13 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 		}
 
 		machineClassProviderSpec := map[string]interface{}{
-			onmetal.ImageFieldName: machineImage,
+			ironcore.ImageFieldName: machineImage,
 		}
 
 		if pool.Volume != nil {
-			machineClassProviderSpec[onmetal.RootDiskFieldName] = map[string]interface{}{
-				onmetal.SizeFieldName:        pool.Volume.Size,
-				onmetal.VolumeClassFieldName: pool.Volume.Type,
+			machineClassProviderSpec[ironcore.RootDiskFieldName] = map[string]interface{}{
+				ironcore.SizeFieldName:        pool.Volume.Size,
+				ironcore.VolumeClassFieldName: pool.Volume.Type,
 			}
 		}
 
@@ -164,10 +164,10 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 				}
 			}
 
-			machineClassProviderSpec[onmetal.NetworkFieldName] = infrastructureStatus.NetworkRef.Name
-			machineClassProviderSpec[onmetal.PrefixFieldName] = infrastructureStatus.PrefixRef.Name
-			machineClassProviderSpec[onmetal.LabelsFieldName] = map[string]string{
-				onmetal.ClusterNameLabel: w.cluster.ObjectMeta.Name,
+			machineClassProviderSpec[ironcore.NetworkFieldName] = infrastructureStatus.NetworkRef.Name
+			machineClassProviderSpec[ironcore.PrefixFieldName] = infrastructureStatus.PrefixRef.Name
+			machineClassProviderSpec[ironcore.LabelsFieldName] = map[string]string{
+				ironcore.ClusterNameLabel: w.cluster.ObjectMeta.Name,
 			}
 
 			machineClassProviderSpecJSON, err := json.Marshal(machineClassProviderSpec)
@@ -191,7 +191,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 				ProviderSpec: runtime.RawExtension{
 					Raw: machineClassProviderSpecJSON,
 				},
-				Provider: onmetal.Type,
+				Provider: ironcore.Type,
 				SecretRef: &corev1.SecretReference{
 					Name:      className,
 					Namespace: w.worker.Namespace,
@@ -207,7 +207,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 					},
 				},
 				Data: map[string][]byte{
-					onmetal.UserDataFieldName: pool.UserData,
+					ironcore.UserDataFieldName: pool.UserData,
 				},
 			}
 

@@ -24,23 +24,23 @@ ARG TARGETARCH
 # Build
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg \
-    CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -a -o gardener-extension-provider-onmetal ./cmd/gardener-extension-provider-onmetal/main.go && \
-    CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -a -o gardener-extension-admission-onmetal ./cmd/gardener-extension-admission-onmetal/main.go
+    CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -a -o gardener-extension-provider-ironcore ./cmd/gardener-extension-provider-ironcore/main.go && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -a -o gardener-extension-admission-ironcore ./cmd/gardener-extension-admission-ironcore/main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot AS gardener-extension-provider-onmetal
+FROM gcr.io/distroless/static:nonroot AS gardener-extension-provider-ironcore
 WORKDIR /
 COPY charts /charts
-COPY --from=builder /workspace/gardener-extension-provider-onmetal /gardener-extension-provider-onmetal
+COPY --from=builder /workspace/gardener-extension-provider-ironcore /gardener-extension-provider-ironcore
 USER 65532:65532
 
-ENTRYPOINT ["/gardener-extension-provider-onmetal"]
+ENTRYPOINT ["/gardener-extension-provider-ironcore"]
 
-FROM gcr.io/distroless/static:nonroot AS gardener-extension-admission-onmetal
+FROM gcr.io/distroless/static:nonroot AS gardener-extension-admission-ironcore
 WORKDIR /
 COPY charts /charts
-COPY --from=builder /workspace/gardener-extension-admission-onmetal /gardener-extension-admission-onmetal
+COPY --from=builder /workspace/gardener-extension-admission-ironcore /gardener-extension-admission-ironcore
 USER 65532:65532
 
-ENTRYPOINT ["/gardener-extension-admission-onmetal"]
+ENTRYPOINT ["/gardener-extension-admission-ironcore"]

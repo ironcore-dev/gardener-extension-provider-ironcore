@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       annotations:
-        node.gardener.cloud/wait-for-csi-node-onmetal: {{ include "csi-driver-node.provisioner" . }}
+        node.gardener.cloud/wait-for-csi-node-ironcore: {{ include "csi-driver-node.provisioner" . }}
       labels:
         node.gardener.cloud/critical-component: "true"
         app: csi

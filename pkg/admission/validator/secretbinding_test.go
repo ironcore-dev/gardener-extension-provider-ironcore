@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission/validator"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/admission/validator"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"

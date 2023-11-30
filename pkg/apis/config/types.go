@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ControllerConfiguration defines the configuration for the onmetal provider.
+// ControllerConfiguration defines the configuration for the ironcore provider.
 type ControllerConfiguration struct {
 	metav1.TypeMeta
 
@@ -70,14 +70,14 @@ type ETCDBackup struct {
 type BastionConfig struct {
 	// Image is the URL pointing to an OCI registry containing the operating system image which should be used to boot the Bastion host
 	Image string
-	// MachineClassName is the name of the onmetal MachineClass to use for the Bastion host
+	// MachineClassName is the name of the ironcore MachineClass to use for the Bastion host
 	MachineClassName string
-	// VolumeClassName is the name of the onmetal VolumeClass to use for the Bastion host root disk volume
+	// VolumeClassName is the name of the ironcore VolumeClass to use for the Bastion host root disk volume
 	VolumeClassName string
 }
 
 // BackupBucketConfig is config for Backup Bucket
 type BackupBucketConfig struct {
-	// BucketClassName is the name of the onmetal BucketClass to use for the BackupBucket
+	// BucketClassName is the name of the ironcore BucketClass to use for the BackupBucket
 	BucketClassName string
 }

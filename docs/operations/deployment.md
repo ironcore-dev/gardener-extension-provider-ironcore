@@ -1,10 +1,10 @@
-# Deployment of the onmetal provider extension
+# Deployment of the ironcore provider extension
 
-**Disclaimer:** This document is NOT a step-by-step installation guide for the `onmetal` provider extension and only 
+**Disclaimer:** This document is NOT a step-by-step installation guide for the `ironcore` provider extension and only 
 contains some configuration specifics regarding the installation of different components via the helm charts residing 
-in the onmetal provider extension [repository](https://github.com/gardener/gardener-extension-provider-onmetal).
+in the ironcore provider extension [repository](https://github.com/gardener/gardener-extension-provider-ironcore).
 
-## gardener-extension-admission-onmetal
+## gardener-extension-admission-ironcore
 
 ### Authentication against the Garden cluster
 
@@ -13,7 +13,7 @@ There are several authentication possibilities depending on whether [the concept
 #### *Virtual Garden* is not used, i.e., the `runtime` Garden cluster is also the `target` Garden cluster.
 
 **Automounted Service Account Token**
-The easiest way to deploy the `gardener-extension-admission-onmetal` component will be to not provide `kubeconfig` at 
+The easiest way to deploy the `gardener-extension-admission-ironcore` component will be to not provide `kubeconfig` at 
 all. This way in-cluster configuration and an automounted service account token will be used. The drawback of this 
 approach is that the automounted token will not be automatically rotated.
 

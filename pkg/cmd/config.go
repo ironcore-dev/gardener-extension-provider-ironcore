@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
 	"github.com/spf13/pflag"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
-	configloader "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config/loader"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
+	configloader "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config/loader"
 )
 
 // ConfigOptions are command line options that can be set for config.ControllerConfiguration.

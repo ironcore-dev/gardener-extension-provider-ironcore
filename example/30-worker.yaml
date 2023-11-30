@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: cloudprovider
-  namespace: shoot--foobar--onmetal
+  namespace: shoot--foobar--ironcore
 type: Opaque
 data:
   namespace: my-namespace
@@ -13,14 +13,14 @@ data:
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
 metadata:
-  name: shoot--foobar--onmetal
+  name: shoot--foobar--ironcore
 spec:
   cloudProfile:
     apiVersion: core.gardener.cloud/v1beta1
     kind: CloudProfile
     spec:
       providerConfig:
-        apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+        apiVersion: ironcore.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
         machineImages:
         - name: gardenlinux
@@ -47,26 +47,26 @@ apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Worker
 metadata:
   name: worker
-  namespace: shoot--foobar--onmetal
+  namespace: shoot--foobar--ironcore
   annotations:
     gardener.cloud/operation: reconcile
 spec:
-  type: onmetal
+  type: ironcore
   region: my-region
   secretRef:
     name: cloudprovider
-    namespace: shoot--foobar--onmetal
+    namespace: shoot--foobar--ironcore
   infrastructureProviderStatus:
-    apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+    apiVersion: ironcore.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureStatus
     networkRef:
-      name: shoot--foobar--onmetal
+      name: shoot--foobar--ironcore
       uid: 1234
     natGatewayRef:
-      name: shoot--foobar--onmetal
+      name: shoot--foobar--ironcore
       uid: 1234
     prefixRef:
-      name: shoot--foobar--onmetal
+      name: shoot--foobar--ironcore
       uid: 1234
   pools:
   - name: cpu-worker

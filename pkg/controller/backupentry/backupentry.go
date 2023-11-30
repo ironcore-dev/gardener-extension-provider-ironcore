@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 //go:generate $MOCKGEN -package backupentry -destination=mock_backupentry.go -source backupentry.go S3ClientGetter,S3ObjectLister
@@ -96,19 +96,19 @@ func GetS3ClientFromS3ClientSecret(secret *corev1.Secret) (*s3.S3, error) {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}
 
-	accessKeyID, ok := secret.Data[onmetal.AccessKeyID]
+	accessKeyID, ok := secret.Data[ironcore.AccessKeyID]
 	if !ok {
-		return nil, fmt.Errorf("missing %q field in secret", onmetal.AccessKeyID)
+		return nil, fmt.Errorf("missing %q field in secret", ironcore.AccessKeyID)
 	}
 
-	secretAccessKey, ok := secret.Data[onmetal.SecretAccessKey]
+	secretAccessKey, ok := secret.Data[ironcore.SecretAccessKey]
 	if !ok {
-		return nil, fmt.Errorf("missing %q field in secret", onmetal.SecretAccessKey)
+		return nil, fmt.Errorf("missing %q field in secret", ironcore.SecretAccessKey)
 	}
 
-	endpoint, ok := secret.Data[onmetal.Endpoint]
+	endpoint, ok := secret.Data[ironcore.Endpoint]
 	if !ok {
-		return nil, fmt.Errorf("missing %q field in secret", onmetal.Endpoint)
+		return nil, fmt.Errorf("missing %q field in secret", ironcore.Endpoint)
 	}
 
 	endpointStr := string(endpoint)

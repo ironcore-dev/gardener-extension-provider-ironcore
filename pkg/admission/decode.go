@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@ package admission
 
 import (
 	"github.com/gardener/gardener/extensions/pkg/util"
+	ironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
 )
 
 // DecodeControlPlaneConfig decodes the `ControlPlaneConfig` from the given `RawExtension`.
-func DecodeControlPlaneConfig(decoder runtime.Decoder, cp *runtime.RawExtension) (*onmetal.ControlPlaneConfig, error) {
-	controlPlaneConfig := &onmetal.ControlPlaneConfig{}
+func DecodeControlPlaneConfig(decoder runtime.Decoder, cp *runtime.RawExtension) (*ironcore.ControlPlaneConfig, error) {
+	controlPlaneConfig := &ironcore.ControlPlaneConfig{}
 	if err := util.Decode(decoder, cp.Raw, controlPlaneConfig); err != nil {
 		return nil, err
 	}
@@ -32,8 +31,8 @@ func DecodeControlPlaneConfig(decoder runtime.Decoder, cp *runtime.RawExtension)
 }
 
 // DecodeInfrastructureConfig decodes the `InfrastructureConfig` from the given `RawExtension`.
-func DecodeInfrastructureConfig(decoder runtime.Decoder, infra *runtime.RawExtension) (*onmetal.InfrastructureConfig, error) {
-	infraConfig := &onmetal.InfrastructureConfig{}
+func DecodeInfrastructureConfig(decoder runtime.Decoder, infra *runtime.RawExtension) (*ironcore.InfrastructureConfig, error) {
+	infraConfig := &ironcore.InfrastructureConfig{}
 	if err := util.Decode(decoder, infra.Raw, infraConfig); err != nil {
 		return nil, err
 	}

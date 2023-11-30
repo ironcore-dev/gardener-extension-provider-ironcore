@@ -1,21 +1,21 @@
 <p>Packages:</p>
 <ul>
 <li>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud%2fv1alpha1">	onmetal.provider.extensions.config.gardener.cloud/v1alpha1</a>
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud%2fv1alpha1">	ironcore.provider.extensions.config.gardener.cloud/v1alpha1</a>
 </li>
 </ul>
-<h2 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1">	onmetal.provider.extensions.config.gardener.cloud/v1alpha1</h2>
+<h2 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1">	ironcore.provider.extensions.config.gardener.cloud/v1alpha1</h2>
 <p>
-<p>Package v1alpha1 contains the onmetal provider configuration API resources.</p>
+<p>Package v1alpha1 contains the ironcore provider configuration API resources.</p>
 </p>
 Resource Types:
 <ul><li>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>
 </li></ul>
-<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration
+<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration
 </h3>
 <p>
-<p>ControllerConfiguration defines the configuration for the onmetal provider.</p>
+<p>ControllerConfiguration defines the configuration for the ironcore provider.</p>
 </p>
 <table>
 <thead>
@@ -31,7 +31,7 @@ Resource Types:
 string</td>
 <td>
 <code>
-onmetal.provider.extensions.config.gardener.cloud/v1alpha1
+ironcore.provider.extensions.config.gardener.cloud/v1alpha1
 </code>
 </td>
 </tr>
@@ -61,7 +61,7 @@ settings for the proxy server to use when communicating with the apiserver.</p>
 <td>
 <code>etcd</code></br>
 <em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">
 ETCD
 </a>
 </em>
@@ -102,7 +102,7 @@ Default: nil</p>
 <td>
 <code>bastionConfig</code></br>
 <em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">
 BastionConfig
 </a>
 </em>
@@ -116,7 +116,7 @@ BastionConfig
 <td>
 <code>backupBucketConfig</code></br>
 <em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">
 BackupBucketConfig
 </a>
 </em>
@@ -127,11 +127,11 @@ BackupBucketConfig
 </tr>
 </tbody>
 </table>
-<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">BackupBucketConfig
+<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">BackupBucketConfig
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
 </p>
 <p>
 <p>BackupBucketConfig is config for Backup Bucket</p>
@@ -152,16 +152,16 @@ string
 </em>
 </td>
 <td>
-<p>BucketClassName is the name of the onmetal BucketClass to use for the BackupBucket</p>
+<p>BucketClassName is the name of the ironcore BucketClass to use for the BackupBucket</p>
 </td>
 </tr>
 </tbody>
 </table>
-<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">BastionConfig
+<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">BastionConfig
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
 </p>
 <p>
 <p>BastionConfig is the config for the Bastion</p>
@@ -193,7 +193,7 @@ string
 </em>
 </td>
 <td>
-<p>MachineClassName is the name of the onmetal MachineClass to use for the Bastion host</p>
+<p>MachineClassName is the name of the ironcore MachineClass to use for the Bastion host</p>
 </td>
 </tr>
 <tr>
@@ -204,16 +204,16 @@ string
 </em>
 </td>
 <td>
-<p>VolumeClassName is the name of the onmetal VolumeClass to use for the Bastion host root disk volume</p>
+<p>VolumeClassName is the name of the ironcore VolumeClass to use for the Bastion host root disk volume</p>
 </td>
 </tr>
 </tbody>
 </table>
-<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD
+<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
 </p>
 <p>
 <p>ETCD is an etcd configuration.</p>
@@ -230,7 +230,7 @@ string
 <td>
 <code>storage</code></br>
 <em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCDStorage">
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDStorage">
 ETCDStorage
 </a>
 </em>
@@ -243,7 +243,7 @@ ETCDStorage
 <td>
 <code>backup</code></br>
 <em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCDBackup">
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDBackup">
 ETCDBackup
 </a>
 </em>
@@ -254,11 +254,11 @@ ETCDBackup
 </tr>
 </tbody>
 </table>
-<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCDBackup">ETCDBackup
+<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDBackup">ETCDBackup
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD</a>)
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD</a>)
 </p>
 <p>
 <p>ETCDBackup is an etcd backup configuration.</p>
@@ -285,11 +285,11 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="	onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCDStorage">ETCDStorage
+<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDStorage">ETCDStorage
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#%09onmetal.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD</a>)
+<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD</a>)
 </p>
 <p>
 <p>ETCDStorage is an etcd storage configuration.</p>

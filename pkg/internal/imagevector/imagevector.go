@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import (
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/charts"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/charts"
 )
 
 var imageVector imagevector.ImageVector

@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	gardenerextensionv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	. "github.com/gardener/gardener/pkg/utils/test/matchers"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
@@ -28,8 +28,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var _ = Describe("ConfigValidator", func() {
@@ -74,7 +74,7 @@ var _ = Describe("ConfigValidator", func() {
 			},
 			Spec: gardenerextensionv1alpha1.InfrastructureSpec{
 				DefaultSpec: gardenerextensionv1alpha1.DefaultSpec{
-					Type: onmetal.Type,
+					Type: ironcore.Type,
 					ProviderConfig: &runtime.RawExtension{Object: &v1alpha1.InfrastructureConfig{
 						TypeMeta: metav1.TypeMeta{
 							APIVersion: v1alpha1.SchemeGroupVersion.String(),
@@ -103,7 +103,7 @@ var _ = Describe("ConfigValidator", func() {
 			},
 			Spec: gardenerextensionv1alpha1.InfrastructureSpec{
 				DefaultSpec: gardenerextensionv1alpha1.DefaultSpec{
-					Type: onmetal.Type,
+					Type: ironcore.Type,
 					ProviderConfig: &runtime.RawExtension{Object: &v1alpha1.InfrastructureConfig{
 						TypeMeta: metav1.TypeMeta{
 							APIVersion: v1alpha1.SchemeGroupVersion.String(),

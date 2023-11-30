@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/component/machinecontrollermanager"
 	"github.com/go-logr/logr"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal/imagevector"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -37,7 +37,7 @@ import (
 // NewEnsurer creates a new controlplane ensurer.
 func NewEnsurer(logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
 	return &ensurer{
-		logger:              logger.WithName("onmetal-controlplane-ensurer"),
+		logger:              logger.WithName("ironcore-controlplane-ensurer"),
 		gardenletManagesMCM: gardenletManagesMCM,
 	}
 }
@@ -57,7 +57,7 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 		return nil
 	}
 
-	image, err := ImageVector.FindImage(onmetal.MachineControllerManagerProviderOnmetalImageName)
+	image, err := ImageVector.FindImage(ironcore.MachineControllerManagerProviderIroncoreImageName)
 	if err != nil {
 		return err
 	}
@@ -67,14 +67,14 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 
 	ps.Containers = extensionswebhook.EnsureContainerWithName(
 		newObj.Spec.Template.Spec.Containers,
-		machinecontrollermanager.ProviderSidecarContainer(newObj.Namespace, onmetal.ProviderName, image.String()),
+		machinecontrollermanager.ProviderSidecarContainer(newObj.Namespace, ironcore.ProviderName, image.String()),
 	)
 
-	if c := extensionswebhook.ContainerWithName(ps.Containers, "machine-controller-manager-provider-onmetal"); c != nil {
+	if c := extensionswebhook.ContainerWithName(ps.Containers, "machine-controller-manager-provider-ironcore"); c != nil {
 		ensureMCMCommandLineArgs(c)
 		c.VolumeMounts = extensionswebhook.EnsureVolumeMountWithName(c.VolumeMounts, corev1.VolumeMount{
 			Name:      "cloudprovider",
-			MountPath: "/etc/onmetal",
+			MountPath: "/etc/ironcore",
 			ReadOnly:  true,
 		})
 	}
@@ -114,7 +114,7 @@ func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ gcontex
 
 	newObj.Spec.ResourcePolicy.ContainerPolicies = extensionswebhook.EnsureVPAContainerResourcePolicyWithName(
 		newObj.Spec.ResourcePolicy.ContainerPolicies,
-		machinecontrollermanager.ProviderSidecarVPAContainerPolicy(onmetal.ProviderName, minAllowed, maxAllowed),
+		machinecontrollermanager.ProviderSidecarVPAContainerPolicy(ironcore.ProviderName, minAllowed, maxAllowed),
 	)
 	return nil
 }
@@ -154,7 +154,7 @@ func (e *ensurer) EnsureClusterAutoscalerDeployment(_ context.Context, _ gcontex
 }
 
 func ensureMCMCommandLineArgs(c *corev1.Container) {
-	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--onmetal-kubeconfig=", "/etc/onmetal/kubeconfig")
+	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--ironcore-kubeconfig=", "/etc/ironcore/kubeconfig")
 }
 
 func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {

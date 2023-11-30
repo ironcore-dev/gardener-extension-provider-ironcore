@@ -12,9 +12,9 @@ data:
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: BackupBucket
 metadata:
-  name: cloud--onmetal--fg2d6
+  name: cloud--ironcore--fg2d6
 spec:
-  type: onmetal
+  type: ironcore
   region: europe-central
   secretRef:
     name: backupprovider

@@ -3,11 +3,11 @@ extensions.gardener.cloud
 {{- end -}}
 
 {{- define "csi-driver-node.name" -}}
-provider-onmetal
+provider-ironcore
 {{- end -}}
 
 {{- define "csi-driver-node.provisioner" -}}
-csi.onmetal.de
+csi.ironcore.dev
 {{- end -}}
 
 {{- define "csi-driver-node.storageversion" -}}

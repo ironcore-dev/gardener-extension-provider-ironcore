@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	ironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 const (
@@ -33,17 +33,17 @@ const (
 	SecretsValidatorName = "secrets." + Name
 )
 
-var logger = log.Log.WithName("onmetal-validator-webhook")
+var logger = log.Log.WithName("ironcore-validator-webhook")
 
 // New creates a new validation webhook for `core.gardener.cloud` resources.
 func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	logger.Info("Setting up webhook", "name", Name)
 
 	return extensionswebhook.New(mgr, extensionswebhook.Args{
-		Provider:   onmetal.Type,
+		Provider:   ironcore.Type,
 		Name:       Name,
 		Path:       "/webhooks/validate",
-		Predicates: []predicate.Predicate{extensionspredicate.GardenCoreProviderType(onmetal.Type)},
+		Predicates: []predicate.Predicate{extensionspredicate.GardenCoreProviderType(ironcore.Type)},
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
 			NewShootValidator(mgr):         {{Obj: &core.Shoot{}}},
 			NewSecretBindingValidator(mgr): {{Obj: &core.SecretBinding{}}},
@@ -56,7 +56,7 @@ func NewSecretsWebhook(mgr manager.Manager) (*extensionswebhook.Webhook, error) 
 	logger.Info("Setting up webhook", "name", SecretsValidatorName)
 
 	return extensionswebhook.New(mgr, extensionswebhook.Args{
-		Provider: onmetal.Type,
+		Provider: ironcore.Type,
 		Name:     SecretsValidatorName,
 		Path:     "/webhooks/validate/secrets",
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{

@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
-	apiv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	"github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
+	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/helper"
+	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
+	"github.com/ironcore-dev/ironcore/api/common/v1alpha1"
+	ipamv1alpha1 "github.com/ironcore-dev/ironcore/api/ipam/v1alpha1"
+	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,23 +53,23 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return err
 	}
 
-	// get onmetal credentials from infrastructure config
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.client, cluster.ObjectMeta.Name)
+	// get ironcore credentials from infrastructure config
+	ironcoreClient, namespace, err := ironcore.GetIroncoreClientAndNamespaceFromCloudProviderSecret(ctx, a.client, cluster.ObjectMeta.Name)
 	if err != nil {
-		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
+		return fmt.Errorf("failed to get ironcore client and namespace from cloudprovider secret: %w", err)
 	}
 
-	network, err := a.applyNetwork(ctx, onmetalClient, namespace, config, cluster)
-	if err != nil {
-		return err
-	}
-
-	natGateway, err := a.applyNATGateway(ctx, onmetalClient, namespace, cluster, network)
+	network, err := a.applyNetwork(ctx, ironcoreClient, namespace, config, cluster)
 	if err != nil {
 		return err
 	}
 
-	prefix, err := a.applyPrefix(ctx, onmetalClient, namespace, cluster)
+	natGateway, err := a.applyNATGateway(ctx, ironcoreClient, namespace, cluster, network)
+	if err != nil {
+		return err
+	}
+
+	prefix, err := a.applyPrefix(ctx, ironcoreClient, namespace, cluster)
 	if err != nil {
 		return err
 	}
@@ -80,11 +80,11 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 	return a.updateProviderStatus(ctx, infra, network, natGateway, prefix)
 }
 
-func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client, namespace string, cluster *controller.Cluster) (*ipamv1alpha1.Prefix, error) {
+func (a *actuator) applyPrefix(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) (*ipamv1alpha1.Prefix, error) {
 	prefix := &ipamv1alpha1.Prefix{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Prefix",
-			APIVersion: "ipam.api.onmetal.de/v1alpha1",
+			APIVersion: "ipam.ironcore.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -100,18 +100,18 @@ func (a *actuator) applyPrefix(ctx context.Context, onmetalClient client.Client,
 		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(pointer.StringDeref(nodeCIDR, ""))
 	}
 
-	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, prefix, nil); err != nil {
+	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, prefix, nil); err != nil {
 		return nil, fmt.Errorf("failed to apply prefix %s: %w", client.ObjectKeyFromObject(prefix), err)
 	}
 
 	return prefix, nil
 }
 
-func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
+func (a *actuator) applyNATGateway(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
 	natGateway := &networkingv1alpha1.NATGateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "NATGateway",
-			APIVersion: "networking.api.onmetal.de/v1alpha1",
+			APIVersion: "networking.ironcore.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -127,17 +127,17 @@ func (a *actuator) applyNATGateway(ctx context.Context, onmetalClient client.Cli
 		},
 	}
 
-	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, natGateway, nil); err != nil {
+	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, natGateway, nil); err != nil {
 		return nil, fmt.Errorf("failed to apply natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
 	}
 	return natGateway, nil
 }
 
-func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client, namespace string, config *api.InfrastructureConfig, cluster *controller.Cluster) (*networkingv1alpha1.Network, error) {
+func (a *actuator) applyNetwork(ctx context.Context, ironcoreClient client.Client, namespace string, config *api.InfrastructureConfig, cluster *controller.Cluster) (*networkingv1alpha1.Network, error) {
 	if config != nil && config.NetworkRef != nil {
 		network := &networkingv1alpha1.Network{}
 		networkKey := client.ObjectKey{Namespace: namespace, Name: config.NetworkRef.Name}
-		if err := onmetalClient.Get(ctx, networkKey, network); err != nil {
+		if err := ironcoreClient.Get(ctx, networkKey, network); err != nil {
 			return nil, fmt.Errorf("failed to get network %s: %w", networkKey, err)
 		}
 		return network, nil
@@ -146,7 +146,7 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 	network := &networkingv1alpha1.Network{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Network",
-			APIVersion: "networking.api.onmetal.de/v1alpha1",
+			APIVersion: "networking.ironcore.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -154,7 +154,7 @@ func (a *actuator) applyNetwork(ctx context.Context, onmetalClient client.Client
 		},
 	}
 
-	if _, err := controllerutil.CreateOrPatch(ctx, onmetalClient, network, nil); err != nil {
+	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, network, nil); err != nil {
 		return nil, fmt.Errorf("failed to apply network %s: %w", client.ObjectKeyFromObject(network), err)
 	}
 	return network, nil

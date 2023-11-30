@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/backupbucket"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
+	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -45,9 +45,9 @@ func newActuator(mgr manager.Manager, backupBucketConfig *controllerconfig.Backu
 func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Reconciling BackupBucket")
 
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.client, &backupBucket.Spec.SecretRef)
+	ironcoreClient, namespace, err := ironcore.GetIroncoreClientAndNamespaceFromSecretRef(ctx, a.client, &backupBucket.Spec.SecretRef)
 	if err != nil {
-		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
+		return fmt.Errorf("failed to get ironcore client and namespace from cloudprovider secret: %w", err)
 	}
 
 	// If the generated secret in the backupbucket status not exists that means
@@ -57,7 +57,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 			return fmt.Errorf("failed to validate configuration: %w", err)
 		}
 
-		if err := a.ensureBackupBucket(ctx, namespace, onmetalClient, backupBucket); err != nil {
+		if err := a.ensureBackupBucket(ctx, namespace, ironcoreClient, backupBucket); err != nil {
 			return fmt.Errorf("failed to ensure backupbucket: %w", err)
 		}
 	}
@@ -67,9 +67,9 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, backupBucket 
 
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupBucket *extensionsv1alpha1.BackupBucket) error {
 	log.V(2).Info("Deleting BackupBucket")
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromSecretRef(ctx, a.client, &backupBucket.Spec.SecretRef)
+	ironcoreClient, namespace, err := ironcore.GetIroncoreClientAndNamespaceFromSecretRef(ctx, a.client, &backupBucket.Spec.SecretRef)
 	if err != nil {
-		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
+		return fmt.Errorf("failed to get ironcore client and namespace from cloudprovider secret: %w", err)
 	}
 
 	bucket := &storagev1alpha1.Bucket{
@@ -78,7 +78,7 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupBucket *ex
 			Namespace: namespace,
 		},
 	}
-	if err = onmetalClient.Delete(ctx, bucket); err != nil {
+	if err = ironcoreClient.Delete(ctx, bucket); err != nil {
 		return fmt.Errorf("failed to delete backup bucket: %v", err)
 	}
 

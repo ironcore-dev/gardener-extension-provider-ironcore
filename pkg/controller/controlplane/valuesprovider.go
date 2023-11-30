@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,10 +33,10 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
-	apisonmetal "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	apisironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
+	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
@@ -52,7 +52,7 @@ import (
 )
 
 const (
-	caNameControlPlane                   = "ca-" + onmetal.ProviderName + "-controlplane"
+	caNameControlPlane                   = "ca-" + ironcore.ProviderName + "-controlplane"
 	cloudControllerManagerDeploymentName = "cloud-controller-manager"
 	cloudControllerManagerServerName     = "cloud-controller-manager-server"
 )
@@ -70,8 +70,8 @@ func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfig
 		{
 			Config: &secretutils.CertificateSecretConfig{
 				Name:                        cloudControllerManagerServerName,
-				CommonName:                  onmetal.CloudControllerManagerName,
-				DNSNames:                    kutil.DNSNamesForService(onmetal.CloudControllerManagerName, namespace),
+				CommonName:                  ironcore.CloudControllerManagerName,
+				DNSNames:                    kutil.DNSNamesForService(ironcore.CloudControllerManagerName, namespace),
 				CertType:                    secretutils.ServerCert,
 				SkipPublishingCACertificate: true,
 			},
@@ -83,21 +83,21 @@ func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfig
 func shootAccessSecretsFunc(namespace string) []*gutil.AccessSecret {
 	return []*gutil.AccessSecret{
 		gutil.NewShootAccessSecret(cloudControllerManagerDeploymentName, namespace),
-		gutil.NewShootAccessSecret(onmetal.CSIProvisionerName, namespace),
-		gutil.NewShootAccessSecret(onmetal.CSIAttacherName, namespace),
-		gutil.NewShootAccessSecret(onmetal.CSIResizerName, namespace),
+		gutil.NewShootAccessSecret(ironcore.CSIProvisionerName, namespace),
+		gutil.NewShootAccessSecret(ironcore.CSIAttacherName, namespace),
+		gutil.NewShootAccessSecret(ironcore.CSIResizerName, namespace),
 		// TODO: This needs to be fixed!!!
 		//		 Since the csi controller needs to access the Node resources in the Shoot cluster,
 		//		 it should use the same ServiceAccount as the csi-driver-node in the Shoot. That way
 		//		 the correct ClusterRolebindings will be used for both components.
-		gutil.NewShootAccessSecret(onmetal.CSINodeName, namespace),
+		gutil.NewShootAccessSecret(ironcore.CSINodeName, namespace),
 	}
 }
 
 var (
 	configChart = &chart.Chart{
 		Name: "cloud-provider-config",
-		Path: filepath.Join(onmetal.InternalChartsPath, "cloud-provider-config"),
+		Path: filepath.Join(ironcore.InternalChartsPath, "cloud-provider-config"),
 		Objects: []*chart.Object{
 			{Type: &corev1.ConfigMap{}, Name: internal.CloudProviderSecretName},
 		},
@@ -105,11 +105,11 @@ var (
 
 	controlPlaneChart = &chart.Chart{
 		Name: "seed-controlplane",
-		Path: filepath.Join(onmetal.InternalChartsPath, "seed-controlplane"),
+		Path: filepath.Join(ironcore.InternalChartsPath, "seed-controlplane"),
 		SubCharts: []*chart.Chart{
 			{
-				Name:   onmetal.CloudControllerManagerName,
-				Images: []string{onmetal.CloudControllerManagerImageName},
+				Name:   ironcore.CloudControllerManagerName,
+				Images: []string{ironcore.CloudControllerManagerImageName},
 				Objects: []*chart.Object{
 					{Type: &corev1.Service{}, Name: "cloud-controller-manager"},
 					{Type: &appsv1.Deployment{}, Name: "cloud-controller-manager"},
@@ -118,19 +118,19 @@ var (
 				},
 			},
 			{
-				Name: onmetal.CSIControllerName,
+				Name: ironcore.CSIControllerName,
 				Images: []string{
-					onmetal.CSIDriverImageName,
-					onmetal.CSIProvisionerImageName,
-					onmetal.CSIAttacherImageName,
-					onmetal.CSIResizerImageName,
-					onmetal.CSILivenessProbeImageName,
+					ironcore.CSIDriverImageName,
+					ironcore.CSIProvisionerImageName,
+					ironcore.CSIAttacherImageName,
+					ironcore.CSIResizerImageName,
+					ironcore.CSILivenessProbeImageName,
 				},
 				Objects: []*chart.Object{
 					// csi-driver-controller
-					{Type: &appsv1.Deployment{}, Name: onmetal.CSIControllerName},
-					{Type: &corev1.ConfigMap{}, Name: onmetal.CSIControllerObservabilityConfigName},
-					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: onmetal.CSIControllerName + "-vpa"},
+					{Type: &appsv1.Deployment{}, Name: ironcore.CSIControllerName},
+					{Type: &corev1.ConfigMap{}, Name: ironcore.CSIControllerObservabilityConfigName},
+					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: ironcore.CSIControllerName + "-vpa"},
 				},
 			},
 		},
@@ -138,49 +138,49 @@ var (
 
 	controlPlaneShootChart = &chart.Chart{
 		Name: "shoot-system-components",
-		Path: filepath.Join(onmetal.InternalChartsPath, "shoot-system-components"),
+		Path: filepath.Join(ironcore.InternalChartsPath, "shoot-system-components"),
 		SubCharts: []*chart.Chart{
 			{
 				Name: "cloud-controller-manager",
-				Path: filepath.Join(onmetal.InternalChartsPath, "cloud-controller-manager"),
+				Path: filepath.Join(ironcore.InternalChartsPath, "cloud-controller-manager"),
 				Objects: []*chart.Object{
 					{Type: &rbacv1.ClusterRole{}, Name: "system:controller:cloud-node-controller"},
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:controller:cloud-node-controller"},
-					{Type: &rbacv1.ClusterRole{}, Name: "onmetal:cloud-provider"},
-					{Type: &rbacv1.ClusterRoleBinding{}, Name: "onmetal:cloud-provider"},
+					{Type: &rbacv1.ClusterRole{}, Name: "ironcore:cloud-provider"},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: "ironcore:cloud-provider"},
 				},
 			},
 			{
-				Name: onmetal.CSINodeName,
+				Name: ironcore.CSINodeName,
 				Images: []string{
-					onmetal.CSIDriverImageName,
-					onmetal.CSINodeDriverRegistrarImageName,
-					onmetal.CSILivenessProbeImageName,
+					ironcore.CSIDriverImageName,
+					ironcore.CSINodeDriverRegistrarImageName,
+					ironcore.CSILivenessProbeImageName,
 				},
 				Objects: []*chart.Object{
 					// csi-driver
-					{Type: &appsv1.DaemonSet{}, Name: onmetal.CSINodeName},
-					{Type: &storagev1.CSIDriver{}, Name: onmetal.CSIStorageProvisioner},
-					{Type: &corev1.ServiceAccount{}, Name: onmetal.CSIDriverName},
-					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIDriverName},
-					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIDriverName},
-					{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(onmetal.UsernamePrefix+onmetal.CSIDriverName, ":", ".", -1)},
-					{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: onmetal.CSINodeName},
+					{Type: &appsv1.DaemonSet{}, Name: ironcore.CSINodeName},
+					{Type: &storagev1.CSIDriver{}, Name: ironcore.CSIStorageProvisioner},
+					{Type: &corev1.ServiceAccount{}, Name: ironcore.CSIDriverName},
+					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIDriverName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIDriverName},
+					{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(ironcore.UsernamePrefix+ironcore.CSIDriverName, ":", ".", -1)},
+					{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: ironcore.CSINodeName},
 					// csi-provisioner
-					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
-					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
-					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
-					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIProvisionerName},
+					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIProvisionerName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIProvisionerName},
+					{Type: &rbacv1.Role{}, Name: ironcore.UsernamePrefix + ironcore.CSIProvisionerName},
+					{Type: &rbacv1.RoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIProvisionerName},
 					// csi-attacher
-					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
-					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIAttacherName},
+					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIAttacherName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIAttacherName},
+					{Type: &rbacv1.Role{}, Name: ironcore.UsernamePrefix + ironcore.CSIAttacherName},
+					{Type: &rbacv1.RoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIAttacherName},
 					// csi-resizer
-					{Type: &rbacv1.ClusterRole{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-					{Type: &rbacv1.ClusterRoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-					{Type: &rbacv1.Role{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
-					{Type: &rbacv1.RoleBinding{}, Name: onmetal.UsernamePrefix + onmetal.CSIResizerName},
+					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIResizerName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIResizerName},
+					{Type: &rbacv1.Role{}, Name: ironcore.UsernamePrefix + ironcore.CSIResizerName},
+					{Type: &rbacv1.RoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIResizerName},
 				},
 			},
 		},
@@ -188,11 +188,11 @@ var (
 
 	storageClassChart = &chart.Chart{
 		Name: "shoot-storageclasses",
-		Path: filepath.Join(onmetal.InternalChartsPath, "shoot-storageclasses"),
+		Path: filepath.Join(ironcore.InternalChartsPath, "shoot-storageclasses"),
 	}
 )
 
-// valuesProvider is a ValuesProvider that provides onmetal-specific values for the 2 charts applied by the generic actuator.
+// valuesProvider is a ValuesProvider that provides ironcore-specific values for the 2 charts applied by the generic actuator.
 type valuesProvider struct {
 	client  client.Client
 	decoder runtime.Decoder
@@ -220,15 +220,15 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	infrastructureStatus := &apisonmetal.InfrastructureStatus{}
+	infrastructureStatus := &apisironcore.InfrastructureStatus{}
 	if _, _, err := vp.decoder.Decode(cp.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
 		return nil, fmt.Errorf("failed to decode infrastructure status: %w", err)
 	}
 	// Collect config chart values
 	return map[string]interface{}{
-		onmetal.NetworkFieldName: infrastructureStatus.NetworkRef.Name,
-		onmetal.PrefixFieldName:  infrastructureStatus.PrefixRef.Name,
-		onmetal.ClusterFieldName: cluster.ObjectMeta.Name,
+		ironcore.NetworkFieldName: infrastructureStatus.NetworkRef.Name,
+		ironcore.PrefixFieldName:  infrastructureStatus.PrefixRef.Name,
+		ironcore.ClusterFieldName: cluster.ObjectMeta.Name,
 	}, nil
 }
 
@@ -244,7 +244,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	map[string]interface{},
 	error,
 ) {
-	cpConfig := &apisonmetal.ControlPlaneConfig{}
+	cpConfig := &apisironcore.ControlPlaneConfig{}
 	if cp.Spec.ProviderConfig != nil {
 		if _, _, err := vp.decoder.Decode(cp.Spec.ProviderConfig.Raw, nil, cpConfig); err != nil {
 			return nil, fmt.Errorf("could not decode providerConfig of controlplane '%s': %w", kutil.ObjectName(cp), err)
@@ -284,7 +284,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	controlPlane *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	providerConfig := apisonmetal.CloudProfileConfig{}
+	providerConfig := apisironcore.CloudProfileConfig{}
 	if config := cluster.CloudProfile.Spec.ProviderConfig; config != nil {
 		if _, _, err := vp.decoder.Decode(config.Raw, nil, &providerConfig); err != nil {
 			return nil, fmt.Errorf("could not decode cloudprofile providerConfig for controlplane '%s': %w", client.ObjectKeyFromObject(controlPlane), err)
@@ -297,16 +297,16 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		defaultStorageClass++
 	}
 
-	// get onmetal credentials from infrastructure config
-	onmetalClient, _, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, vp.client, cluster.ObjectMeta.Name)
+	// get ironcore credentials from infrastructure config
+	ironcoreClient, _, err := ironcore.GetIroncoreClientAndNamespaceFromCloudProviderSecret(ctx, vp.client, cluster.ObjectMeta.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
+		return nil, fmt.Errorf("failed to get ironcore client and namespace from cloudprovider secret: %w", err)
 	}
 
 	var expandable bool
 	storageClasses := make([]map[string]interface{}, 0, len(providerConfig.StorageClasses.Additional)+defaultStorageClass)
 	if providerConfig.StorageClasses.Default != nil {
-		if expandable, err = isVolumeClassExpandable(ctx, onmetalClient, providerConfig.StorageClasses.Default); err != nil {
+		if expandable, err = isVolumeClassExpandable(ctx, ironcoreClient, providerConfig.StorageClasses.Default); err != nil {
 			return nil, fmt.Errorf("could not get resize policy from volumeclass : %w", err)
 		}
 
@@ -318,7 +318,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		})
 	}
 	for _, sc := range providerConfig.StorageClasses.Additional {
-		if expandable, err = isVolumeClassExpandable(ctx, onmetalClient, &sc); err != nil {
+		if expandable, err = isVolumeClassExpandable(ctx, ironcoreClient, &sc); err != nil {
 			return nil, fmt.Errorf("could not get resize policy from volumeclass : %w", err)
 		}
 		storageClasses = append(storageClasses, map[string]interface{}{
@@ -333,9 +333,9 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	return values, nil
 }
 
-func isVolumeClassExpandable(ctx context.Context, onmetalClient client.Client, storageClass *apisonmetal.StorageClass) (bool, error) {
+func isVolumeClassExpandable(ctx context.Context, ironcoreClient client.Client, storageClass *apisironcore.StorageClass) (bool, error) {
 	volumeClass := &storagev1alpha1.VolumeClass{}
-	if err := onmetalClient.Get(ctx, client.ObjectKey{Name: storageClass.Type}, volumeClass); err != nil {
+	if err := ironcoreClient.Get(ctx, client.ObjectKey{Name: storageClass.Type}, volumeClass); err != nil {
 		if apierrors.IsNotFound(err) {
 			return false, fmt.Errorf("VolumeClass not found")
 		}
@@ -346,7 +346,7 @@ func isVolumeClassExpandable(ctx context.Context, onmetalClient client.Client, s
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
 func getControlPlaneChartValues(
-	cpConfig *apisonmetal.ControlPlaneConfig,
+	cpConfig *apisironcore.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	secretsReader secretsmanager.Reader,
@@ -370,14 +370,14 @@ func getControlPlaneChartValues(
 		"global": map[string]interface{}{
 			"genericTokenKubeconfigSecretName": extensionscontroller.GenericTokenKubeconfigSecretNameFromCluster(cluster),
 		},
-		onmetal.CloudControllerManagerName: ccm,
-		onmetal.CSIControllerName:          csi,
+		ironcore.CloudControllerManagerName: ccm,
+		ironcore.CSIControllerName:          csi,
 	}, nil
 }
 
 // getCCMChartValues collects and returns the CCM chart values.
 func getCCMChartValues(
-	cpConfig *apisonmetal.ControlPlaneConfig,
+	cpConfig *apisironcore.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	secretsReader secretsmanager.Reader,
@@ -452,7 +452,7 @@ func isOverlayEnabled(networking *gardencorev1beta1.Networking) (bool, error) {
 
 // getCSIControllerChartValues collects and returns the CSIController chart values.
 func getCSIControllerChartValues(
-	_ *apisonmetal.ControlPlaneConfig,
+	_ *apisironcore.ControlPlaneConfig,
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	_ secretsmanager.Reader,
@@ -477,8 +477,8 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(cluster *extensionscon
 	}
 
 	return map[string]interface{}{
-		onmetal.CloudControllerManagerName: map[string]interface{}{"enabled": true},
-		onmetal.CSINodeName:                csiNodeDriverValues,
+		ironcore.CloudControllerManagerName: map[string]interface{}{"enabled": true},
+		ironcore.CSINodeName:                csiNodeDriverValues,
 	}, nil
 
 }

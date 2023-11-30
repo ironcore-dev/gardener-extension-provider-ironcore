@@ -18,7 +18,7 @@ allowVolumeExpansion: true
 {{- else }}
 allowVolumeExpansion: false
 {{- end }}
-provisioner: csi.onmetal.de
+provisioner: csi.ironcore.dev
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 {{- end }}
