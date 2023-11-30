@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var (
-	logger = log.Log.WithName("onmetal-controlplane-webhook")
+	logger = log.Log.WithName("ironcore-controlplane-webhook")
 	// GardenletManagesMCM specifies whether the machine-controller-manager should be managed.
 	GardenletManagesMCM bool
 )
@@ -41,7 +41,7 @@ func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	fciCodec := oscutils.NewFileContentInlineCodec()
 	return controlplane.New(mgr, controlplane.Args{
 		Kind:     controlplane.KindShoot,
-		Provider: onmetal.Type,
+		Provider: ironcore.Type,
 		Types: []extensionswebhook.Type{
 			{Obj: &appsv1.Deployment{}},
 			{Obj: &vpaautoscalingv1.VerticalPodAutoscaler{}},

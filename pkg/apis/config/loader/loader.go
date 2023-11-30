@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/runtime/serializer/versioning"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config/install"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config/install"
 )
 
 var (

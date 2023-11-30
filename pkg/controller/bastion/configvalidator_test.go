@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,14 +20,13 @@ import (
 	gardenerextensionv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	. "github.com/gardener/gardener/pkg/utils/test/matchers"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gstruct "github.com/onsi/gomega/gstruct"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
 )
 
 var _ = Describe("ConfigValidator", func() {
@@ -96,7 +95,7 @@ var _ = Describe("ConfigValidator", func() {
 
 			Spec: gardenerextensionv1alpha1.BastionSpec{
 				DefaultSpec: gardenerextensionv1alpha1.DefaultSpec{
-					Type: onmetal.Type,
+					Type: ironcore.Type,
 				},
 				UserData: []byte("abcd"),
 				Ingress: []gardenerextensionv1alpha1.BastionIngressPolicy{{
@@ -121,7 +120,7 @@ var _ = Describe("ConfigValidator", func() {
 
 			Spec: gardenerextensionv1alpha1.BastionSpec{
 				DefaultSpec: gardenerextensionv1alpha1.DefaultSpec{
-					Type: onmetal.Type,
+					Type: ironcore.Type,
 				},
 				UserData: []byte("abcd"),
 				Ingress: []gardenerextensionv1alpha1.BastionIngressPolicy{{
@@ -146,7 +145,7 @@ var _ = Describe("ConfigValidator", func() {
 
 			Spec: gardenerextensionv1alpha1.BastionSpec{
 				DefaultSpec: gardenerextensionv1alpha1.DefaultSpec{
-					Type: onmetal.Type,
+					Type: ironcore.Type,
 				},
 				UserData: []byte("abcd"),
 				Ingress: []gardenerextensionv1alpha1.BastionIngressPolicy{{

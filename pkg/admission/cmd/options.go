@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package cmd
 import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/admission/validator"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/admission/validator"
 )
 
 // GardenWebhookSwitchOptions are the webhookcmd.SwitchOptions for the admission webhooks.

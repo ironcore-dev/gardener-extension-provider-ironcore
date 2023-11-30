@@ -1,6 +1,6 @@
-# [Gardener Extension for Onmetal provider](https://gardener.cloud)
+# [Gardener Extension for IronCore provider](https://gardener.cloud)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/onmetal/gardener-extension-provider-onmetal)](https://goreportcard.com/report/github.com/onmetal/gardener-extension-provider-onmetal)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ironcore-dev/gardener-extension-provider-ironcore)](https://goreportcard.com/report/github.com/ironcore-dev/gardener-extension-provider-ironcore)
 
 Project Gardener implements the automated management and operation of [Kubernetes](https://kubernetes.io/) clusters as a service.
 Its main principle is to leverage Kubernetes concepts for all of its tasks.
@@ -10,7 +10,7 @@ However, the project has grown to a size where it is very hard to extend, mainta
 With [GEP-1](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md) we have proposed how the architecture can be changed in a way to support external controllers that contain their very own vendor specifics.
 This way, we can keep Gardener core clean and independent.
 
-This controller implements Gardener's extension contract for the Gardener on Metal (Onmetal) provider.
+This controller implements Gardener's extension contract for the IronCore provider.
 
 An example for a `ControllerRegistration` resource that can be used to register this controller to Gardener can be found [here](example/controller-registration.yaml).
 
@@ -37,7 +37,7 @@ Static code checks and tests can be executed by running `make verify`. We are us
 
 ## Feedback and Support
 
-Feedback and contributions are always welcome. Please report bugs or suggestions as [GitHub issues](https://github.com/onmetal/gardener-extension-provider-onmetal/issues) or join our [Slack channel #gardener](https://kubernetes.slack.com/messages/gardener) (please invite yourself to the Kubernetes workspace [here](http://slack.k8s.io)).
+Feedback and contributions are always welcome. Please report bugs or suggestions as [GitHub issues](https://github.com/ironcore-dev/gardener-extension-provider-ironcore/issues) or join our [Slack channel #gardener](https://kubernetes.slack.com/messages/gardener) (please invite yourself to the Kubernetes workspace [here](http://slack.k8s.io)).
 
 ## Learn more!
 

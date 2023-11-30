@@ -29,10 +29,10 @@ jobs:
     strategy:
       matrix:
         image:
-          - name: gardener-extension-provider-onmetal
-            target: gardener-extension-provider-onmetal
-          - name: gardener-extension-admission-onmetal
-            target: gardener-extension-admission-onmetal
+          - name: gardener-extension-provider-ironcore
+            target: gardener-extension-provider-ironcore
+          - name: gardener-extension-admission-ironcore
+            target: gardener-extension-admission-ironcore
     if: ${{ github.event.label.name == 'ok-to-image' }} || ${{ github.event.label.name == 'ok-to-🐳' }} || ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:

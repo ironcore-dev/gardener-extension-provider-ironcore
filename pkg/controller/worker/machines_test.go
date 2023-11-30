@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	onmetalextensionv1alpha1 "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/v1alpha1"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
+	ironcoreextensionv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
+	commonv1alpha1 "github.com/ironcore-dev/ironcore/api/common/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -58,9 +58,9 @@ var _ = Describe("Machines", func() {
 
 	It("should create the expected machine class for a multi zone cluster", func(ctx SpecContext) {
 		By("defining and setting infrastructure status for worker")
-		infraStatus := &onmetalextensionv1alpha1.InfrastructureStatus{
+		infraStatus := &ironcoreextensionv1alpha1.InfrastructureStatus{
 			TypeMeta: metav1.TypeMeta{
-				APIVersion: onmetalextensionv1alpha1.SchemeGroupVersion.String(),
+				APIVersion: ironcoreextensionv1alpha1.SchemeGroupVersion.String(),
 				Kind:       "InfrastructureStatus",
 			},
 			NetworkRef: commonv1alpha1.LocalUIDReference{
@@ -107,7 +107,7 @@ var _ = Describe("Machines", func() {
 			"networkName": infraStatus.NetworkRef.Name,
 			"prefixName":  infraStatus.PrefixRef.Name,
 			"labels": map[string]interface{}{
-				onmetal.ClusterNameLabel: cluster.ObjectMeta.Name,
+				ironcore.ClusterNameLabel: cluster.ObjectMeta.Name,
 			},
 		}
 
@@ -121,7 +121,7 @@ var _ = Describe("Machines", func() {
 				Namespace: ns.Name,
 				Name:      className,
 			}),
-			HaveField("Provider", "onmetal"),
+			HaveField("Provider", "ironcore"),
 			HaveField("NodeTemplate", &machinecontrollerv1alpha1.NodeTemplate{
 				Capacity:     pool.NodeTemplate.Capacity,
 				InstanceType: pool.MachineType,

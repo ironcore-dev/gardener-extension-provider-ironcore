@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
-var logger = log.Log.WithName("onmetal-cloudprovider-webhook")
+var logger = log.Log.WithName("ironcore-cloudprovider-webhook")
 
 // AddToManager creates the cloudprovider webhook and adds it to the manager.
 func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	logger.Info("adding webhook to manager")
 	return cloudprovider.New(mgr, cloudprovider.Args{
-		Provider: onmetal.Type,
+		Provider: ironcore.Type,
 		Mutator:  cloudprovider.NewMutator(mgr, logger, NewEnsurer(logger, mgr)),
 	})
 }

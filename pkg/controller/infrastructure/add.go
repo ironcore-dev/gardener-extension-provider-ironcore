@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -29,7 +29,7 @@ var (
 	DefaultAddOptions = AddOptions{}
 )
 
-// AddOptions are options to apply when adding the onmetal infrastructure controller to the manager.
+// AddOptions are options to apply when adding the ironcore infrastructure controller to the manager.
 type AddOptions struct {
 	// Controller are the controller.Options.
 	Controller controller.Options
@@ -45,7 +45,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		ConfigValidator:   NewConfigValidator(mgr.GetClient(), log.Log),
 		ControllerOptions: opts.Controller,
 		Predicates:        infrastructure.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
-		Type:              onmetal.Type,
+		Type:              ironcore.Type,
 	})
 }
 

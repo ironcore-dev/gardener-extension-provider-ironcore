@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -259,7 +259,7 @@ var _ = Describe("Ensurer", func() {
 			BeforeEach(func() {
 				ensurer = NewEnsurer(logger, true)
 				DeferCleanup(testutils.WithVar(&ImageVector, imagevectorutils.ImageVector{{
-					Name:       "machine-controller-manager-provider-onmetal",
+					Name:       "machine-controller-manager-provider-ironcore",
 					Repository: "foo",
 					Tag:        pointer.String("bar"),
 				}}))
@@ -269,7 +269,7 @@ var _ = Describe("Ensurer", func() {
 				Expect(deployment.Spec.Template.Spec.Containers).To(BeEmpty())
 				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(Succeed())
 				Expect(deployment.Spec.Template.Spec.Containers).To(ConsistOf(corev1.Container{
-					Name:            "machine-controller-manager-provider-onmetal",
+					Name:            "machine-controller-manager-provider-ironcore",
 					Image:           "foo:bar",
 					ImagePullPolicy: corev1.PullIfNotPresent,
 					Command: []string{
@@ -285,7 +285,7 @@ var _ = Describe("Ensurer", func() {
 						"--port=10259",
 						"--target-kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig",
 						"--v=3",
-						"--onmetal-kubeconfig=/etc/onmetal/kubeconfig",
+						"--ironcore-kubeconfig=/etc/ironcore/kubeconfig",
 					},
 					LivenessProbe: &corev1.Probe{
 						ProbeHandler: corev1.ProbeHandler{
@@ -309,7 +309,7 @@ var _ = Describe("Ensurer", func() {
 						},
 						{
 							Name:      "cloudprovider",
-							MountPath: "/etc/onmetal",
+							MountPath: "/etc/ironcore",
 							ReadOnly:  true,
 						},
 					},
@@ -359,7 +359,7 @@ var _ = Describe("Ensurer", func() {
 
 				ccv := vpaautoscalingv1.ContainerControlledValuesRequestsOnly
 				Expect(vpa.Spec.ResourcePolicy.ContainerPolicies).To(ConsistOf(vpaautoscalingv1.ContainerResourcePolicy{
-					ContainerName:    "machine-controller-manager-provider-onmetal",
+					ContainerName:    "machine-controller-manager-provider-ironcore",
 					ControlledValues: &ccv,
 					MinAllowed: corev1.ResourceList{
 						corev1.ResourceCPU:    resource.MustParse("30m"),

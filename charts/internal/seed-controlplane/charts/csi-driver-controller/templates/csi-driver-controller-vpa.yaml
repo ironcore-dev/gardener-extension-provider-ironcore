@@ -7,35 +7,35 @@ metadata:
 spec:
   resourcePolicy:
     containerPolicies:
-    - containerName: onmetal-csi-driver
+    - containerName: ironcore-csi-driver
       minAllowed:
         memory: {{ .Values.resources.driver.requests.memory }}
       maxAllowed:
         cpu: {{ .Values.vpa.resourcePolicy.driver.maxAllowed.cpu }}
         memory: {{ .Values.vpa.resourcePolicy.driver.maxAllowed.memory }}
       controlledValues: RequestsOnly
-    - containerName: onmetal-csi-provisioner
+    - containerName: ironcore-csi-provisioner
       minAllowed:
         memory: {{ .Values.resources.provisioner.requests.memory }}
       maxAllowed:
         cpu: {{ .Values.vpa.resourcePolicy.provisioner.maxAllowed.cpu }}
         memory: {{ .Values.vpa.resourcePolicy.provisioner.maxAllowed.memory }}
       controlledValues: RequestsOnly
-    - containerName: onmetal-csi-attacher
+    - containerName: ironcore-csi-attacher
       minAllowed:
         memory: {{ .Values.resources.attacher.requests.memory }}
       maxAllowed:
         cpu: {{ .Values.vpa.resourcePolicy.attacher.maxAllowed.cpu }}
         memory: {{ .Values.vpa.resourcePolicy.attacher.maxAllowed.memory }}
       controlledValues: RequestsOnly
-    - containerName: onmetal-csi-resizer
+    - containerName: ironcore-csi-resizer
       minAllowed:
         memory: {{ .Values.resources.resizer.requests.memory }}
       maxAllowed:
         cpu: {{ .Values.vpa.resourcePolicy.resizer.maxAllowed.cpu }}
         memory: {{ .Values.vpa.resourcePolicy.resizer.maxAllowed.memory }}
       controlledValues: RequestsOnly
-    - containerName: onmetal-csi-liveness-probe
+    - containerName: ironcore-csi-liveness-probe
       minAllowed:
         memory: {{ .Values.resources.livenessProbe.requests.memory }}
       maxAllowed:

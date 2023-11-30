@@ -1,4 +1,4 @@
-// Copyright 2023 OnMetal authors
+// Copyright 2023 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	reconcilerutils "github.com/gardener/gardener/pkg/controllerutils/reconciler"
 	"github.com/go-logr/logr"
-	commonv1alpha1 "github.com/onmetal/onmetal-api/api/common/v1alpha1"
-	computev1alpha1 "github.com/onmetal/onmetal-api/api/compute/v1alpha1"
-	corev1alpha1 "github.com/onmetal/onmetal-api/api/core/v1alpha1"
-	ipamv1alpha1 "github.com/onmetal/onmetal-api/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/onmetal/onmetal-api/api/networking/v1alpha1"
-	storagev1alpha1 "github.com/onmetal/onmetal-api/api/storage/v1alpha1"
+	commonv1alpha1 "github.com/ironcore-dev/ironcore/api/common/v1alpha1"
+	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
+	corev1alpha1 "github.com/ironcore-dev/ironcore/api/core/v1alpha1"
+	ipamv1alpha1 "github.com/ironcore-dev/ironcore/api/ipam/v1alpha1"
+	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
+	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -38,10 +38,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	controllerconfig "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/controller/bastion/ignition"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
+	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/controller/bastion/ignition"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 const (
@@ -82,17 +82,17 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 		return fmt.Errorf("failed to get infrastructure status: %w", err)
 	}
 
-	onmetalClient, namespace, err := onmetal.GetOnmetalClientAndNamespaceFromCloudProviderSecret(ctx, a.client, cluster.ObjectMeta.Name)
+	ironcoreClient, namespace, err := ironcore.GetIroncoreClientAndNamespaceFromCloudProviderSecret(ctx, a.client, cluster.ObjectMeta.Name)
 	if err != nil {
-		return fmt.Errorf("failed to get onmetal client and namespace from cloudprovider secret: %w", err)
+		return fmt.Errorf("failed to get ironcore client and namespace from cloudprovider secret: %w", err)
 	}
 
-	machine, err := a.applyMachineAndIgnitionSecret(ctx, namespace, onmetalClient, infraStatus, opt)
+	machine, err := a.applyMachineAndIgnitionSecret(ctx, namespace, ironcoreClient, infraStatus, opt)
 	if err != nil {
 		return fmt.Errorf("failed to create machine: %w", err)
 	}
 
-	if err = ensureNetworkPolicy(ctx, namespace, bastion, onmetalClient, infraStatus, machine); err != nil {
+	if err = ensureNetworkPolicy(ctx, namespace, bastion, ironcoreClient, infraStatus, machine); err != nil {
 		return fmt.Errorf("failed to create network policy: %w", err)
 	}
 
@@ -159,7 +159,7 @@ func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, e
 // bastion host machine. It first sets the owner reference for the ignition
 // secret to the bastion host machine, to ensure that the secret is garbage
 // collected when the bastion host is deleted.
-func (a *actuator) applyMachineAndIgnitionSecret(ctx context.Context, namespace string, onmetalClient client.Client, infraStatus *api.InfrastructureStatus, opt *Options) (*computev1alpha1.Machine, error) {
+func (a *actuator) applyMachineAndIgnitionSecret(ctx context.Context, namespace string, ironcoreClient client.Client, infraStatus *api.InfrastructureStatus, opt *Options) (*computev1alpha1.Machine, error) {
 	ignitionSecret, err := generateIgnitionSecret(namespace, opt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ignition secret: %w", err)
@@ -167,15 +167,15 @@ func (a *actuator) applyMachineAndIgnitionSecret(ctx context.Context, namespace 
 
 	bastionHost := generateMachine(namespace, a.bastionConfig, infraStatus, opt.BastionInstanceName, ignitionSecret.Name)
 
-	if _, err = controllerutil.CreateOrPatch(ctx, onmetalClient, bastionHost, nil); err != nil {
+	if _, err = controllerutil.CreateOrPatch(ctx, ironcoreClient, bastionHost, nil); err != nil {
 		return nil, fmt.Errorf("failed to create or patch bastion host machine %s: %w", client.ObjectKeyFromObject(bastionHost), err)
 	}
 
-	if err := controllerutil.SetOwnerReference(bastionHost, ignitionSecret, onmetalClient.Scheme()); err != nil {
+	if err := controllerutil.SetOwnerReference(bastionHost, ignitionSecret, ironcoreClient.Scheme()); err != nil {
 		return nil, fmt.Errorf("failed to set owner reference for ignition secret %s: %w", client.ObjectKeyFromObject(ignitionSecret), err)
 	}
 
-	if _, err = controllerutil.CreateOrPatch(ctx, onmetalClient, ignitionSecret, nil); err != nil {
+	if _, err = controllerutil.CreateOrPatch(ctx, ironcoreClient, ignitionSecret, nil); err != nil {
 		return nil, fmt.Errorf("failed to create or patch ignition secret %s for bastion host %s: %w", client.ObjectKeyFromObject(ignitionSecret), client.ObjectKeyFromObject(bastionHost), err)
 	}
 
@@ -327,7 +327,7 @@ func IngressReady(ingress *corev1.LoadBalancerIngress) bool {
 	return ingress != nil && (ingress.Hostname != "" || ingress.IP != "")
 }
 
-func ensureNetworkPolicy(ctx context.Context, namespace string, bastion *extensionsv1alpha1.Bastion, onmetalClient client.Client, infraStatus *api.InfrastructureStatus, bastionHost *computev1alpha1.Machine) error {
+func ensureNetworkPolicy(ctx context.Context, namespace string, bastion *extensionsv1alpha1.Bastion, ironcoreClient client.Client, infraStatus *api.InfrastructureStatus, bastionHost *computev1alpha1.Machine) error {
 	cidrs, err := getBastionIngressCIDR(bastion)
 	if err != nil {
 		return fmt.Errorf("failed to get CIDR from bastion ingress: %w", err)
@@ -372,11 +372,11 @@ func ensureNetworkPolicy(ctx context.Context, namespace string, bastion *extensi
 		networkPolicy.Spec.Ingress = append(networkPolicy.Spec.Ingress, ingressRule)
 	}
 
-	if err := controllerutil.SetOwnerReference(bastionHost, networkPolicy, onmetalClient.Scheme()); err != nil {
+	if err := controllerutil.SetOwnerReference(bastionHost, networkPolicy, ironcoreClient.Scheme()); err != nil {
 		return fmt.Errorf("failed to set owner reference for network policy %s: %w", client.ObjectKeyFromObject(networkPolicy), err)
 	}
 
-	if _, err = controllerutil.CreateOrPatch(ctx, onmetalClient, networkPolicy, nil); err != nil {
+	if _, err = controllerutil.CreateOrPatch(ctx, ironcoreClient, networkPolicy, nil); err != nil {
 		return fmt.Errorf("failed to create or patch network policy %s: %w", client.ObjectKeyFromObject(networkPolicy), err)
 	}
 

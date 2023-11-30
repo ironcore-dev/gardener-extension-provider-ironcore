@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	onmetalvalidation "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/validation"
+	ironcorevalidation "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/validation"
 )
 
 type secret struct{}
@@ -33,7 +33,7 @@ func NewSecretValidator() extensionswebhook.Validator {
 	return &secret{}
 }
 
-// Validate checks whether the given new secret contains a valid onmetal service account.
+// Validate checks whether the given new secret contains a valid ironcore service account.
 func (s *secret) Validate(_ context.Context, newObj, oldObj client.Object) error {
 	secret, ok := newObj.(*corev1.Secret)
 	if !ok {
@@ -51,5 +51,5 @@ func (s *secret) Validate(_ context.Context, newObj, oldObj client.Object) error
 		}
 	}
 
-	return onmetalvalidation.ValidateCloudProviderSecret(secret)
+	return ironcorevalidation.ValidateCloudProviderSecret(secret)
 }

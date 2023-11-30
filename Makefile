@@ -1,7 +1,7 @@
 EXTENSION_PREFIX            := gardener-extension
-NAME                        := provider-onmetal
+NAME                        := provider-ironcore
 REGISTRY                    := ghcr.io
-ADMISSION_NAME              := admission-onmetal
+ADMISSION_NAME              := admission-ironcore
 IMAGE_PREFIX                := $(REGISTRY)/extensions
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
@@ -56,7 +56,7 @@ MOCKGEN ?= $(LOCALBIN)/mockgen
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
 CONTROLLER_TOOLS_VERSION ?= v0.13.0
-VGOPATH_VERSION ?= v0.1.2
+VGOPATH_VERSION ?= v0.1.3
 CODE_GENERATOR_VERSION ?= v0.28.3
 ADDLICENSE_VERSION ?= v1.1.1
 GOIMPORTS_VERSION ?= v0.14.0
@@ -89,7 +89,7 @@ start-admission:
 		./cmd/$(EXTENSION_PREFIX)-$(ADMISSION_NAME) \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
-		--webhook-config-cert-dir=./example/admission-onmetal-certs
+		--webhook-config-cert-dir=./example/admission-ironcore-certs
 
 #################################################################
 # Rules related to binary build, Docker image build and release #
@@ -124,11 +124,11 @@ clean: $(CLEAN)
 
 .PHONY: add-license
 add-license: addlicense ## Add license headers to all go files.
-	find . -name '*.go' -exec $(ADDLICENSE) -c 'OnMetal authors' {} +
+	find . -name '*.go' -exec $(ADDLICENSE) -c 'IronCore authors' {} +
 
 .PHONY: check-license
 check-license: addlicense ## Check that every file has a license header present.
-	find . -name '*.go' -exec $(ADDLICENSE) -check -c 'OnMetal authors' {} +
+	find . -name '*.go' -exec $(ADDLICENSE) -check -c 'IronCore authors' {} +
 
 .PHONY: check
 check: generate generate-charts add-license fmt lint test # Generate manifests, code, lint, add licenses, test
@@ -153,7 +153,7 @@ generate-charts:
 
 .PHONY: docs
 docs: gen-crd-api-reference-docs ## Run go generate to generate API reference documentation.
-	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir ./pkg/apis/onmetal/v1alpha1 -config ./hack/api-reference/api.json -template-dir ./hack/api-reference/template -out-file ./hack/api-reference/api.md
+	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir ./pkg/apis/ironcore/v1alpha1 -config ./hack/api-reference/api.json -template-dir ./hack/api-reference/template -out-file ./hack/api-reference/api.md
 	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir ./pkg/apis/config/v1alpha1 -config ./hack/api-reference/config.json -template-dir ./hack/api-reference/template -out-file ./hack/api-reference/config.md
 
 .PHONY: format
@@ -216,7 +216,7 @@ $(ENVTEST): $(LOCALBIN)
 .PHONY: vgopath
 vgopath: $(VGOPATH) ## Download vgopath locally if necessary.
 $(VGOPATH): $(LOCALBIN)
-	test -s $(LOCALBIN)/vgopath || GOBIN=$(LOCALBIN) go install github.com/onmetal/vgopath@$(VGOPATH_VERSION)
+	test -s $(LOCALBIN)/vgopath || GOBIN=$(LOCALBIN) go install github.com/ironcore-dev/vgopath@$(VGOPATH_VERSION)
 
 .PHONY: deepcopy-gen
 deepcopy-gen: $(DEEPCOPY_GEN) ## Download deepcopy-gen locally if necessary.

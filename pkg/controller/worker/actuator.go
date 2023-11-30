@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	imagevectorutils "github.com/gardener/gardener/pkg/utils/imagevector"
-	api "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/onmetal/helper"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/internal/imagevector"
-	"github.com/onmetal/gardener-extension-provider-onmetal/pkg/onmetal"
+	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/helper"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes"
@@ -60,7 +60,7 @@ func NewActuator(mgr manager.Manager, gardenletManagesMCM bool) (worker.Actuator
 	)
 
 	if !gardenletManagesMCM {
-		mcmName = onmetal.MachineControllerManagerName
+		mcmName = ironcore.MachineControllerManagerName
 		mcmChartSeed = mcmChart
 		mcmChartShoot = mcmShootChart
 		imageVector = imagevector.ImageVector()

@@ -34,13 +34,13 @@ spec:
       automountServiceAccountToken: false
       priorityClassName: gardener-system-300
       containers:
-        - name: onmetal-cloud-controller-manager
+        - name: ironcore-cloud-controller-manager
           image: {{ index .Values.images "cloud-controller-manager" }}
           imagePullPolicy: IfNotPresent
           command:
-            - /onmetal-cloud-controller-manager
-            - --cloud-provider=onmetal
-            - --onmetal-kubeconfig=/etc/onmetal/kubeconfig
+            - /ironcore-cloud-controller-manager
+            - --cloud-provider=ironcore
+            - --ironcore-kubeconfig=/etc/ironcore/kubeconfig
             - --cloud-config=/etc/kubernetes/cloudprovider/cloudprovider.conf
             - --cluster-cidr={{ .Values.podNetwork }}
             - --cluster-name={{ .Values.clusterName }}
@@ -86,7 +86,7 @@ spec:
             - name: cloud-provider-config
               mountPath: /etc/kubernetes/cloudprovider
             - name: cloudprovider
-              mountPath: /etc/onmetal
+              mountPath: /etc/ironcore
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

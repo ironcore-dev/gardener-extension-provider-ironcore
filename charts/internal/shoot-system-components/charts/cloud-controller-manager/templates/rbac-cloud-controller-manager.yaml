@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: extensions.gardener.cloud:provider-onmetal:cloud-controller-manager
+  name: extensions.gardener.cloud:provider-ironcore:cloud-controller-manager
   annotations:
     resources.gardener.cloud/keep-object: "true"
 roleRef:

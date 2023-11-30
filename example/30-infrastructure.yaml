@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: shoot--foobar--onmetal
+  name: shoot--foobar--ironcore
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: core-onmetal
-  namespace: shoot--foobar--onmetal
+  name: core-ironcore
+  namespace: shoot--foobar--ironcore
 type: Opaque
 data:
   namespace: my-namespace
@@ -18,7 +18,7 @@ data:
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
 metadata:
-  name: shoot--foobar--onmetal
+  name: shoot--foobar--ironcore
 spec:
   cloudProfile:
     apiVersion: core.gardener.cloud/v1beta1
@@ -40,16 +40,16 @@ spec:
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Infrastructure
 metadata:
-  name: onmetal-infra
-  namespace: shoot--foobar--onmetal
+  name: ironcore-infra
+  namespace: shoot--foobar--ironcore
 spec:
-  type: onmetal
+  type: ironcore
   region: my-region
   secretRef:
-    namespace: shoot--foobar--onmetal
-    name: core-onmetal
+    namespace: shoot--foobar--ironcore
+    name: core-ironcore
   providerConfig:
-    apiVersion: onmetal.provider.extensions.gardener.cloud/v1alpha1
+    apiVersion: ironcore.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureConfig
     #networkRef: # (optional)
     #  name: my-network

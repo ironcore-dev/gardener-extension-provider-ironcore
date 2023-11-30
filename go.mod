@@ -1,4 +1,4 @@
-module github.com/onmetal/gardener-extension-provider-onmetal
+module github.com/ironcore-dev/gardener-extension-provider-ironcore
 
 go 1.21
 
@@ -13,8 +13,8 @@ require (
 	github.com/gardener/machine-controller-manager v0.50.1
 	github.com/go-logr/logr v1.3.0
 	github.com/imdario/mergo v0.3.16
-	github.com/onmetal/controller-utils v0.8.3
-	github.com/onmetal/onmetal-api v0.1.2-0.20230928225058-754dd4d16010
+	github.com/ironcore-dev/controller-utils v0.9.0
+	github.com/ironcore-dev/ironcore v0.1.2-0.20231120144059-30dd02e88870
 	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.30.0
 	github.com/spf13/cobra v1.8.0
@@ -69,7 +69,7 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
@@ -100,7 +100,7 @@ require (
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/oauth2 v0.10.0 // indirect
+	golang.org/x/oauth2 v0.11.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
@@ -108,8 +108,8 @@ require (
 	golang.org/x/tools v0.14.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230711160842-782d3b101e98 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230711160842-782d3b101e98 // indirect
+	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -118,10 +118,10 @@ require (
 	istio.io/client-go v1.17.1 // indirect
 	k8s.io/apiserver v0.28.4 // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
-	k8s.io/klog/v2 v2.100.1 // indirect
-	k8s.io/kube-aggregator v0.28.2 // indirect
+	k8s.io/klog/v2 v2.110.1 // indirect
+	k8s.io/kube-aggregator v0.28.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9 // indirect
 	k8s.io/metrics v0.28.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 )

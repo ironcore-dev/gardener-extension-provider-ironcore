@@ -1,6 +1,6 @@
-### admission-onmetal
+### admission-ironcore
 
-`admission-onmetal` is an admission webhook server which is responsible for the validation of the cloud provider (onmetal in this case) specific fields and resources. The Gardener API server is cloud provider agnostic and it wouldn't be able to perform similar validation.
+`admission-ironcore` is an admission webhook server which is responsible for the validation of the cloud provider (ironcore in this case) specific fields and resources. The Gardener API server is cloud provider agnostic and it wouldn't be able to perform similar validation.
 
 Follow the steps below to run the admission webhook server locally.
 
@@ -18,10 +18,10 @@ Follow the steps below to run the admission webhook server locally.
 
 1. Setup the `ValidatingWebhookConfiguration`.
 
-    `hack/dev-setup-admission-onmetal.sh` will configure the webhook Service which will allow the kube-apiserver of your local cluster to reach the webhook server. It will also apply the `ValidatingWebhookConfiguration` manifest.
+    `hack/dev-setup-admission-ironcore.sh` will configure the webhook Service which will allow the kube-apiserver of your local cluster to reach the webhook server. It will also apply the `ValidatingWebhookConfiguration` manifest.
 
     ```bash
-    ./hack/dev-setup-admission-onmetal.sh
+    ./hack/dev-setup-admission-ironcore.sh
     ```
 
-You are now ready to experiment with the `admission-onmetal` webhook server locally.
+You are now ready to experiment with the `admission-ironcore` webhook server locally.

@@ -1,4 +1,4 @@
-// Copyright 2022 OnMetal authors
+// Copyright 2022 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
 // limitations under the License.
 
 // +k8s:deepcopy-gen=package
-// +k8s:conversion-gen=github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config
+// +k8s:conversion-gen=github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config
 // +k8s:openapi-gen=true
 // +k8s:defaulter-gen=TypeMeta
 
-// Package v1alpha1 contains the onmetal provider configuration API resources.
-// +groupName=	onmetal.provider.extensions.config.gardener.cloud
-package v1alpha1 // import "github.com/onmetal/gardener-extension-provider-onmetal/pkg/apis/config/v1alpha1"
+// Package v1alpha1 contains the ironcore provider configuration API resources.
+// +groupName=	ironcore.provider.extensions.config.gardener.cloud
+package v1alpha1 // import "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config/v1alpha1"
