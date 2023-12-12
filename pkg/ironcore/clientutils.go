@@ -10,16 +10,15 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
+	ipamv1alpha1 "github.com/ironcore-dev/ironcore/api/ipam/v1alpha1"
+	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
+	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
-	ipamv1alpha1 "github.com/ironcore-dev/ironcore/api/ipam/v1alpha1"
-	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
-	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 )
 
 var ironcoreScheme = runtime.NewScheme()

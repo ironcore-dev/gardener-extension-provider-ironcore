@@ -13,16 +13,17 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	imagevectorutils "github.com/gardener/gardener/pkg/utils/imagevector"
-	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/helper"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/helper"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 type delegateFactory struct {

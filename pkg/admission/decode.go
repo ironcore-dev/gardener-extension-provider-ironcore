@@ -5,8 +5,9 @@ package admission
 
 import (
 	"github.com/gardener/gardener/extensions/pkg/util"
-	ironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	ironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 )
 
 // DecodeControlPlaneConfig decodes the `ControlPlaneConfig` from the given `RawExtension`.

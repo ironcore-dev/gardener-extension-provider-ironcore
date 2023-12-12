@@ -5,9 +5,10 @@ package bastion
 
 import (
 	"github.com/gardener/gardener/extensions/pkg/controller/bastion"
-	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
 )
 
 type actuator struct {

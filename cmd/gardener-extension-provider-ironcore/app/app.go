@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
+	druidv1alpha1 "github.com/gardener/etcd-druid-api/core/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
@@ -18,6 +18,13 @@ import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"k8s.io/component-base/version/verflag"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+
 	ironcoreinstall "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/install"
 	ironcorecmd "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/cmd"
 	backupbucketcontroller "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/controller/backupbucket"
@@ -29,12 +36,6 @@ import (
 	workercontroller "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/controller/worker"
 	ironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	controlplanewebhook "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/webhook/controlplane"
-	"github.com/spf13/cobra"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
-	"k8s.io/component-base/version/verflag"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // NewControllerManagerCommand creates a new command for running a ironcore provider controller.

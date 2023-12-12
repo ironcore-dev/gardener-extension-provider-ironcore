@@ -7,16 +7,16 @@ import (
 	"context"
 	"fmt"
 
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var (
