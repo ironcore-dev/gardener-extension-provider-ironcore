@@ -60,7 +60,6 @@ echo "${bold}Public types${normal}"
 
 echo "Generating ${blue}deepcopy${normal}"
 "$DEEPCOPY_GEN" \
-  --output-base "$GOPATH/src" \
   --go-header-file "$BASE_DIR/boilerplate.go.txt" \
   --input-dirs "$(qualify-gvs "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis" "config:v1alpha1 ironcore:v1alpha1")" \
   -O zz_generated.deepcopy
@@ -69,21 +68,18 @@ echo "${bold}Internal types${normal}"
 
 echo "Generating ${blue}deepcopy${normal}"
 "$DEEPCOPY_GEN" \
-  --output-base "$GOPATH/src" \
   --go-header-file "$BASE_DIR/boilerplate.go.txt" \
   --input-dirs "$(qualify-gs "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis" "config ironcore")" \
   -O zz_generated.deepcopy
 
 echo "Generating ${blue}defaulter${normal}"
 "$DEFAULTER_GEN" \
-  --output-base "$GOPATH/src" \
   --go-header-file "$BASE_DIR/boilerplate.go.txt" \
   --input-dirs "$(qualify-gvs "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis" "config:v1alpha1 ironcore:v1alpha1")" \
   -O zz_generated.defaults
 
 echo "Generating ${blue}conversion${normal}"
 "$CONVERSION_GEN" \
-  --output-base "$GOPATH/src" \
   --go-header-file "$BASE_DIR/boilerplate.go.txt" \
   --input-dirs "$(qualify-gs "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis" "config ironcore")" \
   --input-dirs "$(qualify-gvs "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis" "config:v1alpha1 ironcore:v1alpha1")" \

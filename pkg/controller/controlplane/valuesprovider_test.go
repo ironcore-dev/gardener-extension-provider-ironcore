@@ -94,11 +94,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 			Expect(k8sClient.Create(ctx, cp)).To(Succeed())
 
-			By("ensuring that the provider secret has been created")
+			By("ensuring that the provider ConfigMap has been created")
 			config := &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: ns.Name,
-					Name:      internal.CloudProviderSecretName,
+					Name:      internal.CloudProviderConfigMapName,
 				},
 			}
 			Eventually(Get(config)).Should(Succeed())

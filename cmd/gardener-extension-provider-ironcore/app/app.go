@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	druidv1alpha1 "github.com/gardener/etcd-druid-api/core/v1alpha1"
+	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
@@ -35,7 +35,6 @@ import (
 	infrastructurecontroller "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/controller/infrastructure"
 	workercontroller "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/controller/worker"
 	ironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
-	controlplanewebhook "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/webhook/controlplane"
 )
 
 // NewControllerManagerCommand creates a new command for running a ironcore provider controller.
@@ -187,12 +186,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.IgnoreOperationAnnotation)
-
-			// TODO(rfranzke): Remove the GardenletManagesMCM fields as soon as the general options no longer support the
-			//  GardenletManagesMCM field.
-			workercontroller.DefaultAddOptions.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
-			controlplanewebhook.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
-			healthcheck.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
 
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)

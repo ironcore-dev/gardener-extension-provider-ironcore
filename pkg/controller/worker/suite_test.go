@@ -60,7 +60,7 @@ var (
 	cloudProfileConfig *apiv1alpha1.CloudProfileConfig
 
 	clusterWithoutImages   *extensionscontroller.Cluster
-	cluster                *extensionscontroller.Cluster
+	testCluster            *extensionscontroller.Cluster
 	cloudProfileConfigJSON []byte
 
 	w *gardenerextensionv1alpha1.Worker
@@ -200,7 +200,7 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 			},
 		}
 		cloudProfileConfigJSON, _ = json.Marshal(cloudProfileConfig)
-		cluster = &extensionscontroller.Cluster{
+		testCluster = &extensionscontroller.Cluster{
 			CloudProfile: &gardencorev1beta1.CloudProfile{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "ironcore",

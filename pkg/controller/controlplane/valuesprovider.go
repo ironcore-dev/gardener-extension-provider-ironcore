@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Masterminds/semver"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
@@ -36,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/charts"
 	apisironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal"
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
@@ -86,16 +86,18 @@ func shootAccessSecretsFunc(namespace string) []*gutil.AccessSecret {
 
 var (
 	configChart = &chart.Chart{
-		Name: "cloud-provider-config",
-		Path: filepath.Join(ironcore.InternalChartsPath, "cloud-provider-config"),
+		Name:       "cloud-provider-config",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "cloud-provider-config"),
 		Objects: []*chart.Object{
-			{Type: &corev1.ConfigMap{}, Name: internal.CloudProviderSecretName},
+			{Type: &corev1.ConfigMap{}, Name: internal.CloudProviderConfigMapName},
 		},
 	}
 
 	controlPlaneChart = &chart.Chart{
-		Name: "seed-controlplane",
-		Path: filepath.Join(ironcore.InternalChartsPath, "seed-controlplane"),
+		Name:       "seed-controlplane",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "seed-controlplane"),
 		SubCharts: []*chart.Chart{
 			{
 				Name:   ironcore.CloudControllerManagerName,
@@ -127,12 +129,13 @@ var (
 	}
 
 	controlPlaneShootChart = &chart.Chart{
-		Name: "shoot-system-components",
-		Path: filepath.Join(ironcore.InternalChartsPath, "shoot-system-components"),
+		Name:       "shoot-system-components",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "shoot-system-components"),
 		SubCharts: []*chart.Chart{
 			{
 				Name: "cloud-controller-manager",
-				Path: filepath.Join(ironcore.InternalChartsPath, "cloud-controller-manager"),
+				Path: filepath.Join(charts.InternalChartsPath, "cloud-controller-manager"),
 				Objects: []*chart.Object{
 					{Type: &rbacv1.ClusterRole{}, Name: "system:controller:cloud-node-controller"},
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:controller:cloud-node-controller"},
@@ -177,8 +180,9 @@ var (
 	}
 
 	storageClassChart = &chart.Chart{
-		Name: "shoot-storageclasses",
-		Path: filepath.Join(ironcore.InternalChartsPath, "shoot-storageclasses"),
+		Name:       "shoot-storageclasses",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "shoot-storageclasses"),
 	}
 )
 
@@ -374,11 +378,6 @@ func getCCMChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	kubeVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
-	if err != nil {
-		return nil, err
-	}
-
 	serverSecret, found := secretsReader.Get(cloudControllerManagerServerName)
 	if !found {
 		return nil, fmt.Errorf("secret %q not found", cloudControllerManagerServerName)
@@ -390,12 +389,12 @@ func getCCMChartValues(
 		"clusterName": cp.Namespace,
 		"podNetwork":  extensionscontroller.GetPodNetwork(cluster),
 		"podAnnotations": map[string]interface{}{
-			"checksum/secret-" + internal.CloudProviderSecretName: checksums[internal.CloudProviderSecretName],
+			"checksum/secret-" + internal.CloudProviderConfigMapName: checksums[internal.CloudProviderConfigMapName],
 		},
 		"podLabels": map[string]interface{}{
 			v1beta1constants.LabelPodMaintenanceRestart: "true",
 		},
-		"tlsCipherSuites": kutil.TLSCipherSuites(kubeVersion),
+		"tlsCipherSuites": kutil.TLSCipherSuites,
 		"secrets": map[string]interface{}{
 			"server": serverSecret.Name,
 		},

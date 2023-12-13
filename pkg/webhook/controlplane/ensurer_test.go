@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
@@ -232,18 +232,6 @@ var _ = Describe("Ensurer", func() {
 			deployment = &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: "foo"}}
 		})
 
-		Context("when gardenlet does not manage MCM", func() {
-			BeforeEach(func() {
-				ensurer = NewEnsurer(logger, false)
-			})
-
-			It("should do nothing", func() {
-				deploymentBefore := deployment.DeepCopy()
-				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(Succeed())
-				Expect(deployment).To(Equal(deploymentBefore))
-			})
-		})
-
 		Context("when gardenlet manages MCM", func() {
 			BeforeEach(func() {
 				ensurer = NewEnsurer(logger, true)
@@ -323,18 +311,6 @@ var _ = Describe("Ensurer", func() {
 
 		BeforeEach(func() {
 			vpa = &vpaautoscalingv1.VerticalPodAutoscaler{}
-		})
-
-		Context("when gardenlet does not manage MCM", func() {
-			BeforeEach(func() {
-				ensurer = NewEnsurer(logger, false)
-			})
-
-			It("should do nothing", func() {
-				vpaBefore := vpa.DeepCopy()
-				Expect(ensurer.EnsureMachineControllerManagerVPA(ctx, nil, vpa, nil)).To(Succeed())
-				Expect(vpa).To(Equal(vpaBefore))
-			})
 		})
 
 		Context("when gardenlet manages MCM", func() {

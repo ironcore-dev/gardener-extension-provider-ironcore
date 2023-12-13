@@ -27,25 +27,6 @@ import (
 var _ = Describe("Machines", func() {
 	ns, _ := SetupTest()
 
-	It("should create the correct kind of the machine class", func() {
-		workerDelegate, err := NewWorkerDelegate(nil, nil, nil, "", nil, nil)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(workerDelegate.MachineClassKind()).To(Equal("MachineClass"))
-	})
-
-	It("should create the correct type for the machine class", func() {
-		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
-		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, clusterWithoutImages)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(workerDelegate.MachineClass()).To(Equal(&machinecontrollerv1alpha1.MachineClass{}))
-	})
-
-	It("should create the correct type for the machine class list", func() {
-		workerDelegate, err := NewWorkerDelegate(k8sClient, nil, k8sClient.Scheme(), "", w, cluster)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(workerDelegate.MachineClassList()).To(Equal(&machinecontrollerv1alpha1.MachineClassList{}))
-	})
-
 	It("should create the expected machine class for a multi zone cluster", func(ctx SpecContext) {
 		By("defining and setting infrastructure status for worker")
 		infraStatus := &ironcoreextensionv1alpha1.InfrastructureStatus{
@@ -66,13 +47,13 @@ var _ = Describe("Machines", func() {
 
 		By("deploying the machine class for a given multi zone cluster")
 		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
-		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, cluster)
+		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, testCluster)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = workerDelegate.DeployMachineClasses(ctx)
 		Expect(err).NotTo(HaveOccurred())
 
-		workerPoolHash, err := worker.WorkerPoolHash(pool, cluster)
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("ensuring that the machine class for each pool has been deployed")
@@ -97,12 +78,11 @@ var _ = Describe("Machines", func() {
 			"networkName": infraStatus.NetworkRef.Name,
 			"prefixName":  infraStatus.PrefixRef.Name,
 			"labels": map[string]interface{}{
-				ironcore.ClusterNameLabel: cluster.ObjectMeta.Name,
+				ironcore.ClusterNameLabel: testCluster.ObjectMeta.Name,
 			},
 		}
 
 		Eventually(Object(machineClass)).Should(SatisfyAll(
-			HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
 			HaveField("CredentialsSecretRef", &corev1.SecretReference{
 				Namespace: w.Spec.SecretRef.Namespace,
 				Name:      w.Spec.SecretRef.Name,
@@ -132,14 +112,14 @@ var _ = Describe("Machines", func() {
 		}
 
 		Eventually(Object(machineClassSecret)).Should(SatisfyAll(
-			HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, genericworkeractuator.GardenPurposeMachineClass)),
+			HaveField("ObjectMeta.Labels", HaveKeyWithValue(v1beta1constants.GardenerPurpose, v1beta1constants.GardenPurposeMachineClass)),
 			HaveField("Data", HaveKeyWithValue("userData", []byte("some-data"))),
 		))
 	})
 
 	It("should generate the machine deployments", func(ctx SpecContext) {
 		By("creating a worker delegate")
-		workerPoolHash, err := worker.WorkerPoolHash(pool, cluster)
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster)
 		Expect(err).NotTo(HaveOccurred())
 		var (
 			deploymentName1 = fmt.Sprintf("%s-%s-z%d", w.Namespace, pool.Name, 1)
@@ -148,7 +128,7 @@ var _ = Describe("Machines", func() {
 			className2      = fmt.Sprintf("%s-%s", deploymentName2, workerPoolHash)
 		)
 		decoder := serializer.NewCodecFactory(k8sClient.Scheme(), serializer.EnableStrict).UniversalDecoder()
-		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, cluster)
+		workerDelegate, err := NewWorkerDelegate(k8sClient, decoder, k8sClient.Scheme(), "", w, testCluster)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("generating the machine deployments")

@@ -9,6 +9,7 @@
 //
 //	mockgen -copyright_file ../../../hack/license-header.txt -package backupentry -destination=mock_backupentry.go -source backupentry.go S3ClientGetter,S3ObjectLister
 //
+
 // Package backupentry is a generated GoMock package.
 package backupentry
 

@@ -24,21 +24,6 @@ import (
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
-// MachineClassKind yields the name of the machine class kind used by ironcore provider.
-func (w *workerDelegate) MachineClassKind() string {
-	return "MachineClass"
-}
-
-// MachineClass yields a newly initialized machine class object.
-func (w *workerDelegate) MachineClass() client.Object {
-	return &machinecontrollerv1alpha1.MachineClass{}
-}
-
-// MachineClassList yields a newly initialized MachineClassList object.
-func (w *workerDelegate) MachineClassList() client.ObjectList {
-	return &machinecontrollerv1alpha1.MachineClassList{}
-}
-
 // DeployMachineClasses generates and creates the ironcore specific machine classes.
 func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 	machineClasses, machineClassSecrets, err := w.generateMachineClassAndSecrets()
@@ -168,9 +153,6 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      className,
 					Namespace: w.worker.Namespace,
-					Labels: map[string]string{
-						v1beta1constants.GardenerPurpose: genericworkeractuator.GardenPurposeMachineClass,
-					},
 				},
 				NodeTemplate: nodeTemplate,
 				CredentialsSecretRef: &corev1.SecretReference{
@@ -191,9 +173,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      className,
 					Namespace: w.worker.Namespace,
-					Labels: map[string]string{
-						v1beta1constants.GardenerPurpose: genericworkeractuator.GardenPurposeMachineClass,
-					},
+					Labels:    map[string]string{v1beta1constants.GardenerPurpose: v1beta1constants.GardenPurposeMachineClass},
 				},
 				Data: map[string][]byte{
 					ironcore.UserDataFieldName: pool.UserData,
