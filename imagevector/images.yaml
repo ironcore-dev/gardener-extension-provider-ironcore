@@ -2,7 +2,7 @@ images:
 - name: cloud-controller-manager
   sourceRepository: github.com/ironcore-dev/cloud-provider-ironcore
   repository: ghcr.io/ironcore-dev/cloud-provider-ironcore
-  tag: "v0.2.0"
+  tag: "v0.3.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -16,7 +16,7 @@ images:
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
-  tag: "v0.50.0"
+  tag: "v0.50.1"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -29,7 +29,7 @@ images:
 - name: machine-controller-manager-provider-ironcore
   sourceRepository: github.com/ironcore-dev/machine-controller-manager-provider-ironcore
   repository: ghcr.io/ironcore-dev/machine-controller-manager-provider-ironcore
-  tag: "v0.1.8"
+  tag: "v0.2.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -43,7 +43,7 @@ images:
 - name: csi-driver
   sourceRepository: github.com/ironcore-dev/ironcore-csi-driver
   repository: ghcr.io/ironcore-dev/ironcore-csi-driver
-  tag: "v0.2.0"
+  tag: "v0.3.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -57,8 +57,7 @@ images:
 - name: csi-provisioner
   sourceRepository: github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
-  tag: "v3.4.1"
-  targetVersion: ">= 1.22"
+  tag: "v3.6.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -71,8 +70,7 @@ images:
 - name: csi-attacher
   sourceRepository: github.com/kubernetes-csi/external-attacher
   repository: registry.k8s.io/sig-storage/csi-attacher
-  tag: "v4.2.0"
-  targetVersion: ">= 1.22"
+  tag: "v4.5.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -85,8 +83,7 @@ images:
 - name: csi-resizer
   sourceRepository: github.com/kubernetes-csi/external-resizer
   repository: registry.k8s.io/sig-storage/csi-resizer
-  tag: "v1.8.0"
-  targetVersion: ">= 1.23"
+  tag: "v1.9.3"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -99,7 +96,7 @@ images:
 - name: csi-node-driver-registrar
   sourceRepository: github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-  tag: "v2.7.0"
+  tag: "v2.10.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -112,7 +109,7 @@ images:
 - name: csi-liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: registry.k8s.io/sig-storage/livenessprobe
-  tag: "v2.9.0"
+  tag: "v2.12.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
