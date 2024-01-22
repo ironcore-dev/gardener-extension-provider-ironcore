@@ -8,13 +8,15 @@ import (
 	"fmt"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	ipamv1alpha1 "github.com/ironcore-dev/ironcore/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 // Delete implements infrastructure.Actuator.
@@ -41,6 +43,10 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extension
 
 	log.V(2).Info("Successfully deleted infrastructure")
 	return nil
+}
+
+func (a *actuator) ForceDelete(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+	return a.Delete(ctx, log, infra, cluster)
 }
 
 func (a *actuator) deletePrefix(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) error {

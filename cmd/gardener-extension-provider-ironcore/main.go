@@ -7,9 +7,10 @@ import (
 	"os"
 
 	"github.com/gardener/gardener/pkg/logger"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/cmd/gardener-extension-provider-ironcore/app"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/cmd/gardener-extension-provider-ironcore/app"
 )
 
 func main() {

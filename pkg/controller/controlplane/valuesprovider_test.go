@@ -7,18 +7,20 @@ import (
 	"os"
 	"path/filepath"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
+	"github.com/ironcore-dev/ironcore/api/common/v1alpha1"
+	corev1alpha1 "github.com/ironcore-dev/ironcore/api/core/v1alpha1"
+	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -30,9 +32,6 @@ import (
 	apisironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal"
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
-	"github.com/ironcore-dev/ironcore/api/common/v1alpha1"
-	corev1alpha1 "github.com/ironcore-dev/ironcore/api/core/v1alpha1"
-	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 )
 
 var _ = Describe("Valueprovider Reconcile", func() {
@@ -95,11 +94,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 			Expect(k8sClient.Create(ctx, cp)).To(Succeed())
 
-			By("ensuring that the provider secret has been created")
+			By("ensuring that the provider ConfigMap has been created")
 			config := &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: ns.Name,
-					Name:      internal.CloudProviderSecretName,
+					Name:      internal.CloudProviderConfigMapName,
 				},
 			}
 			Eventually(Get(config)).Should(Succeed())

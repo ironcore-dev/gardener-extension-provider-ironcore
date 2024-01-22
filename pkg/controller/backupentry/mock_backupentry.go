@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 SAP SE or an SAP affiliate company and IronCore contributors
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and IronCore contributors
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -9,6 +9,7 @@
 //
 //	mockgen -copyright_file ../../../hack/license-header.txt -package backupentry -destination=mock_backupentry.go -source backupentry.go S3ClientGetter,S3ObjectLister
 //
+
 // Package backupentry is a generated GoMock package.
 package backupentry
 

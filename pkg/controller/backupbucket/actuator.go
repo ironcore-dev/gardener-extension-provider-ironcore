@@ -10,12 +10,13 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/backupbucket"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 type actuator struct {

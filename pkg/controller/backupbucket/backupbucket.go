@@ -10,6 +10,7 @@ import (
 
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -18,7 +19,6 @@ import (
 
 	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
-	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 )
 
 const (

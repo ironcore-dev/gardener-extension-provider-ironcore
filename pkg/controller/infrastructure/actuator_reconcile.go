@@ -10,10 +10,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/helper"
-	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"github.com/ironcore-dev/ironcore/api/common/v1alpha1"
 	ipamv1alpha1 "github.com/ironcore-dev/ironcore/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
@@ -23,6 +19,11 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/helper"
+	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 const (

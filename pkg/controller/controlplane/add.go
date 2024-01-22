@@ -5,18 +5,17 @@ package controlplane
 
 import (
 	"context"
-	"fmt"
-
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sync/atomic"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/imagevector"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var (
@@ -30,26 +29,33 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
+	// ShootWebhookConfig specifies the desired Shoot MutatingWebhooksConfiguration.
+	ShootWebhookConfig *atomic.Value
 	// WebhookServerNamespace is the namespace in which the webhook server runs.
 	WebhookServerNamespace string
-	// WebhookServerPort is the port on which the webhook server listens.
-	WebhookServerPort int
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
-	webhookServer := mgr.GetWebhookServer()
-	defaultServer, ok := webhookServer.(*webhook.DefaultServer)
-	if !ok {
-		return fmt.Errorf("expected *webhook.DefaultServer, got %T", webhookServer)
-	}
-
-	genericActuator, err := genericactuator.NewActuator(mgr, ironcore.ProviderName,
-		secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
-		configChart, controlPlaneChart, controlPlaneShootChart, nil, storageClassChart, nil,
-		NewValuesProvider(mgr), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-		imagevector.ImageVector(), ironcore.CloudProviderConfigName, nil, opts.WebhookServerNamespace, defaultServer.Options.Port)
+	genericActuator, err := genericactuator.NewActuator(mgr,
+		ironcore.ProviderName,
+		secretConfigsFunc,
+		shootAccessSecretsFunc,
+		nil,
+		nil,
+		configChart,
+		controlPlaneChart,
+		controlPlaneShootChart,
+		nil,
+		storageClassChart,
+		nil,
+		NewValuesProvider(mgr),
+		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
+		imagevector.ImageVector(),
+		ironcore.CloudProviderConfigName,
+		opts.ShootWebhookConfig,
+		opts.WebhookServerNamespace)
 
 	if err != nil {
 		return err

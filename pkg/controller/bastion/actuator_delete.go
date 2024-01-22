@@ -8,11 +8,13 @@ import (
 	"fmt"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 // Delete implements bastion.Actuator.
@@ -40,4 +42,8 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensi
 
 	log.V(2).Info("Deleted bastion host")
 	return nil
+}
+
+func (a *actuator) ForceDelete(ctx context.Context, log logr.Logger, bastion *extensionsv1alpha1.Bastion, cluster *extensionscontroller.Cluster) error {
+	return a.Delete(ctx, log, bastion, cluster)
 }

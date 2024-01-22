@@ -3,7 +3,9 @@
 
 package worker
 
-import "context"
+import (
+	"context"
+)
 
 // DeployMachineDependencies implements genericactuator.WorkerDelegate.
 // Deprecated: Do not use this func. It is deprecated in genericactuator.WorkerDelegate.

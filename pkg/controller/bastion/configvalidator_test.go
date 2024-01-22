@@ -9,13 +9,14 @@ import (
 	gardenerextensionv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	. "github.com/gardener/gardener/pkg/utils/test/matchers"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gstruct "github.com/onsi/gomega/gstruct"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var _ = Describe("ConfigValidator", func() {

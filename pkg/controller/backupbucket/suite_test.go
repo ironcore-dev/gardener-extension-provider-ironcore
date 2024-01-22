@@ -9,23 +9,19 @@ import (
 	"testing"
 	"time"
 
-	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/ironcore-dev/controller-utils/buildutils"
 	"github.com/ironcore-dev/controller-utils/modutils"
 	corev1alpha1 "github.com/ironcore-dev/ironcore/api/core/v1alpha1"
 	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	utilsenvtest "github.com/ironcore-dev/ironcore/utils/envtest"
 	"github.com/ironcore-dev/ironcore/utils/envtest/apiserver"
-
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,6 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
 	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"

@@ -6,46 +6,41 @@ package controlplane
 import (
 	"context"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
-	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
+	extensionscontextwebhook "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/component/machinecontrollermanager"
 	"github.com/go-logr/logr"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/internal/imagevector"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/imagevector"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 // NewEnsurer creates a new controlplane ensurer.
 func NewEnsurer(logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
 	return &ensurer{
-		logger:              logger.WithName("ironcore-controlplane-ensurer"),
-		gardenletManagesMCM: gardenletManagesMCM,
+		logger: logger.WithName("ironcore-controlplane-ensurer"),
 	}
 }
 
 type ensurer struct {
 	genericmutator.NoopEnsurer
-	logger              logr.Logger
-	gardenletManagesMCM bool
+	logger logr.Logger
 }
 
 // ImageVector is exposed for testing.
 var ImageVector = imagevector.ImageVector()
 
 // EnsureMachineControllerManagerDeployment ensures that the machine-controller-manager deployment conforms to the provider requirements.
-func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
-	if !e.gardenletManagesMCM {
-		return nil
-	}
-
+func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ extensionscontextwebhook.GardenContext, newObj, _ *appsv1.Deployment) error {
 	image, err := ImageVector.FindImage(ironcore.MachineControllerManagerProviderIroncoreImageName)
 	if err != nil {
 		return err
@@ -81,11 +76,7 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 }
 
 // EnsureMachineControllerManagerVPA ensures that the machine-controller-manager VPA conforms to the provider requirements.
-func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ gcontext.GardenContext, newObj, _ *vpaautoscalingv1.VerticalPodAutoscaler) error {
-	if !e.gardenletManagesMCM {
-		return nil
-	}
-
+func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ extensionscontextwebhook.GardenContext, newObj, _ *vpaautoscalingv1.VerticalPodAutoscaler) error {
 	var (
 		minAllowed = corev1.ResourceList{
 			corev1.ResourceCPU:    resource.MustParse("30m"),
@@ -109,7 +100,7 @@ func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ gcontex
 }
 
 // EnsureKubeAPIServerDeployment ensures that the kube-apiserver deployment conforms to the provider requirements.
-func (e *ensurer) EnsureKubeAPIServerDeployment(_ context.Context, _ gcontext.GardenContext, new, _ *appsv1.Deployment) error {
+func (e *ensurer) EnsureKubeAPIServerDeployment(_ context.Context, _ extensionscontextwebhook.GardenContext, new, _ *appsv1.Deployment) error {
 	template := &new.Spec.Template
 	ps := &template.Spec
 
@@ -121,7 +112,7 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(_ context.Context, _ gcontext.Ga
 }
 
 // EnsureKubeControllerManagerDeployment ensures that the kube-controller-manager deployment conforms to the provider requirements.
-func (e *ensurer) EnsureKubeControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, new, _ *appsv1.Deployment) error {
+func (e *ensurer) EnsureKubeControllerManagerDeployment(_ context.Context, _ extensionscontextwebhook.GardenContext, new, _ *appsv1.Deployment) error {
 	template := &new.Spec.Template
 	ps := &template.Spec
 
@@ -133,12 +124,12 @@ func (e *ensurer) EnsureKubeControllerManagerDeployment(_ context.Context, _ gco
 }
 
 // EnsureKubeSchedulerDeployment ensures that the kube-scheduler deployment conforms to the provider requirements.
-func (e *ensurer) EnsureKubeSchedulerDeployment(_ context.Context, _ gcontext.GardenContext, _, _ *appsv1.Deployment) error {
+func (e *ensurer) EnsureKubeSchedulerDeployment(_ context.Context, _ extensionscontextwebhook.GardenContext, _, _ *appsv1.Deployment) error {
 	return nil
 }
 
 // EnsureClusterAutoscalerDeployment ensures that the cluster-autoscaler deployment conforms to the provider requirements.
-func (e *ensurer) EnsureClusterAutoscalerDeployment(_ context.Context, _ gcontext.GardenContext, _, _ *appsv1.Deployment) error {
+func (e *ensurer) EnsureClusterAutoscalerDeployment(_ context.Context, _ extensionscontextwebhook.GardenContext, _, _ *appsv1.Deployment) error {
 	return nil
 }
 
@@ -157,7 +148,7 @@ func ensureKubeControllerManagerCommandLineArgs(c *corev1.Container) {
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
-func (e *ensurer) EnsureKubeletServiceUnitOptions(_ context.Context, _ gcontext.GardenContext, _ *semver.Version, new, _ []*unit.UnitOption) ([]*unit.UnitOption, error) {
+func (e *ensurer) EnsureKubeletServiceUnitOptions(_ context.Context, _ extensionscontextwebhook.GardenContext, _ *semver.Version, new, _ []*unit.UnitOption) ([]*unit.UnitOption, error) {
 	if opt := extensionswebhook.UnitOptionWithSectionAndName(new, "Service", "ExecStart"); opt != nil {
 		command := extensionswebhook.DeserializeCommandLine(opt.Value)
 		command = ensureKubeletCommandLineArgs(command)
@@ -179,21 +170,21 @@ func ensureKubeletCommandLineArgs(command []string) []string {
 }
 
 // EnsureKubeletConfiguration ensures that the kubelet configuration conforms to the provider requirements.
-func (e *ensurer) EnsureKubeletConfiguration(_ context.Context, _ gcontext.GardenContext, _ *semver.Version, _, _ *kubeletconfigv1beta1.KubeletConfiguration) error {
+func (e *ensurer) EnsureKubeletConfiguration(_ context.Context, _ extensionscontextwebhook.GardenContext, _ *semver.Version, _, _ *kubeletconfigv1beta1.KubeletConfiguration) error {
 	return nil
 }
 
 // EnsureKubernetesGeneralConfiguration ensures that the kubernetes general configuration conforms to the provider requirements.
-func (e *ensurer) EnsureKubernetesGeneralConfiguration(_ context.Context, _ gcontext.GardenContext, _, _ *string) error {
+func (e *ensurer) EnsureKubernetesGeneralConfiguration(_ context.Context, _ extensionscontextwebhook.GardenContext, _, _ *string) error {
 	return nil
 }
 
 // EnsureAdditionalUnits ensures that additional required system units are added.
-func (e *ensurer) EnsureAdditionalUnits(_ context.Context, _ gcontext.GardenContext, _, _ *[]extensionsv1alpha1.Unit) error {
+func (e *ensurer) EnsureAdditionalUnits(_ context.Context, _ extensionscontextwebhook.GardenContext, _, _ *[]extensionsv1alpha1.Unit) error {
 	return nil
 }
 
 // EnsureAdditionalFiles ensures that additional required system files are added.
-func (e *ensurer) EnsureAdditionalFiles(_ context.Context, _ gcontext.GardenContext, _, _ *[]extensionsv1alpha1.File) error {
+func (e *ensurer) EnsureAdditionalFiles(_ context.Context, _ extensionscontextwebhook.GardenContext, _, _ *[]extensionsv1alpha1.File) error {
 	return nil
 }

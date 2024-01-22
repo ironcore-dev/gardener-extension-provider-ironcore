@@ -4,6 +4,6 @@
 package internal
 
 const (
-	// CloudProviderSecretName is the name of the configmap containing the cloud provider config.
-	CloudProviderSecretName = "cloud-provider-config"
+	// CloudProviderConfigMapName is the name of the configmap containing the cloud provider config.
+	CloudProviderConfigMapName = "cloud-provider-config"
 )

@@ -1,21 +1,25 @@
-// SPDX-FileCopyrightText: 2022 SAP SE or an SAP affiliate company and IronCore contributors
+// SPDX-FileCopyrightText: 2023 SAP SE or an SAP affiliate company and IronCore contributors
 // SPDX-License-Identifier: Apache-2.0
 
 package imagevector
 
 import (
+	_ "embed"
+
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
-
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/charts"
 )
 
+// ImagesYAML contains the content of the images.yaml file
+//
+//go:embed images.yaml
+var imagesYAML string
 var imageVector imagevector.ImageVector
 
 func init() {
 	var err error
 
-	imageVector, err = imagevector.Read([]byte(charts.ImagesYAML))
+	imageVector, err = imagevector.Read([]byte(imagesYAML))
 	runtime.Must(err)
 
 	imageVector, err = imagevector.WithEnvOverride(imageVector)

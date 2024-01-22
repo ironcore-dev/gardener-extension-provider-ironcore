@@ -7,10 +7,11 @@ import (
 	"context"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/backupbucket"
-	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
-	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	controllerconfig "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 var (
