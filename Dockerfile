@@ -14,9 +14,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go mod download
 
 # Copy the go source
-COPY cmd/ cmd
+COPY cmd/ cmd/
 COPY pkg/ pkg/
-COPY charts charts/
+COPY charts/ charts/
+COPY imagevector/ imagevector/
 
 ARG TARGETOS
 ARG TARGETARCH
