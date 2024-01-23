@@ -9,6 +9,7 @@ Source: https://github.com/ironcore-dev/gardener-extension-provider-ironcore
 Files:
   .github/*
   .gitignore
+  .dockerignore
   .golangci.yaml
   CODEOWNERS
   CODE_OF_CONDUCT.md
@@ -20,6 +21,7 @@ Files:
   hack/*
   example/*
   charts/*
+  imagevector/images.yaml
   pkg/controller/bastion/ignition/template.yaml
 Copyright: 2023 SAP SE or an SAP affiliate company and IronCore contributors
 License: Apache-2.0
