@@ -5,7 +5,6 @@ package controlplane
 
 import (
 	"context"
-	"sync/atomic"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
@@ -29,8 +28,6 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
-	// ShootWebhookConfig specifies the desired Shoot MutatingWebhooksConfiguration.
-	ShootWebhookConfig *atomic.Value
 	// WebhookServerNamespace is the namespace in which the webhook server runs.
 	WebhookServerNamespace string
 }
@@ -54,7 +51,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
 		imagevector.ImageVector(),
 		ironcore.CloudProviderConfigName,
-		opts.ShootWebhookConfig,
+		nil,
 		opts.WebhookServerNamespace)
 
 	if err != nil {

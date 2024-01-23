@@ -220,12 +220,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.IgnoreOperationAnnotation)
 			workercontroller.DefaultAddOptions.GardenCluster = gardenCluster
-
-			atomicShootWebhookConfig, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil)
-			if err != nil {
-				return fmt.Errorf("could not add webhooks to manager: %w", err)
-			}
-			ironcorecontrolplane.DefaultAddOptions.ShootWebhookConfig = atomicShootWebhookConfig
 			ironcorecontrolplane.DefaultAddOptions.WebhookServerNamespace = webhookOptions.Server.Namespace
 
 			if err := controllerSwitches.Completed().AddToManager(ctx, mgr); err != nil {
