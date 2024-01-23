@@ -1,19 +1,19 @@
 replicas: 1
 clusterName: shoot-foo-bar
+kubernetesVersion: 1.27.4
 podNetwork: 192.168.0.0/16
 podAnnotations: {}
 podLabels: {}
 featureGates: {}
   # CustomResourceValidation: true
-  # RotateKubeletServerCertificate: false
+# RotateKubeletServerCertificate: false
 images:
-  cloud-controller-manager: image-repository:image-tag
+  hyperkube: image-repository:image-tag
+userAgentHeaders: []
 resources:
   requests:
     cpu: 100m
-    memory: 75Mi
-  limits:
-    memory: 400Mi
+    memory: 64Mi
 tlsCipherSuites: []
 secrets:
   server: cloud-controller-manager-server
