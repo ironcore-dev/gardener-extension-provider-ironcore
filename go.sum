@@ -144,8 +144,8 @@ github.com/gardener/gardener v1.87.1 h1:TZ8I13CF7vZ0Z+9xD2504G/HjIn6k0aq+29xoNCo
 github.com/gardener/gardener v1.87.1/go.mod h1:MNqPkSxLD2w+HeIP56JnZbZtaqPnDb4hSRl3JWEZTWU=
 github.com/gardener/hvpa-controller/api v0.5.0 h1:f4F3O7YUrenwh4S3TgPREPiB287JjjUiUL18OqPLyAA=
 github.com/gardener/hvpa-controller/api v0.5.0/go.mod h1:QQl3ELkCaki+8RhXl0FZMfvnm0WCGwGJlGmrxJj6lvM=
-github.com/gardener/machine-controller-manager v0.51.1 h1:aWSadfWEkzrfEYBr38ntRApgKl2inxmy+UCsqgVXuak=
-github.com/gardener/machine-controller-manager v0.51.1/go.mod h1:u7tU/FOf9Nst6xw6NqtHybp7Hpz8Ty57yUMbYtavtY0=
+github.com/gardener/machine-controller-manager v0.52.0 h1:irhpamQ/QXixCXJpNKRL71aM3FAdNO1HxZwA54jvncI=
+github.com/gardener/machine-controller-manager v0.52.0/go.mod h1:6g5i/uRGugkRyIABZmDjvaiT8GLL7XRE9ziw4C/9nCo=
 github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
