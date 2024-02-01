@@ -120,6 +120,7 @@ generate: deepcopy-gen defaulter-gen conversion-gen $(CONTROLLER_GEN) $(HELM) $(
 	GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) \
 	bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./charts/... ./cmd/... ./example/... ./pkg/...
 	$(MAKE) format
+	@GO111MODULE=on go mod tidy
 
 .PHONY: format
 format: $(GOIMPORTS) $(GOIMPORTSREVISER)
