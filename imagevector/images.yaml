@@ -2,7 +2,7 @@ images:
 - name: cloud-controller-manager
   sourceRepository: github.com/ironcore-dev/cloud-provider-ironcore
   repository: ghcr.io/ironcore-dev/cloud-provider-ironcore
-  tag: "v0.3.0"
+  tag: "v0.3.1"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -13,23 +13,10 @@ images:
       integrity_requirement: 'high'
       availability_requirement: 'low'
 
-- name: machine-controller-manager
-  sourceRepository: github.com/gardener/machine-controller-manager
-  repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
-  tag: "v0.50.1"
-  labels:
-  - name: 'gardener.cloud/cve-categorisation'
-    value:
-      network_exposure: 'protected'
-      authentication_enforced: false
-      user_interaction: 'gardener-operator'
-      confidentiality_requirement: 'high'
-      integrity_requirement: 'high'
-      availability_requirement: 'low'
 - name: machine-controller-manager-provider-ironcore
   sourceRepository: github.com/ironcore-dev/machine-controller-manager-provider-ironcore
   repository: ghcr.io/ironcore-dev/machine-controller-manager-provider-ironcore
-  tag: "v0.2.0"
+  tag: "v0.2.1"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -43,7 +30,7 @@ images:
 - name: csi-driver
   sourceRepository: github.com/ironcore-dev/ironcore-csi-driver
   repository: ghcr.io/ironcore-dev/ironcore-csi-driver
-  tag: "v0.3.0"
+  tag: "v0.3.1"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
