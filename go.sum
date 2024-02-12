@@ -303,8 +303,8 @@ github.com/ironcore-dev/controller-utils v0.9.0 h1:q8Ljk6UIS6WB0J/k/hVV13umHUn/B
 github.com/ironcore-dev/controller-utils v0.9.0/go.mod h1:06mPYdYCdjGHVz/msCG/MyDjPdOufRkUd4GaTqkzZwg=
 github.com/ironcore-dev/ironcore v0.1.2-0.20231120144059-30dd02e88870 h1:yAFYucF/zthz9zdgHLbaQ5q9Ee0hFfbNHtxflm/lU5o=
 github.com/ironcore-dev/ironcore v0.1.2-0.20231120144059-30dd02e88870/go.mod h1:+rMMEH846ihqB+P55EX/NIvKQs9QDjcIurhRoR3jorU=
-github.com/ironcore-dev/vgopath v0.1.3 h1:/g3QJ29VrUkYEy52kcUhtvQ3mxfbMIlI1uvEbmt6S4E=
-github.com/ironcore-dev/vgopath v0.1.3/go.mod h1:edfsCmU2M4r2N+t4RebSluq//tF3vzogyiDDhcf7MXs=
+github.com/ironcore-dev/vgopath v0.1.4 h1:hBMuv7+wnZp5JHkVfdg4mtP8hsIGvuv42+l+F2wmQxk=
+github.com/ironcore-dev/vgopath v0.1.4/go.mod h1:PTGnX8xW/QDytFR7oU4kcXr1RPDLCgAJ0ZUa5Rp8vyI=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
