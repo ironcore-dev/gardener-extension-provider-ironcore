@@ -10,7 +10,7 @@ require (
 	github.com/coreos/butane v0.19.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.22.0
-	github.com/gardener/gardener v1.87.2
+	github.com/gardener/gardener v1.88.0
 	github.com/gardener/machine-controller-manager v0.52.0
 	github.com/go-logr/logr v1.4.1
 	github.com/imdario/mergo v0.3.16
@@ -32,7 +32,7 @@ require (
 	k8s.io/code-generator v0.28.4
 	k8s.io/component-base v0.28.4
 	k8s.io/kubelet v0.28.4
-	k8s.io/utils v0.0.0-20230505201702-9f6742963106
+	k8s.io/utils v0.0.0-20240102154912-e7106e64919e
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/controller-tools v0.13.0
 	sigs.k8s.io/yaml v1.4.0
@@ -54,7 +54,7 @@ require (
 	github.com/coreos/ignition/v2 v2.16.2 // indirect
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
@@ -98,7 +98,8 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.71.0 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
