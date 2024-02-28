@@ -5,14 +5,13 @@ package validation
 
 import (
 	"github.com/gardener/gardener/pkg/apis/core"
+	apisironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 	"github.com/onsi/gomega/types"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/utils/pointer"
-
-	apisironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	"k8s.io/utils/ptr"
 )
 
 func InvalidField(fld string) types.GomegaMatcher {
@@ -47,7 +46,7 @@ var _ = Describe("CloudProfileConfig validation", func() {
 							{
 								Version:      machineImageVersion,
 								Image:        "registry/image:sha1234",
-								Architecture: pointer.String("amd64"),
+								Architecture: ptr.To[string]("amd64"),
 							},
 						},
 					},
@@ -118,7 +117,7 @@ var _ = Describe("CloudProfileConfig validation", func() {
 
 			It("should forbid unsupported machine image version configuration", func() {
 				cloudProfileConfig.MachineImages[0].Versions[0].Image = ""
-				cloudProfileConfig.MachineImages[0].Versions[0].Architecture = pointer.String("foo")
+				cloudProfileConfig.MachineImages[0].Versions[0].Architecture = ptr.To[string]("foo")
 				machineImages[0].Versions = append(machineImages[0].Versions, core.MachineImageVersion{ExpirableVersion: core.ExpirableVersion{Version: "2.0.0"}})
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
 
