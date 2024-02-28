@@ -6,9 +6,10 @@ package helper
 import (
 	"fmt"
 
+	"k8s.io/utils/ptr"
+
 	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
-	"k8s.io/utils/ptr"
 )
 
 // FindMachineImage takes a list of machine images and tries to find the first entry

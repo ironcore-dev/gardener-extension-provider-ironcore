@@ -15,7 +15,6 @@ import (
 	gardener "github.com/gardener/gardener/pkg/client/kubernetes"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
 	"github.com/ironcore-dev/controller-utils/modutils"
-	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
 	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
 	envtestutils "github.com/ironcore-dev/ironcore/utils/envtest"
 	. "github.com/onsi/ginkgo/v2"
@@ -35,6 +34,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
 )
 
 const (
