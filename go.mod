@@ -1,6 +1,6 @@
 module github.com/ironcore-dev/gardener-extension-provider-ironcore
 
-go 1.22
+go 1.22.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
@@ -37,8 +37,6 @@ require (
 	sigs.k8s.io/controller-tools v0.13.0
 	sigs.k8s.io/yaml v1.4.0
 )
-
-replace k8s.io/client-go => k8s.io/client-go v0.28.3
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
