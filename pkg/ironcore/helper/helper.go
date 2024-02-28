@@ -6,7 +6,7 @@ package helper
 import (
 	"fmt"
 
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
@@ -17,7 +17,7 @@ import (
 // found then an error will be returned.
 func FindMachineImage(machineImages []apiv1alpha1.MachineImage, name, version string, architecture *string) (*apiv1alpha1.MachineImage, error) {
 	for _, machineImage := range machineImages {
-		if machineImage.Name == name && machineImage.Version == version && pointer.StringEqual(architecture, machineImage.Architecture) {
+		if machineImage.Name == name && machineImage.Version == version && ptr.Equal[string](architecture, machineImage.Architecture) {
 			return &machineImage, nil
 		}
 	}
@@ -34,7 +34,7 @@ func FindImageFromCloudProfile(cloudProfileConfig *api.CloudProfileConfig, image
 				continue
 			}
 			for _, version := range machineImage.Versions {
-				if imageVersion == version.Version && pointer.StringEqual(architecture, version.Architecture) {
+				if imageVersion == version.Version && ptr.Equal[string](architecture, version.Architecture) {
 					return version.Image, nil
 				}
 			}

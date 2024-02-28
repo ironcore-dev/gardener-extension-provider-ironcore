@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/komega"
@@ -163,7 +163,7 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 				Size: "10Gi",
 			},
 			Zones:        []string{"zone1", "zone2"},
-			Architecture: pointer.String("amd64"),
+			Architecture: ptr.To[string]("amd64"),
 			NodeTemplate: &gardenerextensionv1alpha1.NodeTemplate{
 				Capacity: map[corev1.ResourceName]resource.Quantity{
 					corev1.ResourceCPU: resource.MustParse("100m"),
@@ -182,7 +182,7 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 						{
 							Version:      "1.0",
 							Image:        "registry/my-os",
-							Architecture: pointer.String("amd64"),
+							Architecture: ptr.To[string]("amd64"),
 						},
 					},
 				},

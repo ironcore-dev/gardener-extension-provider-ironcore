@@ -26,7 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 const namespace = "test"
@@ -238,7 +238,7 @@ var _ = Describe("Ensurer", func() {
 				DeferCleanup(testutils.WithVar(&ImageVector, imagevectorutils.ImageVector{{
 					Name:       "machine-controller-manager-provider-ironcore",
 					Repository: "foo",
-					Tag:        pointer.String("bar"),
+					Tag:        ptr.To[string]("bar"),
 				}}))
 			})
 

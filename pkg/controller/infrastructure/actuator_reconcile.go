@@ -16,7 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -87,7 +87,7 @@ func (a *actuator) applyPrefix(ctx context.Context, ironcoreClient client.Client
 	}
 
 	if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
-		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(pointer.StringDeref(nodeCIDR, ""))
+		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(ptr.Deref[string](nodeCIDR, ""))
 	}
 
 	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, prefix, nil); err != nil {

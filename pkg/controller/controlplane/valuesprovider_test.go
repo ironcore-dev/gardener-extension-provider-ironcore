@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/yaml"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	. "sigs.k8s.io/controller-runtime/pkg/envtest/komega"
@@ -445,7 +445,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					Spec: gardencorev1beta1.ShootSpec{
 						Networking: &gardencorev1beta1.Networking{
 							ProviderConfig: &runtime.RawExtension{Raw: networkProviderConfigData},
-							Pods:           pointer.String("10.0.0.0/16"),
+							Pods:           ptr.To[string]("10.0.0.0/16"),
 						},
 						Kubernetes: gardencorev1beta1.Kubernetes{
 							Version: "1.26.0",

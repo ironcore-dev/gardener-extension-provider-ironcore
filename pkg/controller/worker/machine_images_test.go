@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
@@ -63,7 +63,7 @@ var _ = Describe("MachinesImages", func() {
 						Name:         "my-os",
 						Version:      "1.0",
 						Image:        "registry/my-os",
-						Architecture: pointer.String("amd64"),
+						Architecture: ptr.To[string]("amd64"),
 					},
 				},
 			}

@@ -12,7 +12,7 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	apiv1alpha1 "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/v1alpha1"
@@ -24,7 +24,7 @@ import (
 func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	var machineImages []apiv1alpha1.MachineImage
 	for _, pool := range w.worker.Spec.Pools {
-		arch := pointer.StringDeref(pool.Architecture, v1beta1constants.ArchitectureAMD64)
+		arch := ptr.Deref[string](pool.Architecture, v1beta1constants.ArchitectureAMD64)
 
 		machineImage, err := w.findMachineImage(pool.MachineImage.Name, pool.MachineImage.Version, &arch)
 		if err != nil {
