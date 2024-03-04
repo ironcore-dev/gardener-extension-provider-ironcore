@@ -22,7 +22,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
 	go.uber.org/mock v0.4.0
-	go.uber.org/zap v1.26.0
+	go.uber.org/zap v1.27.0
 	golang.org/x/tools v0.18.0
 	k8s.io/api v0.28.4
 	k8s.io/apiextensions-apiserver v0.28.4
