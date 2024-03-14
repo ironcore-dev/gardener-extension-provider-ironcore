@@ -17,7 +17,7 @@ require (
 	github.com/ironcore-dev/controller-utils v0.9.0
 	github.com/ironcore-dev/ironcore v0.1.2-0.20231120144059-30dd02e88870
 	github.com/ironcore-dev/vgopath v0.1.4
-	github.com/onsi/ginkgo/v2 v2.15.0
+	github.com/onsi/ginkgo/v2 v2.16.0
 	github.com/onsi/gomega v1.31.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
