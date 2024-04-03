@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
@@ -24,7 +23,6 @@ import (
 	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -157,7 +155,6 @@ var (
 					{Type: &corev1.ServiceAccount{}, Name: ironcore.CSIDriverName},
 					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIDriverName},
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIDriverName},
-					{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(ironcore.UsernamePrefix+ironcore.CSIDriverName, ":", ".", -1)},
 					{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: ironcore.CSINodeName},
 					// csi-provisioner
 					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIProvisionerName},
@@ -460,9 +457,8 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(cluster *extensionscon
 		return nil, fmt.Errorf("cluster %s does not contain a shoot object", cluster.ObjectMeta.Name)
 	}
 	csiNodeDriverValues := map[string]interface{}{
-		"enabled":     true,
-		"vpaEnabled":  gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
-		"pspDisabled": gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+		"enabled":    true,
+		"vpaEnabled": gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
 	}
 
 	return map[string]interface{}{

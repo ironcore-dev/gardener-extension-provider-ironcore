@@ -361,9 +361,8 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					"enabled": true,
 				},
 				"csi-driver-node": map[string]interface{}{
-					"enabled":     true,
-					"vpaEnabled":  true,
-					"pspDisabled": true,
+					"enabled":    true,
+					"vpaEnabled": true,
 				},
 			}))
 		})
