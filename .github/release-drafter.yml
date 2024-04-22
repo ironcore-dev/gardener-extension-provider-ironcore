@@ -38,7 +38,7 @@ exclude-labels:
 autolabeler:
   - label: 'apis'
     files:
-      - '/apis/*'
+      - '/pkg/apis/*'
   - label: 'controllers'
     files:
       - '/pkg/controller/*'
