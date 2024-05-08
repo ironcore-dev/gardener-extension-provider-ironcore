@@ -16,7 +16,7 @@ require (
 	github.com/imdario/mergo v0.3.16
 	github.com/ironcore-dev/controller-utils v0.9.3
 	github.com/ironcore-dev/ironcore v0.1.2-0.20240325223637-69fa81d89973
-	github.com/ironcore-dev/vgopath v0.1.4
+	github.com/ironcore-dev/vgopath v0.1.5
 	github.com/onsi/ginkgo/v2 v2.17.2
 	github.com/onsi/gomega v1.33.0
 	github.com/spf13/cobra v1.8.0
