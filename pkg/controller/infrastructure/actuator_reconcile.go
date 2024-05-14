@@ -6,6 +6,8 @@ package infrastructure
 import (
 	"context"
 	"fmt"
+	"math/big"
+	"net"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -54,7 +56,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return err
 	}
 
-	natGateway, err := a.applyNATGateway(ctx, ironcoreClient, namespace, cluster, network)
+	natGateway, err := a.applyNATGateway(ctx, config, ironcoreClient, namespace, cluster, network)
 	if err != nil {
 		return err
 	}
@@ -97,7 +99,8 @@ func (a *actuator) applyPrefix(ctx context.Context, ironcoreClient client.Client
 	return prefix, nil
 }
 
-func (a *actuator) applyNATGateway(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
+func (a *actuator) applyNATGateway(ctx context.Context, config *api.InfrastructureConfig, ironcoreClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
+
 	natGateway := &networkingv1alpha1.NATGateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "NATGateway",
@@ -117,10 +120,48 @@ func (a *actuator) applyNATGateway(ctx context.Context, ironcoreClient client.Cl
 		},
 	}
 
+	if natConfig := config.NATConfig; natConfig != nil {
+		minPortsPerNetworkInterface := natConfig.PortsPerNetworkInterface
+		if minPortsPerNetworkInterface != nil {
+			natGateway.Spec.PortsPerNetworkInterface = minPortsPerNetworkInterface
+		}
+		if maxPortsPerNetworkInterface := natConfig.MaxPortsPerNetworkInterface; minPortsPerNetworkInterface != nil && maxPortsPerNetworkInterface != nil {
+			if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
+				_, ipv4Net, err := net.ParseCIDR(*nodeCIDR)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse node cidr %s: %w", *nodeCIDR, err)
+				}
+
+				// determines how many IP addresses reside within nodeCIDR.
+				// The first and the last IPs are NOT excluded.
+				// see reference https://github.com/cilium/cilium/blob/main/pkg/ip/ip.go#L27
+				subnet, size := ipv4Net.Mask.Size()
+				amount := big.NewInt(0).Sub(big.NewInt(2).Exp(big.NewInt(2), big.NewInt(int64(size-subnet)), nil), big.NewInt(0))
+				maxPorts := big.NewInt(int64(*maxPortsPerNetworkInterface))
+				ports := big.NewInt(0).Div(maxPorts, amount)
+
+				if ports.Int64() < int64(*minPortsPerNetworkInterface) {
+					natGateway.Spec.PortsPerNetworkInterface = minPortsPerNetworkInterface
+				} else {
+					natGateway.Spec.PortsPerNetworkInterface = ptr.To(previousPowOf2(int32(ports.Int64())))
+				}
+			}
+		}
+	}
+
 	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, natGateway, nil); err != nil {
 		return nil, fmt.Errorf("failed to apply natgateway %s: %w", client.ObjectKeyFromObject(natGateway), err)
 	}
 	return natGateway, nil
+}
+
+func previousPowOf2(n int32) int32 {
+	n = n | (n >> 1)
+	n = n | (n >> 2)
+	n = n | (n >> 4)
+	n = n | (n >> 8)
+	n = n | (n >> 16)
+	return n - (n >> 1)
 }
 
 func (a *actuator) applyNetwork(ctx context.Context, ironcoreClient client.Client, namespace string, config *api.InfrastructureConfig, cluster *controller.Cluster) (*networkingv1alpha1.Network, error) {

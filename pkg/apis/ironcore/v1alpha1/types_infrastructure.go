@@ -18,6 +18,18 @@ type InfrastructureConfig struct {
 
 	// NetworkRef references the network to use for the Shoot creation.
 	NetworkRef *corev1.LocalObjectReference `json:"networkRef,omitempty"`
+	// NATConfig references the configuration to use for NATGateway
+	NATConfig *NATConfig `json:"natConfig,omitempty"`
+}
+
+// NATConfig contains configuration about the NATGateway resource
+type NATConfig struct {
+	// PortsPerNetworkInterface defines the number of ports per network interface the NAT gateway should use.
+	// Has to be a power of 2. If empty, 2048 is the default.
+	PortsPerNetworkInterface *int32 `json:"portsPerNetworkInterface,omitempty"`
+	// MaxPortsPerNetworkInterface is the maximum number of ports per network interface the NAT gateway should use.
+	// If set will be used to auto determine number of ports.
+	MaxPortsPerNetworkInterface *int32 `json:"maxPortsPerNetworkInterface,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
