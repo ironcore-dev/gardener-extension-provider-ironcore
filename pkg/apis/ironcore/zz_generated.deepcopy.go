@@ -242,8 +242,8 @@ func (in *NATConfig) DeepCopyInto(out *NATConfig) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.MaxPortsPerNetworkInterface != nil {
-		in, out := &in.MaxPortsPerNetworkInterface, &out.MaxPortsPerNetworkInterface
+	if in.MaxAvailablePorts != nil {
+		in, out := &in.MaxAvailablePorts, &out.MaxAvailablePorts
 		*out = new(int32)
 		**out = **in
 	}

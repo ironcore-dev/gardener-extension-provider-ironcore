@@ -345,7 +345,7 @@ func Convert_ironcore_MachineImages_To_v1alpha1_MachineImages(in *ironcore.Machi
 
 func autoConvert_v1alpha1_NATConfig_To_ironcore_NATConfig(in *NATConfig, out *ironcore.NATConfig, s conversion.Scope) error {
 	out.PortsPerNetworkInterface = (*int32)(unsafe.Pointer(in.PortsPerNetworkInterface))
-	out.MaxPortsPerNetworkInterface = (*int32)(unsafe.Pointer(in.MaxPortsPerNetworkInterface))
+	out.MaxAvailablePorts = (*int32)(unsafe.Pointer(in.MaxAvailablePorts))
 	return nil
 }
 
@@ -356,7 +356,7 @@ func Convert_v1alpha1_NATConfig_To_ironcore_NATConfig(in *NATConfig, out *ironco
 
 func autoConvert_ironcore_NATConfig_To_v1alpha1_NATConfig(in *ironcore.NATConfig, out *NATConfig, s conversion.Scope) error {
 	out.PortsPerNetworkInterface = (*int32)(unsafe.Pointer(in.PortsPerNetworkInterface))
-	out.MaxPortsPerNetworkInterface = (*int32)(unsafe.Pointer(in.MaxPortsPerNetworkInterface))
+	out.MaxAvailablePorts = (*int32)(unsafe.Pointer(in.MaxAvailablePorts))
 	return nil
 }
 

@@ -42,7 +42,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		Expect(k8sClient.Create(ctx, network)).To(Succeed())
 
 		By("creating an infrastructure configuration")
-		var minPorts, maxPorts int32 = 1024, 65536
+		var minPorts, maxPorts int32 = 64, 64512
 		infra := &extensionsv1alpha1.Infrastructure{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -63,8 +63,8 @@ var _ = Describe("Infrastructure Reconcile", func() {
 							Name: "my-network",
 						},
 						NATConfig: &v1alpha1.NATConfig{
-							PortsPerNetworkInterface:    &minPorts,
-							MaxPortsPerNetworkInterface: &maxPorts,
+							PortsPerNetworkInterface: &minPorts,
+							MaxAvailablePorts:        &maxPorts,
 						},
 					}},
 				},
@@ -102,7 +102,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
 				Name: network.Name,
 			}),
-			HaveField("Spec.PortsPerNetworkInterface", ptr.To(minPorts)),
+			HaveField("Spec.PortsPerNetworkInterface", ptr.To(int32(128))),
 		))
 
 		By("expecting a prefix being created")
