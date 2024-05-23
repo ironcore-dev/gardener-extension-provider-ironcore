@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	shootPrefix = "shoot"
+	shootPrefix       = "shoot"
+	maxAvailablePorts = 64512
 )
 
 // Reconcile implements infrastructure.Actuator.
@@ -120,31 +121,25 @@ func (a *actuator) applyNATGateway(ctx context.Context, config *api.Infrastructu
 		},
 	}
 
-	if natConfig := config.NATConfig; natConfig != nil {
-		minPortsPerNetworkInterface := natConfig.PortsPerNetworkInterface
-		if minPortsPerNetworkInterface != nil {
-			natGateway.Spec.PortsPerNetworkInterface = minPortsPerNetworkInterface
-		}
-		if maxAvailablePorts := natConfig.MaxAvailablePorts; minPortsPerNetworkInterface != nil && maxAvailablePorts != nil {
-			if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
-				_, ipv4Net, err := net.ParseCIDR(*nodeCIDR)
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse node cidr %s: %w", *nodeCIDR, err)
-				}
+	if portsPerNetworkInterface := config.NATPortsPerNetworkInterface; natGateway.Spec.IPFamily == corev1.IPv4Protocol && portsPerNetworkInterface != nil {
+		if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
+			_, ipv4Net, err := net.ParseCIDR(*nodeCIDR)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse node cidr %s: %w", *nodeCIDR, err)
+			}
 
-				// determines how many IP addresses reside within nodeCIDR.
-				// The first and the last IPs are NOT excluded.
-				// see reference https://github.com/cilium/cilium/blob/main/pkg/ip/ip.go#L27
-				subnet, size := ipv4Net.Mask.Size()
-				amount := big.NewInt(0).Sub(big.NewInt(2).Exp(big.NewInt(2), big.NewInt(int64(size-subnet)), nil), big.NewInt(0))
-				maxPorts := big.NewInt(int64(*maxAvailablePorts))
-				ports := big.NewInt(0).Div(maxPorts, amount)
+			// determines how many IP addresses reside within nodeCIDR.
+			// The first and the last IPs are NOT excluded.
+			// see reference https://github.com/cilium/cilium/blob/main/pkg/ip/ip.go#L27
+			subnet, size := ipv4Net.Mask.Size()
+			amount := big.NewInt(0).Sub(big.NewInt(2).Exp(big.NewInt(2), big.NewInt(int64(size-subnet)), nil), big.NewInt(0))
+			maxPorts := big.NewInt(int64(maxAvailablePorts))
+			ports := big.NewInt(0).Div(maxPorts, amount)
 
-				if ports.Int64() < int64(*minPortsPerNetworkInterface) {
-					natGateway.Spec.PortsPerNetworkInterface = minPortsPerNetworkInterface
-				} else {
-					natGateway.Spec.PortsPerNetworkInterface = ptr.To(previousPowOf2(int32(ports.Int64())))
-				}
+			if ports.Int64() < int64(*portsPerNetworkInterface) {
+				natGateway.Spec.PortsPerNetworkInterface = portsPerNetworkInterface
+			} else {
+				natGateway.Spec.PortsPerNetworkInterface = ptr.To(previousPowOf2(int32(ports.Int64())))
 			}
 		}
 	}

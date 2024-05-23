@@ -42,7 +42,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		Expect(k8sClient.Create(ctx, network)).To(Succeed())
 
 		By("creating an infrastructure configuration")
-		var minPorts, maxPorts int32 = 64, 64512
+		var portsPerNetworkInterface int32 = 64
 		infra := &extensionsv1alpha1.Infrastructure{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -62,10 +62,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 						NetworkRef: &corev1.LocalObjectReference{
 							Name: "my-network",
 						},
-						NATConfig: &v1alpha1.NATConfig{
-							PortsPerNetworkInterface: &minPorts,
-							MaxAvailablePorts:        &maxPorts,
-						},
+						NATPortsPerNetworkInterface: &portsPerNetworkInterface,
 					}},
 				},
 				Region: "foo",
@@ -148,7 +145,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("creating an infrastructure configuration")
-		var minPorts int32 = 512
+		var portsPerNetworkInterface int32 = 512
 		infra := &extensionsv1alpha1.Infrastructure{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: ns.Name,
@@ -165,9 +162,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 							APIVersion: v1alpha1.SchemeGroupVersion.String(),
 							Kind:       "InfrastructureConfig",
 						},
-						NATConfig: &v1alpha1.NATConfig{
-							PortsPerNetworkInterface: &minPorts,
-						},
+						NATPortsPerNetworkInterface: &portsPerNetworkInterface,
 					}},
 				},
 				Region: "foo",
@@ -212,7 +207,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
 				Name: network.Name,
 			}),
-			HaveField("Spec.PortsPerNetworkInterface", ptr.To(minPorts)),
+			HaveField("Spec.PortsPerNetworkInterface", ptr.To(int32(512))),
 		))
 
 		By("expecting a prefix being created")
@@ -249,6 +244,81 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(Object(infra)).Should(SatisfyAll(
 			HaveField("Status.ProviderStatus", &runtime.RawExtension{Raw: providerStatusJSON}),
+		))
+	})
+
+	It("should create a natgateway with portsPerNetworkInterface greater than maxAvailable ports configuration", func(ctx SpecContext) {
+		By("getting the cluster object")
+		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
+		Expect(err).NotTo(HaveOccurred())
+
+		network := &networkingv1alpha1.Network{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      "my-network-foo",
+			},
+		}
+		Expect(k8sClient.Create(ctx, network)).To(Succeed())
+
+		By("creating an infrastructure configuration")
+		var portsPerNetworkInterface int32 = 65536
+		infra := &extensionsv1alpha1.Infrastructure{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      "my-infra-with-network-foo",
+				Annotations: map[string]string{
+					constants.GardenerOperation: constants.GardenerOperationReconcile,
+				},
+			},
+			Spec: extensionsv1alpha1.InfrastructureSpec{
+				DefaultSpec: extensionsv1alpha1.DefaultSpec{
+					Type: ironcore.Type,
+					ProviderConfig: &runtime.RawExtension{Object: &v1alpha1.InfrastructureConfig{
+						TypeMeta: metav1.TypeMeta{
+							APIVersion: v1alpha1.SchemeGroupVersion.String(),
+							Kind:       "InfrastructureConfig",
+						},
+						NetworkRef: &corev1.LocalObjectReference{
+							Name: "my-network-foo",
+						},
+						NATPortsPerNetworkInterface: &portsPerNetworkInterface,
+					}},
+				},
+				Region: "foo",
+				SecretRef: corev1.SecretReference{
+					Namespace: ns.Name,
+					Name:      "my-infra-creds",
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, infra)).Should(Succeed())
+
+		Eventually(func(g Gomega) {
+			err := k8sClient.Get(ctx, client.ObjectKeyFromObject(infra), infra)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(infra.Status.LastOperation).NotTo(BeNil())
+		}).Should(Succeed())
+
+		Eventually(Object(network)).Should(SatisfyAll(
+			HaveField("ObjectMeta.Namespace", ns.Name),
+			HaveField("ObjectMeta.Name", "my-network-foo"),
+		))
+
+		By("expecting a nat gateway being created")
+		natGateway := &networkingv1alpha1.NATGateway{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      generateResourceNameFromCluster(cluster),
+			},
+		}
+
+		Eventually(Object(natGateway)).Should(SatisfyAll(
+			HaveField("Spec.Type", networkingv1alpha1.NATGatewayTypePublic),
+			HaveField("Spec.IPFamily", corev1.IPv4Protocol),
+			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
+				Name: network.Name,
+			}),
+			HaveField("Spec.PortsPerNetworkInterface", ptr.To(int32(65536))),
 		))
 	})
 })
