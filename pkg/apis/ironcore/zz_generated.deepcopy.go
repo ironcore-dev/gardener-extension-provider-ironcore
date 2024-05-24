@@ -115,6 +115,11 @@ func (in *InfrastructureConfig) DeepCopyInto(out *InfrastructureConfig) {
 		*out = new(v1.LocalObjectReference)
 		**out = **in
 	}
+	if in.NATPortsPerNetworkInterface != nil {
+		in, out := &in.NATPortsPerNetworkInterface, &out.NATPortsPerNetworkInterface
+		*out = new(int32)
+		**out = **in
+	}
 	return
 }
 
