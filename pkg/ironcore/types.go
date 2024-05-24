@@ -99,6 +99,8 @@ const (
 	MachineControllerManagerVpaName = "machine-controller-manager-vpa"
 	// MachineControllerManagerMonitoringConfigName is the name of the ConfigMap containing monitoring stack configurations for machine-controller-manager.
 	MachineControllerManagerMonitoringConfigName = "machine-controller-manager-monitoring-config"
+	// MaxAvailableNATPortsPerNetworkInterface defines the maximum number of ports per network interface the NAT gateway should use.
+	MaxAvailableNATPortsPerNetworkInterface = 64512
 )
 
 var (

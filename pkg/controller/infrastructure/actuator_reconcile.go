@@ -29,8 +29,7 @@ import (
 )
 
 const (
-	shootPrefix       = "shoot"
-	maxAvailablePorts = 64512
+	shootPrefix = "shoot"
 )
 
 // Reconcile implements infrastructure.Actuator.
@@ -133,7 +132,7 @@ func (a *actuator) applyNATGateway(ctx context.Context, config *api.Infrastructu
 			// see reference https://github.com/cilium/cilium/blob/main/pkg/ip/ip.go#L27
 			subnet, size := ipv4Net.Mask.Size()
 			amount := big.NewInt(0).Sub(big.NewInt(2).Exp(big.NewInt(2), big.NewInt(int64(size-subnet)), nil), big.NewInt(0))
-			maxPorts := big.NewInt(int64(maxAvailablePorts))
+			maxPorts := big.NewInt(int64(ironcore.MaxAvailableNATPortsPerNetworkInterface))
 			ports := big.NewInt(0).Div(maxPorts, amount)
 
 			if ports.Int64() < int64(*portsPerNetworkInterface) {
