@@ -12,7 +12,7 @@ require (
 	github.com/gardener/etcd-druid v0.22.0
 	github.com/gardener/gardener v1.90.4
 	github.com/gardener/machine-controller-manager v0.53.0
-	github.com/go-logr/logr v1.4.1
+	github.com/go-logr/logr v1.4.2
 	github.com/imdario/mergo v0.3.16
 	github.com/ironcore-dev/controller-utils v0.9.3
 	github.com/ironcore-dev/ironcore v0.1.2-0.20240325223637-69fa81d89973
