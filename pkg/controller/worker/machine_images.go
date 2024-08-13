@@ -9,7 +9,6 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/ptr"
@@ -60,7 +59,7 @@ func (w *workerDelegate) findMachineImage(name, version string, architecture *st
 	if providerStatus := w.worker.Status.ProviderStatus; providerStatus != nil {
 		workerStatus := &apiv1alpha1.WorkerStatus{}
 		if _, _, err := w.decoder.Decode(providerStatus.Raw, nil, workerStatus); err != nil {
-			return "", fmt.Errorf("could not decode worker status of worker '%s': %w", kutil.ObjectName(w.worker), err)
+			return "", fmt.Errorf("could not decode worker status of worker '%s': %w", client.ObjectKeyFromObject(w.worker), err)
 		}
 
 		machineImage, err := helper.FindMachineImage(workerStatus.MachineImages, name, version, architecture)
@@ -89,7 +88,7 @@ func (w *workerDelegate) decodeWorkerProviderStatus() (*apiv1alpha1.WorkerStatus
 	}
 
 	if _, _, err := w.decoder.Decode(w.worker.Status.ProviderStatus.Raw, nil, workerStatus); err != nil {
-		return nil, fmt.Errorf("could not decode WorkerStatus '%s': %w", kutil.ObjectName(w.worker), err)
+		return nil, fmt.Errorf("could not decode WorkerStatus '%s': %w", client.ObjectKeyFromObject(w.worker), err)
 	}
 
 	return workerStatus, nil

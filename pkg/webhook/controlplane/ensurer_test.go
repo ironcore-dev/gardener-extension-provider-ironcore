@@ -243,7 +243,7 @@ var _ = Describe("Ensurer", func() {
 				ensurer = NewEnsurer(logger, true)
 				DeferCleanup(testutils.WithVar(&ImageVector, imagevectorutils.ImageVector{{
 					Name:       "machine-controller-manager-provider-ironcore",
-					Repository: "foo",
+					Repository: ptr.To("foo"),
 					Tag:        ptr.To[string]("bar"),
 				}}))
 			})
@@ -267,7 +267,13 @@ var _ = Describe("Ensurer", func() {
 						"--port=" + strconv.Itoa(portProviderMetrics),
 						"--target-kubeconfig=" + gardenerutils.PathGenericKubeconfig,
 						"--v=3",
-						"--ironcore-kubeconfig=/etc/ironcore/kubeconfig",
+					},
+					Ports: []corev1.ContainerPort{
+						{
+							Name:          "providermetrics",
+							ContainerPort: 10259,
+							Protocol:      corev1.ProtocolTCP,
+						},
 					},
 					LivenessProbe: &corev1.Probe{
 						ProbeHandler: corev1.ProbeHandler{
