@@ -134,7 +134,7 @@ func (e *ensurer) EnsureClusterAutoscalerDeployment(_ context.Context, _ extensi
 }
 
 func ensureMCMCommandLineArgs(c *corev1.Container) {
-	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--ironcore-kubeconfig=", "/etc/ironcore/kubeconfig")
+	c.Args = extensionswebhook.EnsureStringWithPrefix(c.Args, "--ironcore-kubeconfig=", "/etc/ironcore/kubeconfig")
 }
 
 func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {

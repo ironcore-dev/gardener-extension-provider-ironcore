@@ -190,5 +190,5 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 
 func (w *workerDelegate) generateHashForWorkerPool(pool v1alpha1.WorkerPool) (string, error) {
 	// Generate the worker pool hash.
-	return worker.WorkerPoolHash(pool, w.cluster)
+	return worker.WorkerPoolHash(pool, w.cluster, nil, nil)
 }
