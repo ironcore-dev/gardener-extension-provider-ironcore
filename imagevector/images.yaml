@@ -16,7 +16,7 @@ images:
 - name: machine-controller-manager-provider-ironcore
   sourceRepository: github.com/ironcore-dev/machine-controller-manager-provider-ironcore
   repository: ghcr.io/ironcore-dev/machine-controller-manager-provider-ironcore
-  tag: "v0.2.4"
+  tag: "v0.2.5"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
