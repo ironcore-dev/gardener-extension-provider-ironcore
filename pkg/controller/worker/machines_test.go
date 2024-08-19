@@ -53,7 +53,8 @@ var _ = Describe("Machines", func() {
 		err = workerDelegate.DeployMachineClasses(ctx)
 		Expect(err).NotTo(HaveOccurred())
 
-		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster)
+		// TODO: Fix machine pool hashing
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("ensuring that the machine class for each pool has been deployed")
@@ -119,7 +120,7 @@ var _ = Describe("Machines", func() {
 
 	It("should generate the machine deployments", func(ctx SpecContext) {
 		By("creating a worker delegate")
-		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster)
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 		var (
 			deploymentName1 = fmt.Sprintf("%s-%s-z%d", w.Namespace, pool.Name, 1)

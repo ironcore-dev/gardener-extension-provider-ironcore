@@ -5,6 +5,7 @@ package controlplane
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -15,6 +16,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
 	imagevectorutils "github.com/gardener/gardener/pkg/utils/imagevector"
 	testutils "github.com/gardener/gardener/pkg/utils/test"
 	. "github.com/onsi/ginkgo/v2"
@@ -29,7 +31,11 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-const namespace = "test"
+const (
+	namespace               = "foo"
+	portProviderMetrics     = 10259
+	portNameProviderMetrics = "providermetrics"
+)
 
 func TestController(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -249,8 +255,7 @@ var _ = Describe("Ensurer", func() {
 					Name:            "machine-controller-manager-provider-ironcore",
 					Image:           "foo:bar",
 					ImagePullPolicy: corev1.PullIfNotPresent,
-					Command: []string{
-						"./machine-controller",
+					Args: []string{
 						"--control-kubeconfig=inClusterConfig",
 						"--machine-creation-timeout=20m",
 						"--machine-drain-timeout=2h",
@@ -258,9 +263,9 @@ var _ = Describe("Ensurer", func() {
 						"--machine-safety-apiserver-statuscheck-timeout=30s",
 						"--machine-safety-apiserver-statuscheck-period=1m",
 						"--machine-safety-orphan-vms-period=30m",
-						"--namespace=" + deployment.Namespace,
-						"--port=10259",
-						"--target-kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig",
+						"--namespace=" + namespace,
+						"--port=" + strconv.Itoa(portProviderMetrics),
+						"--target-kubeconfig=" + gardenerutils.PathGenericKubeconfig,
 						"--v=3",
 						"--ironcore-kubeconfig=/etc/ironcore/kubeconfig",
 					},
@@ -268,8 +273,8 @@ var _ = Describe("Ensurer", func() {
 						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path:   "/healthz",
-								Port:   intstr.FromInt(10259),
-								Scheme: "HTTP",
+								Port:   intstr.FromInt32(portProviderMetrics),
+								Scheme: corev1.URISchemeHTTP,
 							},
 						},
 						InitialDelaySeconds: 30,
@@ -278,12 +283,16 @@ var _ = Describe("Ensurer", func() {
 						SuccessThreshold:    1,
 						FailureThreshold:    3,
 					},
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							Name:      "kubeconfig",
-							MountPath: "/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig",
-							ReadOnly:  true,
-						},
+					Ports: []corev1.ContainerPort{{
+						Name:          portNameProviderMetrics,
+						ContainerPort: portProviderMetrics,
+						Protocol:      corev1.ProtocolTCP,
+					}},
+					VolumeMounts: []corev1.VolumeMount{{
+						Name:      "kubeconfig",
+						MountPath: gardenerutils.VolumeMountPathGenericKubeconfig,
+						ReadOnly:  true,
+					},
 						{
 							Name:      "cloudprovider",
 							MountPath: "/etc/ironcore",
