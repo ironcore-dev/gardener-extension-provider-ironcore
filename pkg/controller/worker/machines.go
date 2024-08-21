@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
@@ -190,5 +191,27 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 
 func (w *workerDelegate) generateHashForWorkerPool(pool v1alpha1.WorkerPool) (string, error) {
 	// Generate the worker pool hash.
-	return worker.WorkerPoolHash(pool, w.cluster, nil, nil)
+	return worker.WorkerPoolHash(pool, w.cluster, computeAdditionalHashDataV1(pool), nil)
+}
+
+func computeAdditionalHashDataV1(pool v1alpha1.WorkerPool) []string {
+	var additionalData []string
+
+	if pool.Volume != nil && pool.Volume.Encrypted != nil {
+		additionalData = append(additionalData, strconv.FormatBool(*pool.Volume.Encrypted))
+	}
+
+	for _, dv := range pool.DataVolumes {
+		additionalData = append(additionalData, dv.Size)
+
+		if dv.Type != nil {
+			additionalData = append(additionalData, *dv.Type)
+		}
+
+		if dv.Encrypted != nil {
+			additionalData = append(additionalData, strconv.FormatBool(*dv.Encrypted))
+		}
+	}
+
+	return additionalData
 }
