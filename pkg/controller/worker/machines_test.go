@@ -6,6 +6,7 @@ package worker
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
@@ -53,8 +54,8 @@ var _ = Describe("Machines", func() {
 		err = workerDelegate.DeployMachineClasses(ctx)
 		Expect(err).NotTo(HaveOccurred())
 
-		// TODO: Fix machine pool hashing
-		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, nil, nil)
+		additionalData := []string{strconv.FormatBool(volumeEncrypted), datVolumeName, volumeSize, volumeType, strconv.FormatBool(volumeEncrypted)}
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, additionalData, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("ensuring that the machine class for each pool has been deployed")
@@ -120,7 +121,8 @@ var _ = Describe("Machines", func() {
 
 	It("should generate the machine deployments", func(ctx SpecContext) {
 		By("creating a worker delegate")
-		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, nil, nil)
+		additionalData := []string{strconv.FormatBool(volumeEncrypted), datVolumeName, volumeSize, volumeType, strconv.FormatBool(volumeEncrypted)}
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, additionalData, nil)
 		Expect(err).NotTo(HaveOccurred())
 		var (
 			deploymentName1 = fmt.Sprintf("%s-%s-z%d", w.Namespace, pool.Name, 1)

@@ -202,7 +202,7 @@ func computeAdditionalHashDataV1(pool v1alpha1.WorkerPool) []string {
 	}
 
 	for _, dv := range pool.DataVolumes {
-		additionalData = append(additionalData, dv.Size)
+		additionalData = append(additionalData, dv.Name, dv.Size)
 
 		if dv.Type != nil {
 			additionalData = append(additionalData, *dv.Type)
