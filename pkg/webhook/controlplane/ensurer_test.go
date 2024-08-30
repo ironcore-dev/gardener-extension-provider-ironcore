@@ -267,13 +267,7 @@ var _ = Describe("Ensurer", func() {
 						"--port=" + strconv.Itoa(portProviderMetrics),
 						"--target-kubeconfig=" + gardenerutils.PathGenericKubeconfig,
 						"--v=3",
-					},
-					Ports: []corev1.ContainerPort{
-						{
-							Name:          "providermetrics",
-							ContainerPort: 10259,
-							Protocol:      corev1.ProtocolTCP,
-						},
+						"--ironcore-kubeconfig=/etc/ironcore/kubeconfig",
 					},
 					LivenessProbe: &corev1.Probe{
 						ProbeHandler: corev1.ProbeHandler{

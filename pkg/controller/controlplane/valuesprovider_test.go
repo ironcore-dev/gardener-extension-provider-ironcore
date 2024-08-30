@@ -492,7 +492,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					"featureGates": map[string]bool{
 						"CustomResourceValidation": true,
 					},
-					"podNetwork":           []string{"10.0.0.0/16"},
+					"podNetwork":           "10.0.0.0/16",
 					"configureCloudRoutes": true,
 				},
 				"csi-driver-controller": map[string]interface{}{
