@@ -120,6 +120,14 @@ var _ = BeforeSuite(func() {
 	komega.SetClient(k8sClient)
 })
 
+var (
+	volumeName      = "test-volume"
+	volumeSize      = "10Gi"
+	volumeType      = "fast"
+	volumeEncrypted = true
+	datVolumeName   = "volume-1"
+)
+
 func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 	var (
 		chartApplier gardener.ChartApplier
@@ -139,9 +147,6 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 		chartApplier, err = gardener.NewChartApplierForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 
-		volumeName := "test-volume"
-		volumeType := "fast"
-
 		// define test resources
 		pool = gardenerextensionv1alpha1.WorkerPool{
 			MachineType:    "foo",
@@ -158,9 +163,18 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 			Name:     "pool",
 			UserData: []byte("some-data"),
 			Volume: &gardenerextensionv1alpha1.Volume{
-				Name: &volumeName,
-				Type: &volumeType,
-				Size: "10Gi",
+				Name:      &volumeName,
+				Type:      &volumeType,
+				Size:      volumeSize,
+				Encrypted: &volumeEncrypted,
+			},
+			DataVolumes: []gardenerextensionv1alpha1.DataVolume{
+				{
+					Name:      datVolumeName,
+					Type:      &volumeType,
+					Size:      volumeSize,
+					Encrypted: &volumeEncrypted,
+				},
 			},
 			Zones:        []string{"zone1", "zone2"},
 			Architecture: ptr.To[string]("amd64"),
