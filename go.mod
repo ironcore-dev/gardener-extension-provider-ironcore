@@ -3,7 +3,7 @@ module github.com/ironcore-dev/gardener-extension-provider-ironcore
 go 1.22.2
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/aws/aws-sdk-go v1.55.5
