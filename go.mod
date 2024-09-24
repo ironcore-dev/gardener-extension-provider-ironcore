@@ -1,6 +1,6 @@
 module github.com/ironcore-dev/gardener-extension-provider-ironcore
 
-go 1.22.2
+go 1.23.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.0
@@ -24,16 +24,16 @@ require (
 	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/tools v0.25.0
-	k8s.io/api v0.29.6
-	k8s.io/apiextensions-apiserver v0.29.6
-	k8s.io/apimachinery v0.29.6
+	k8s.io/api v0.29.9
+	k8s.io/apiextensions-apiserver v0.29.9
+	k8s.io/apimachinery v0.29.9
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.2.1
-	k8s.io/client-go v0.29.6
-	k8s.io/code-generator v0.29.6
-	k8s.io/component-base v0.29.6
-	k8s.io/kubelet v0.29.6
+	k8s.io/client-go v0.29.9
+	k8s.io/code-generator v0.29.9
+	k8s.io/component-base v0.29.9
+	k8s.io/kubelet v0.29.9
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0
-	sigs.k8s.io/controller-runtime v0.17.5
+	sigs.k8s.io/controller-runtime v0.17.6
 	sigs.k8s.io/controller-tools v0.14.0
 	sigs.k8s.io/yaml v1.4.0
 )
