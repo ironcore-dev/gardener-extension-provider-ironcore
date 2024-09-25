@@ -243,7 +243,7 @@ var _ = Describe("Ensurer", func() {
 				ensurer = NewEnsurer(logger, true)
 				DeferCleanup(testutils.WithVar(&ImageVector, imagevectorutils.ImageVector{{
 					Name:       "machine-controller-manager-provider-ironcore",
-					Repository: "foo",
+					Repository: ptr.To("foo"),
 					Tag:        ptr.To[string]("bar"),
 				}}))
 			})

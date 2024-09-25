@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/backupbucket"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -27,6 +28,8 @@ type AddOptions struct {
 	IgnoreOperationAnnotation bool
 	// BackupBucketConfig contains config for the BackupBucket config.
 	BackupBucketConfig controllerconfig.BackupBucketConfig
+	// ExtensionClass defines the extension class this extension is responsible for.
+	ExtensionClass extensionsv1alpha1.ExtensionClass
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -37,6 +40,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		ControllerOptions: opts.Controller,
 		Predicates:        backupbucket.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              ironcore.Type,
+		ExtensionClass:    opts.ExtensionClass,
 	})
 }
 

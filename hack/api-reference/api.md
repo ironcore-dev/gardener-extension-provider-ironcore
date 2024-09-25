@@ -179,6 +179,18 @@ Kubernetes core/v1.LocalObjectReference
 <p>NetworkRef references the network to use for the Shoot creation.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>natPortsPerNetworkInterface</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>NATPortsPerNetworkInterface defines the minimum number of ports per network interface the NAT gateway should use.
+Has to be a power of 2. If empty, 2048 is the default.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="ironcore.provider.extensions.gardener.cloud/v1alpha1.CloudControllerManagerConfig">CloudControllerManagerConfig

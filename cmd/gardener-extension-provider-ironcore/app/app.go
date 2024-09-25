@@ -214,11 +214,11 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			bastionCtrlOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.Controller)
 			backupBucketCtrlOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.Controller)
 			backupEntryCtrlOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.Controller)
-			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation, &bastioncontroller.DefaultAddOptions.ExtensionClass)
+			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation, &infrastructurecontroller.DefaultAddOptions.ExtensionClass)
+			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation, &workercontroller.DefaultAddOptions.ExtensionClass)
+			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation, &backupbucketcontroller.DefaultAddOptions.ExtensionClass)
+			reconcileOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.IgnoreOperationAnnotation, &backupentrycontroller.DefaultAddOptions.ExtensionClass)
 			workercontroller.DefaultAddOptions.GardenCluster = gardenCluster
 
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil); err != nil {
