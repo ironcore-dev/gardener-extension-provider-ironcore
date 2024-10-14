@@ -134,7 +134,8 @@ metadata:
   name: my-shoot
   namespace: my-namespace
 spec:
-  cloudProfileName: ironcore
+  cloudProfile:
+    name: ironcore
   secretBindingName: my-credentials
   region: my-region
   networking:
