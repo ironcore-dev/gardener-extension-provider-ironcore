@@ -121,11 +121,13 @@ var _ = BeforeSuite(func() {
 })
 
 var (
-	volumeName      = "test-volume"
-	volumeSize      = "10Gi"
-	volumeType      = "fast"
-	volumeEncrypted = true
-	datVolumeName   = "volume-1"
+	volumeName            = "test-volume"
+	volumeSize            = "10Gi"
+	volumeType            = "fast"
+	volumeEncrypted       = true
+	datVolumeName         = "volume-1"
+	userDataSecretName    = "userdata-secret-name"
+	userDataSecretDataKey = "userdata-secret-key"
 )
 
 func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
@@ -147,6 +149,18 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 		chartApplier, err = gardener.NewChartApplierForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 
+		userDataSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      userDataSecretName,
+			},
+			Data: map[string][]byte{
+				userDataSecretDataKey: []byte("some-data"),
+			},
+		}
+		Expect(k8sClient.Create(ctx, userDataSecret)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, userDataSecret)
+
 		// define test resources
 		pool = gardenerextensionv1alpha1.WorkerPool{
 			MachineType:    "foo",
@@ -159,9 +173,12 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 				Name:    "my-os",
 				Version: "1.0",
 			},
-			Minimum:  0,
-			Name:     "pool",
-			UserData: []byte("some-data"),
+			Minimum: 0,
+			Name:    "pool",
+			UserDataSecretRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: userDataSecretName},
+				Key:                  userDataSecretDataKey,
+			},
 			Volume: &gardenerextensionv1alpha1.Volume{
 				Name:      &volumeName,
 				Type:      &volumeType,
