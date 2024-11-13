@@ -27,7 +27,7 @@ import (
 
 // DeployMachineClasses generates and creates the ironcore specific machine classes.
 func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
-	machineClasses, machineClassSecrets, err := w.generateMachineClassAndSecrets()
+	machineClasses, machineClassSecrets, err := w.generateMachineClassAndSecrets(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to generate machine classes and machine class secrets: %w", err)
 	}
@@ -85,7 +85,7 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 	return machineDeployments, nil
 }
 
-func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv1alpha1.MachineClass, []*corev1.Secret, error) {
+func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]*machinecontrollerv1alpha1.MachineClass, []*corev1.Secret, error) {
 	var (
 		machineClasses      []*machinecontrollerv1alpha1.MachineClass
 		machineClassSecrets []*corev1.Secret
@@ -150,6 +150,11 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 				return nil, nil, fmt.Errorf("failed to marshal machine class for machine pool %s: %w", pool.Name, err)
 			}
 
+			userData, err := worker.FetchUserData(ctx, w.client, w.worker.Namespace, pool)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to fetch user data for machine pool %s: %w", pool.Name, err)
+			}
+
 			machineClass := &machinecontrollerv1alpha1.MachineClass{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      className,
@@ -177,7 +182,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets() ([]*machinecontrollerv
 					Labels:    map[string]string{v1beta1constants.GardenerPurpose: v1beta1constants.GardenPurposeMachineClass},
 				},
 				Data: map[string][]byte{
-					ironcore.UserDataFieldName: pool.UserData,
+					ironcore.UserDataFieldName: userData,
 				},
 			}
 
