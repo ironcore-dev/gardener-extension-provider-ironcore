@@ -8,11 +8,16 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"net/netip"
+	"slices"
+
+	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/ironcore-dev/ironcore/api/common/v1alpha1"
+	commonv1alpha1 "github.com/ironcore-dev/ironcore/api/common/v1alpha1"
 	ipamv1alpha1 "github.com/ironcore-dev/ironcore/api/ipam/v1alpha1"
 	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -61,7 +66,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return err
 	}
 
-	prefix, err := a.applyPrefix(ctx, ironcoreClient, namespace, cluster)
+	prefixes, servicePrefix, err := a.applyPrefixes(ctx, ironcoreClient, namespace, cluster)
 	if err != nil {
 		return err
 	}
@@ -73,19 +78,18 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 
 	log.V(2).Info("Successfully reconciled infrastructure")
 
-	// update status
-	return a.updateProviderStatus(ctx, infra, network, natGateway, prefix, networkPolicy)
+	return a.updateProviderStatus(ctx, infra, network, natGateway, prefixes, networkPolicy, servicePrefix, cluster)
 }
 
-func (a *actuator) applyPrefix(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) (*ipamv1alpha1.Prefix, error) {
-	prefix := &ipamv1alpha1.Prefix{
+func (a *actuator) applyPrefixes(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) ([]ipamv1alpha1.Prefix, *ipamv1alpha1.Prefix, error) {
+	prefixIPV4 := &ipamv1alpha1.Prefix{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Prefix",
 			APIVersion: "ipam.ironcore.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      generateResourceNameFromCluster(cluster),
+			Name:      generateResourceNameFromCluster(cluster) + "-v4",
 		},
 		Spec: ipamv1alpha1.PrefixSpec{
 			// TODO: for now we only support IPv4 until Gardener has support for IPv6 based Shoots
@@ -94,14 +98,68 @@ func (a *actuator) applyPrefix(ctx context.Context, ironcoreClient client.Client
 	}
 
 	if nodeCIDR := cluster.Shoot.Spec.Networking.Nodes; nodeCIDR != nil {
-		prefix.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(ptr.Deref[string](nodeCIDR, ""))
+		prefixIPV4.Spec.Prefix = v1alpha1.MustParseNewIPPrefix(ptr.Deref[string](nodeCIDR, ""))
 	}
 
-	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, prefix, nil); err != nil {
-		return nil, fmt.Errorf("failed to apply prefix %s: %w", client.ObjectKeyFromObject(prefix), err)
+	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, prefixIPV4, nil); err != nil {
+		return nil, nil, fmt.Errorf("failed to apply prefix %s: %w", client.ObjectKeyFromObject(prefixIPV4), err)
 	}
 
-	return prefix, nil
+	prefixes := []ipamv1alpha1.Prefix{*prefixIPV4}
+	var servicePrefix *ipamv1alpha1.Prefix
+	if slices.Contains(cluster.Shoot.Spec.Networking.IPFamilies, v1beta1.IPFamilyIPv6) {
+		// TODO: Get overlay IPv6 Block from Malte
+		nodesIPV6Prefix, err := netip.ParsePrefix("2a10:afc0:e010:cafe::/64")
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to parse IPv6 prefix: %w", err)
+		}
+		prefixIPV6 := &ipamv1alpha1.Prefix{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Prefix",
+				APIVersion: "ipam.ironcore.dev/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace,
+				Name:      generateResourceNameFromCluster(cluster) + "-v6",
+			},
+			Spec: ipamv1alpha1.PrefixSpec{
+				IPFamily: corev1.IPv6Protocol,
+				Prefix: &commonv1alpha1.IPPrefix{
+					Prefix: nodesIPV6Prefix,
+				},
+			},
+		}
+		if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, prefixIPV6, nil); err != nil {
+			return nil, nil, fmt.Errorf("failed to apply prefix %s: %w", client.ObjectKeyFromObject(prefixIPV6), err)
+		}
+
+		prefixes = append(prefixes, *prefixIPV6)
+
+		maxPrefixLength := 128
+		servicePrefixLength := int32((maxPrefixLength-nodesIPV6Prefix.Bits())/2 + nodesIPV6Prefix.Bits())
+		servicePrefix = &ipamv1alpha1.Prefix{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Prefix",
+				APIVersion: "ipam.ironcore.dev/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace,
+				Name:      generateResourceNameFromCluster(cluster) + "-services-v6",
+			},
+			Spec: ipamv1alpha1.PrefixSpec{
+				IPFamily:     corev1.IPv6Protocol,
+				PrefixLength: servicePrefixLength,
+				ParentRef: &corev1.LocalObjectReference{
+					Name: prefixIPV6.Name,
+				},
+			},
+		}
+		if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, servicePrefix, nil); err != nil {
+			return nil, nil, fmt.Errorf("failed to apply prefix %s: %w", client.ObjectKeyFromObject(servicePrefix), err)
+		}
+	}
+
+	return prefixes, servicePrefix, nil
 }
 
 func (a *actuator) applyNATGateway(ctx context.Context, config *api.InfrastructureConfig, ironcoreClient client.Client, namespace string, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NATGateway, error) {
@@ -244,8 +302,10 @@ func (a *actuator) updateProviderStatus(
 	infra *extensionsv1alpha1.Infrastructure,
 	network *networkingv1alpha1.Network,
 	natGateway *networkingv1alpha1.NATGateway,
-	prefix *ipamv1alpha1.Prefix,
+	prefixes []ipamv1alpha1.Prefix,
 	networkPolicy *networkingv1alpha1.NetworkPolicy,
+	servicePrefix *ipamv1alpha1.Prefix,
+	cluster *controller.Cluster,
 ) error {
 	infraStatus := &apiv1alpha1.InfrastructureStatus{
 		TypeMeta: metav1.TypeMeta{
@@ -260,14 +320,47 @@ func (a *actuator) updateProviderStatus(
 			Name: natGateway.Name,
 			UID:  natGateway.UID,
 		},
-		PrefixRef: v1alpha1.LocalUIDReference{
-			Name: prefix.Name,
-			UID:  prefix.UID,
-		},
 		NetworkPolicyRef: v1alpha1.LocalUIDReference{
 			Name: networkPolicy.Name,
 			UID:  networkPolicy.UID,
 		},
+	}
+	var (
+		nodes    []string
+		pods     []string
+		services []string
+	)
+	if cluster.Shoot.Spec.Networking.Pods != nil {
+		pods = []string{*cluster.Shoot.Spec.Networking.Pods}
+	}
+	if cluster.Shoot.Spec.Networking.Services != nil {
+		services = []string{*cluster.Shoot.Spec.Networking.Services}
+	}
+	for _, prefix := range prefixes {
+		infraStatus.PrefixRefs = append(infraStatus.PrefixRefs,
+			v1alpha1.LocalUIDReference{
+				Name: prefix.Name,
+				UID:  prefix.UID,
+			},
+		)
+		nodes = append(nodes, prefix.Spec.Prefix.Prefix.String())
+		if prefix.Spec.IPFamily == corev1.IPv6Protocol {
+			// for IPv6 the pods and the nodes share the same prefix
+			pods = append(pods, prefix.Spec.Prefix.Prefix.String())
+		}
+	}
+	if servicePrefix != nil {
+		if servicePrefix.Status.Phase != ipamv1alpha1.PrefixPhaseAllocated {
+			return fmt.Errorf("service prefix not yet allocated")
+		}
+		if servicePrefix.Spec.Prefix != nil {
+			services = append(services, servicePrefix.Spec.Prefix.Prefix.String())
+		}
+	}
+	infra.Status.Networking = &extensionsv1alpha1.InfrastructureStatusNetworking{
+		Nodes:    nodes,
+		Pods:     pods,
+		Services: services,
 	}
 	infraBase := infra.DeepCopy()
 	infra.Status.ProviderStatus = &runtime.RawExtension{
