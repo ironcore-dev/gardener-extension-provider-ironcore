@@ -122,8 +122,10 @@ func validateInfrastructureStatus(infrastructureStatus *api.InfrastructureStatus
 		return fmt.Errorf("network ref must be not empty for infrastructure provider status")
 	}
 
-	if infrastructureStatus.PrefixRef == emptyref {
-		return fmt.Errorf("prefix ref must be not empty for infrastructure provider status")
+	for _, prefixRef := range infrastructureStatus.PrefixRefs {
+		if prefixRef == emptyref {
+			return fmt.Errorf("prefix ref must be not empty for infrastructure provider status")
+		}
 	}
 
 	return nil
