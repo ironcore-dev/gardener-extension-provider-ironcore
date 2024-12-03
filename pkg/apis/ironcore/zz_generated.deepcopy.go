@@ -154,7 +154,7 @@ func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	out.TypeMeta = in.TypeMeta
 	out.NetworkRef = in.NetworkRef
 	out.NATGatewayRef = in.NATGatewayRef
-	out.PrefixRef = in.PrefixRef
+	out.PrefixRefs = in.PrefixRefs
 	out.NetworkPolicyRef = in.NetworkPolicyRef
 	return
 }
