@@ -76,7 +76,6 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 
 // EnsureMachineControllerManagerVPA ensures that the machine-controller-manager VPA conforms to the provider requirements.
 func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ extensionscontextwebhook.GardenContext, newObj, _ *vpaautoscalingv1.VerticalPodAutoscaler) error {
-
 	if newObj.Spec.ResourcePolicy == nil {
 		newObj.Spec.ResourcePolicy = &vpaautoscalingv1.PodResourcePolicy{}
 	}
