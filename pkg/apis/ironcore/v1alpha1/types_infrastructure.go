@@ -34,5 +34,5 @@ type InfrastructureStatus struct {
 	// NATGatewayRef is the reference to the NAT gateway used
 	NATGatewayRef commonv1alpha1.LocalUIDReference `json:"natGatewayRef,omitempty"`
 	// PrefixRef is the reference to the Prefix used
-	PrefixRef commonv1alpha1.LocalUIDReference `json:"prefixRef,omitempty"`
+	PrefixRefs []commonv1alpha1.LocalUIDReference `json:"prefixRefs,omitempty"`
 }
