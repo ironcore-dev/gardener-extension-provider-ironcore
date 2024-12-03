@@ -51,7 +51,7 @@ const (
 	// NetworkFieldName is the name of network field
 	NetworkFieldName = "networkName"
 	// PrefixFieldName is the name of the prefix field
-	PrefixFieldName = "prefixName"
+	PrefixFieldName = "prefixNames"
 	// ClusterFieldName is the name of the cluster field
 	ClusterFieldName = "clusterName"
 	// LabelsFieldName is the name of the labels field
