@@ -36,7 +36,7 @@ type InfrastructureStatus struct {
 	// NATGatewayRef is the reference to the NAT gateway used
 	NATGatewayRef commonv1alpha1.LocalUIDReference
 	// PrefixRefs are the reference to the Prefixes used
-	PrefixRefs commonv1alpha1.LocalUIDReference
+	PrefixRefs []commonv1alpha1.LocalUIDReference
 	//NetworkPolicy is reference to the NetworkPolicy defined
 	NetworkPolicyRef commonv1alpha1.LocalUIDReference
 }

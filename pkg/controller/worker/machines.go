@@ -155,7 +155,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 				prefixNames = append(prefixNames, prefix.Name)
 			}
 			machineClassProviderSpec[ironcore.NetworkFieldName] = infrastructureStatus.NetworkRef.Name
-			machineClassProviderSpec[ironcore.PrefixFieldName] = prefixNames
+			machineClassProviderSpec[ironcore.PrefixesFieldName] = prefixNames
 			machineClassProviderSpec[ironcore.LabelsFieldName] = map[string]string{
 				ironcore.ClusterNameLabel: w.cluster.ObjectMeta.Name,
 			}

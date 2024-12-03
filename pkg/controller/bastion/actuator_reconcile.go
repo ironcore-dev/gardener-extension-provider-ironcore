@@ -252,8 +252,9 @@ func generateMachine(namespace string, bastionConfig *controllerconfig.BastionCo
 													Spec: ipamv1alpha1.PrefixSpec{
 														// request single IP
 														PrefixLength: 32,
+														// TODO do we need to generate IPv6 bastion hosts?
 														ParentRef: &corev1.LocalObjectReference{
-															Name: infraStatus.PrefixRef.Name,
+															Name: infraStatus.PrefixRefs[0].Name,
 														},
 													},
 												},

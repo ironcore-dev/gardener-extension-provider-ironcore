@@ -34,9 +34,8 @@ type InfrastructureStatus struct {
 	// NetworkRef is the reference to the networked used
 	NetworkRef commonv1alpha1.LocalUIDReference `json:"networkRef,omitempty"`
 	// NATGatewayRef is the reference to the NAT gateway used
-	NATGatewayRef commonv1alpha1.LocalUIDReference `json:"natGatewayRef,omitempty"`
-	// PrefixRefs are the reference to the Prefixes used
-	PrefixRefs []commonv1alpha1.LocalUIDReference `json:"prefixRefs,omitempty"`
+	NATGatewayRef commonv1alpha1.LocalUIDReference   `json:"natGatewayRef,omitempty"`
+	PrefixRefs    []commonv1alpha1.LocalUIDReference `json:"prefixRefs,omitempty"`
 	//NetworkPolicy is reference to the NetworkPolicy defined
 	NetworkPolicyRef commonv1alpha1.LocalUIDReference `json:"networkPolicyRef,omitempty"`
 }
