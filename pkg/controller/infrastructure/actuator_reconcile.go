@@ -356,12 +356,12 @@ func (a *actuator) updateProviderStatus(
 			services = append(services, servicePrefix.Spec.Prefix.Prefix.String())
 		}
 	}
+	infraBase := infra.DeepCopy()
 	infra.Status.Networking = &extensionsv1alpha1.InfrastructureStatusNetworking{
 		Nodes:    nodes,
 		Pods:     pods,
 		Services: services,
 	}
-	infraBase := infra.DeepCopy()
 	infra.Status.ProviderStatus = &runtime.RawExtension{
 		Object: infraStatus,
 	}
