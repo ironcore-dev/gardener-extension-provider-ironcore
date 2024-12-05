@@ -16,7 +16,6 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 
@@ -77,24 +76,13 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 
 // EnsureMachineControllerManagerVPA ensures that the machine-controller-manager VPA conforms to the provider requirements.
 func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ extensionscontextwebhook.GardenContext, newObj, _ *vpaautoscalingv1.VerticalPodAutoscaler) error {
-	var (
-		minAllowed = corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse("30m"),
-			corev1.ResourceMemory: resource.MustParse("64Mi"),
-		}
-		maxAllowed = corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse("2"),
-			corev1.ResourceMemory: resource.MustParse("5G"),
-		}
-	)
-
 	if newObj.Spec.ResourcePolicy == nil {
 		newObj.Spec.ResourcePolicy = &vpaautoscalingv1.PodResourcePolicy{}
 	}
 
 	newObj.Spec.ResourcePolicy.ContainerPolicies = extensionswebhook.EnsureVPAContainerResourcePolicyWithName(
 		newObj.Spec.ResourcePolicy.ContainerPolicies,
-		machinecontrollermanager.ProviderSidecarVPAContainerPolicy(ironcore.ProviderName, minAllowed, maxAllowed),
+		machinecontrollermanager.ProviderSidecarVPAContainerPolicy(ironcore.ProviderName),
 	)
 	return nil
 }
@@ -145,6 +133,9 @@ func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
 func ensureKubeControllerManagerCommandLineArgs(c *corev1.Container) {
 	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--cloud-provider=", "external")
 	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-config=")
+
+	// allocate-node-cidrs is a boolean flag and could be enabled by name without an explicit value passed. Therefore, we delete all prefixes (without including "=" in the prefix)
+	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--allocate-node-cidrs")
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
