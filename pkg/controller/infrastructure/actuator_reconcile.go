@@ -134,8 +134,7 @@ func (a *actuator) applyPrefixes(ctx context.Context, ironcoreClient client.Clie
 
 		prefixes = append(prefixes, *prefixIPV6)
 
-		maxPrefixLength := 128
-		servicePrefixLength := int32((maxPrefixLength-nodesIPV6Prefix.Bits())/2 + nodesIPV6Prefix.Bits())
+		servicePrefixLength := int32(112)
 		servicePrefix = &ipamv1alpha1.Prefix{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Prefix",
