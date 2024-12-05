@@ -108,9 +108,28 @@ func (a *actuator) applyPrefixes(ctx context.Context, ironcoreClient client.Clie
 	var servicePrefix *ipamv1alpha1.Prefix
 	if slices.Contains(cluster.Shoot.Spec.Networking.IPFamilies, v1beta1.IPFamilyIPv6) {
 		// TODO: Get overlay IPv6 Block from Malte
-		nodesIPV6Prefix, err := netip.ParsePrefix("2a10:afc0:e010:cafe::/64")
+		rootPrefix, err := netip.ParsePrefix("2a10:afc0:e010:cafe::/64")
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to parse IPv6 prefix: %w", err)
+		}
+		rootPrefixIPv6 := &ipamv1alpha1.Prefix{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Prefix",
+				APIVersion: "ipam.ironcore.dev/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace,
+				Name:      "root-prefix-v6-all-shoots",
+			},
+			Spec: ipamv1alpha1.PrefixSpec{
+				IPFamily: corev1.IPv6Protocol,
+				Prefix: &commonv1alpha1.IPPrefix{
+					Prefix: rootPrefix,
+				},
+			},
+		}
+		if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, rootPrefixIPv6, nil); err != nil {
+			return nil, nil, fmt.Errorf("failed to apply root prefix %s: %w", client.ObjectKeyFromObject(rootPrefixIPv6), err)
 		}
 		prefixIPV6 := &ipamv1alpha1.Prefix{
 			TypeMeta: metav1.TypeMeta{
@@ -122,9 +141,10 @@ func (a *actuator) applyPrefixes(ctx context.Context, ironcoreClient client.Clie
 				Name:      generateResourceNameFromCluster(cluster) + "-v6",
 			},
 			Spec: ipamv1alpha1.PrefixSpec{
-				IPFamily: corev1.IPv6Protocol,
-				Prefix: &commonv1alpha1.IPPrefix{
-					Prefix: nodesIPV6Prefix,
+				IPFamily:     corev1.IPv6Protocol,
+				PrefixLength: 96,
+				ParentRef: &corev1.LocalObjectReference{
+					Name: rootPrefixIPv6.Name,
 				},
 			},
 		}
