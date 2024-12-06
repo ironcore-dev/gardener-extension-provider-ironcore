@@ -21,6 +21,8 @@ type InfrastructureConfig struct {
 	// NATPortsPerNetworkInterface defines the minimum number of ports per network interface the NAT gateway should use.
 	// Has to be a power of 2. If empty, 2048 is the default.
 	NATPortsPerNetworkInterface *int32 `json:"natPortsPerNetworkInterface,omitempty"`
+	//NetworkPolicy is reference to the NetworkPolicy to use for the Shoot creation.
+	NetworkPolicyRef *commonv1alpha1.LocalUIDReference `json:"networkPolicyRef,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -35,4 +37,6 @@ type InfrastructureStatus struct {
 	NATGatewayRef commonv1alpha1.LocalUIDReference `json:"natGatewayRef,omitempty"`
 	// PrefixRef is the reference to the Prefix used
 	PrefixRef commonv1alpha1.LocalUIDReference `json:"prefixRef,omitempty"`
+	//NetworkPolicy is reference to the NetworkPolicy defined
+	NetworkPolicyRef commonv1alpha1.LocalUIDReference `json:"networkPolicyRef,omitempty"`
 }

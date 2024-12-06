@@ -9,6 +9,7 @@
 package ironcore
 
 import (
+	v1alpha1 "github.com/ironcore-dev/ironcore/api/common/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -120,6 +121,11 @@ func (in *InfrastructureConfig) DeepCopyInto(out *InfrastructureConfig) {
 		*out = new(int32)
 		**out = **in
 	}
+	if in.NetworkPolicyRef != nil {
+		in, out := &in.NetworkPolicyRef, &out.NetworkPolicyRef
+		*out = new(v1alpha1.LocalUIDReference)
+		**out = **in
+	}
 	return
 }
 
@@ -148,6 +154,7 @@ func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	out.NetworkRef = in.NetworkRef
 	out.NATGatewayRef = in.NATGatewayRef
 	out.PrefixRef = in.PrefixRef
+	out.NetworkPolicyRef = in.NetworkPolicyRef
 	return
 }
 
