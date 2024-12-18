@@ -37,6 +37,10 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extension
 		return fmt.Errorf("failed to delete infrastructure: %w", err)
 	}
 
+	if err := a.deleteNetworkPolicy(ctx, ironcoreClient, namespace, cluster); client.IgnoreNotFound(err) != nil {
+		return fmt.Errorf("failed to delete infrastructure: %w", err)
+	}
+
 	if err := a.deleteNetwork(ctx, ironcoreClient, namespace, cluster); client.IgnoreNotFound(err) != nil {
 		return fmt.Errorf("failed to delete infrastructure: %w", err)
 	}
@@ -77,4 +81,14 @@ func (a *actuator) deleteNetwork(ctx context.Context, ironcoreClient client.Clie
 		},
 	}
 	return ironcoreClient.Delete(ctx, network)
+}
+
+func (a *actuator) deleteNetworkPolicy(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) error {
+	networkPolicy := &networkingv1alpha1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      generateResourceNameFromCluster(cluster),
+		},
+	}
+	return ironcoreClient.Delete(ctx, networkPolicy)
 }
