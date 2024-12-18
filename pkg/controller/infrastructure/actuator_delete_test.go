@@ -24,7 +24,7 @@ import (
 var _ = Describe("Infrastructure Reconcile", func() {
 	ns := SetupTest()
 
-	FIt("should ensure that the network, networkpolicy, natgateway and prefix is being deleted", func(ctx SpecContext) {
+	It("should ensure that the network, networkpolicy, natgateway and prefix is being deleted", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
