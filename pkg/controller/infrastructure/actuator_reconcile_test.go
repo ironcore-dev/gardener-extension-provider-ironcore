@@ -28,7 +28,7 @@ import (
 var _ = Describe("Infrastructure Reconcile", func() {
 	ns := SetupTest()
 
-	It("should create a network, natgateway and prefix for a given infrastructure configuration", func(ctx SpecContext) {
+	It("should create a network, natgateway, prefix and network policy for a given infrastructure configuration", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
@@ -115,6 +115,21 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			HaveField("Spec.Prefix", commonv1alpha1.MustParseNewIPPrefix("10.0.0.0/24")),
 		))
 
+		By("expecting a network policy being created")
+		networkPolicy := &networkingv1alpha1.NetworkPolicy{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      generateResourceNameFromCluster(cluster),
+			},
+		}
+
+		Eventually(Object(networkPolicy)).Should(SatisfyAll(
+			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
+				Name: network.Name,
+			}),
+			HaveField("Spec.NetworkInterfaceSelector.MatchLabels", HaveKeyWithValue("extension.ironcore.dev/cluster-name", cluster.ObjectMeta.Name)),
+		))
+
 		By("ensuring that the infrastructure state contains the correct refs")
 		providerStatus := map[string]interface{}{
 			"apiVersion": "ironcore.provider.extensions.gardener.cloud/v1alpha1",
@@ -131,6 +146,10 @@ var _ = Describe("Infrastructure Reconcile", func() {
 				"name": prefix.Name,
 				"uid":  prefix.UID,
 			},
+			"networkPolicyRef": map[string]interface{}{
+				"name": networkPolicy.Name,
+				"uid":  networkPolicy.UID,
+			},
 		}
 		providerStatusJSON, err := json.Marshal(providerStatus)
 		Expect(err).NotTo(HaveOccurred())
@@ -139,7 +158,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 		))
 	})
 
-	It("should create a network, natgateway and prefix for a given infrastructure configuration", func(ctx SpecContext) {
+	It("should create a network, natgateway, prefix and network policy for a given infrastructure configuration", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
@@ -223,6 +242,20 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			HaveField("Spec.Prefix", commonv1alpha1.MustParseNewIPPrefix("10.0.0.0/24")),
 		))
 
+		By("expecting a network policy being created")
+		networkPolicy := &networkingv1alpha1.NetworkPolicy{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      generateResourceNameFromCluster(cluster),
+			},
+		}
+
+		Eventually(Object(networkPolicy)).Should(SatisfyAll(
+			HaveField("Spec.NetworkRef", corev1.LocalObjectReference{
+				Name: network.Name,
+			}),
+		))
+
 		By("ensuring that the infrastructure state contains the correct refs")
 		providerStatus := map[string]interface{}{
 			"apiVersion": "ironcore.provider.extensions.gardener.cloud/v1alpha1",
@@ -238,6 +271,10 @@ var _ = Describe("Infrastructure Reconcile", func() {
 			"prefixRef": map[string]interface{}{
 				"name": prefix.Name,
 				"uid":  prefix.UID,
+			},
+			"networkPolicyRef": map[string]interface{}{
+				"name": networkPolicy.Name,
+				"uid":  networkPolicy.UID,
 			},
 		}
 		providerStatusJSON, err := json.Marshal(providerStatus)
