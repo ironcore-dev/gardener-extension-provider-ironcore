@@ -125,6 +125,10 @@ var _ = BeforeSuite(func() {
 	err = utilsenvtest.WaitUntilAPIServicesReadyWithTimeout(apiServiceTimeout, testEnvExt, k8sClient, scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 })
+var (
+	userDataSecretName    = "userdata-secret-name"
+	userDataSecretDataKey = "userdata-secret-key"
+)
 
 func SetupTest() *corev1.Namespace {
 	namespace := &corev1.Namespace{}
@@ -205,6 +209,19 @@ func SetupTest() *corev1.Namespace {
 		Expect(k8sClient.Create(ctx, volumeClass)).To(Succeed())
 		DeferCleanup(k8sClient.Delete, volumeClass)
 
+		By("creating a useDataSecret")
+		userDataSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace.Name,
+				Name:      userDataSecretName,
+			},
+			Data: map[string][]byte{
+				userDataSecretDataKey: []byte("some-data"),
+			},
+		}
+		Expect(k8sClient.Create(ctx, userDataSecret)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, userDataSecret)
+
 		By("creating a test worker")
 		volumeName := "test-volume"
 		volumeType := "fast"
@@ -226,9 +243,12 @@ func SetupTest() *corev1.Namespace {
 							Name:    "my-os",
 							Version: "1.0",
 						},
-						Minimum:  0,
-						Name:     "pool",
-						UserData: []byte("some-data"),
+						Minimum: 0,
+						Name:    "pool",
+						UserDataSecretRef: corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: userDataSecretName},
+							Key:                  userDataSecretDataKey,
+						},
 						Volume: &extensionsv1alpha1.Volume{
 							Name: &volumeName,
 							Type: &volumeType,
