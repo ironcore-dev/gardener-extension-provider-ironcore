@@ -175,7 +175,7 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 			},
 			Minimum: 0,
 			Name:    "pool",
-			UserDataSecretRef: &corev1.SecretKeySelector{
+			UserDataSecretRef: corev1.SecretKeySelector{
 				LocalObjectReference: corev1.LocalObjectReference{Name: userDataSecretName},
 				Key:                  userDataSecretDataKey,
 			},
