@@ -25,6 +25,7 @@ import (
 type Mocks3ObjectLister struct {
 	ctrl     *gomock.Controller
 	recorder *Mocks3ObjectListerMockRecorder
+	isgomock struct{}
 }
 
 // Mocks3ObjectListerMockRecorder is the mock recorder for Mocks3ObjectLister.
