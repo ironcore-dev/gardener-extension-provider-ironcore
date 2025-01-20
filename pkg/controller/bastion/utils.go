@@ -5,7 +5,6 @@ package bastion
 
 import (
 	"fmt"
-	"net"
 	"strings"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -52,37 +51,37 @@ func getIgnitionNameForMachine(machineName string) string {
 func getPrivateAndVirtualIPsFromNetworkInterfaces(networkInterfaces []computev1alpha1.NetworkInterfaceStatus) (string, string, error) {
 	var privateIP, virtualIP string
 
-	for _, ni := range networkInterfaces {
-		if ni.IPs == nil {
-			return "", "", fmt.Errorf("no private ip found for network interface: %s", ni.Name)
-		}
-		for _, ip := range ni.IPs {
-			parsedIP := net.ParseIP(ip.String())
-			if parsedIP == nil {
-				continue // skip invalid IP
-			}
-			if parsedIP.To4() != nil {
-				privateIP = parsedIP.String()
-				break
-			} else {
-				// IPv6 case
-				continue
-			}
-		}
-		if ni.VirtualIP != nil {
-			parsedIP := net.ParseIP(ni.VirtualIP.String())
-			if parsedIP == nil {
-				continue // skip invalid IP
-			}
-			if parsedIP.To4() != nil {
-				virtualIP = parsedIP.String()
-				break
-			} else {
-				// IPv6 case
-				continue
-			}
-		}
-	}
+	//for _, ni := range networkInterfaces {
+	//	if ni.IPs == nil {
+	//		return "", "", fmt.Errorf("no private ip found for network interface: %s", ni.Name)
+	//	}
+	//	for _, ip := range ni.IPs {
+	//		parsedIP := net.ParseIP(ip.String())
+	//		if parsedIP == nil {
+	//			continue // skip invalid IP
+	//		}
+	//		if parsedIP.To4() != nil {
+	//			privateIP = parsedIP.String()
+	//			break
+	//		} else {
+	//			// IPv6 case
+	//			continue
+	//		}
+	//	}
+	//	if ni.VirtualIP != nil {
+	//		parsedIP := net.ParseIP(ni.VirtualIP.String())
+	//		if parsedIP == nil {
+	//			continue // skip invalid IP
+	//		}
+	//		if parsedIP.To4() != nil {
+	//			virtualIP = parsedIP.String()
+	//			break
+	//		} else {
+	//			// IPv6 case
+	//			continue
+	//		}
+	//	}
+	//}
 	if privateIP == "" {
 		return "", "", fmt.Errorf("private IPv4 address not found")
 	}

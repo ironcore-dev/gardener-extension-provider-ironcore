@@ -169,10 +169,10 @@ DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-CODE_GENERATOR_VERSION ?= v0.29.3
+CODE_GENERATOR_VERSION ?= v0.31.4
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.29.0
+ENVTEST_K8S_VERSION = 1.31.0
 
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.

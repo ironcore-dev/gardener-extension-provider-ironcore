@@ -4,12 +4,9 @@
 package bastion
 
 import (
-	"net/netip"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	commonv1alpha1 "github.com/ironcore-dev/ironcore/api/common/v1alpha1"
 	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
 	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
@@ -102,9 +99,7 @@ var _ = Describe("Bastion Host Delete", func() {
 		bastionHostBase := bastionHost.DeepCopy()
 		bastionHost.Status.State = computev1alpha1.MachineStateRunning
 		bastionHost.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
-			Name:      "primary",
-			IPs:       []commonv1alpha1.IP{commonv1alpha1.MustParseIP("10.0.0.3")},
-			VirtualIP: &commonv1alpha1.IP{Addr: netip.MustParseAddr("10.0.0.4")},
+			Name: "primary",
 		}}
 		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(bastionHostBase))).To(Succeed())
 

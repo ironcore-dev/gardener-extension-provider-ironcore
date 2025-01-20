@@ -5,7 +5,9 @@ package backupbucket
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -24,7 +26,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/komega"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -72,6 +76,14 @@ var _ = BeforeSuite(func() {
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_backupbuckets.yaml"),
 		},
 		ErrorIfCRDPathMissing: true,
+
+		// The BinaryAssetsDirectory is only required if you want to run the tests directly
+		// without call the makefile target test. If not informed it will look for the
+		// default path defined in controller-runtime which is /usr/local/kubebuilder/.
+		// Note that you must have the required binaries setup under the bin directory to perform
+		// the tests directly. When we run make test it will be setup and used automatically.
+		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s",
+			fmt.Sprintf("1.31.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
 	}
 	testEnvExt = &utilsenvtest.EnvironmentExtensions{
 		APIServiceDirectoryPaths: []string{
@@ -134,6 +146,11 @@ func SetupTest() *corev1.Namespace {
 		mgr, err := manager.New(cfg, manager.Options{
 			Scheme:  scheme.Scheme,
 			Metrics: metricsserver.Options{BindAddress: "0"},
+			Controller: config.Controller{
+				// need to skip unique controller name validation
+				// since all tests need a dedicated controller
+				SkipNameValidation: ptr.To(true),
+			},
 		})
 		Expect(err).NotTo(HaveOccurred())
 

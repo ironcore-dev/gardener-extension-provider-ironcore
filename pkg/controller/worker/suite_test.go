@@ -5,7 +5,9 @@ package worker
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -24,7 +26,7 @@ import (
 	apiextensionsscheme "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -88,11 +90,18 @@ var _ = BeforeSuite(func() {
 			modutils.Dir("github.com/gardener/machine-controller-manager", "kubernetes", "crds", "machine.sapcloud.io_machinedeployments.yaml"),
 			modutils.Dir("github.com/gardener/machine-controller-manager", "kubernetes", "crds", "machine.sapcloud.io_machines.yaml"),
 			modutils.Dir("github.com/gardener/machine-controller-manager", "kubernetes", "crds", "machine.sapcloud.io_machinesets.yaml"),
-			modutils.Dir("github.com/gardener/machine-controller-manager", "kubernetes", "crds", "machine.sapcloud.io_scales.yaml"),
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_controlplanes.yaml"),
 			filepath.Join("..", "..", "..", "example", "20-crd-extensions.gardener.cloud_workers.yaml"),
 		},
 		ErrorIfCRDPathMissing: true,
+
+		// The BinaryAssetsDirectory is only required if you want to run the tests directly
+		// without call the makefile target test. If not informed it will look for the
+		// default path defined in controller-apiruntime which is /usr/local/kubebuilder/.
+		// Note that you must have the required binaries setup under the bin directory to perform
+		// the tests directly. When we run make test it will be setup and used automatically.
+		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s",
+			fmt.Sprintf("1.31.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
 	}
 	testEnvExt = &envtestutils.EnvironmentExtensions{
 		APIServiceDirectoryPaths: []string{
@@ -237,7 +246,7 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 					Name: "ironcore",
 				},
 				Spec: gardencorev1beta1.CloudProfileSpec{
-					ProviderConfig: &runtime.RawExtension{
+					ProviderConfig: &apiruntime.RawExtension{
 						Raw: cloudProfileConfigJSON,
 					},
 				},

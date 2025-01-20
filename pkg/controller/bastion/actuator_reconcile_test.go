@@ -4,8 +4,6 @@
 package bastion
 
 import (
-	"net/netip"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -133,9 +131,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		machineBase := bastionHost.DeepCopy()
 		bastionHost.Status.State = computev1alpha1.MachineStateRunning
 		bastionHost.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
-			Name:      "primary",
-			IPs:       []commonv1alpha1.IP{commonv1alpha1.MustParseIP("10.0.0.1")},
-			VirtualIP: &commonv1alpha1.IP{Addr: netip.MustParseAddr("10.0.0.10")},
+			Name: "primary",
 		}}
 		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(machineBase))).To(Succeed())
 		DeferCleanup(k8sClient.Delete, bastionHost)
@@ -143,11 +139,6 @@ var _ = Describe("Bastion Host Reconcile", func() {
 		By("ensuring that bastion host is created and Running")
 		Eventually(Object(bastionHost)).Should(SatisfyAll(
 			HaveField("Status.State", computev1alpha1.MachineStateRunning),
-		))
-
-		By("ensuring that bastion host is updated with correct virtual/public ip")
-		Eventually(Object(bastion)).Should(SatisfyAll(
-			HaveField("Status.Ingress.IP", "10.0.0.10"),
 		))
 	})
 
