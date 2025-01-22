@@ -66,10 +66,15 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extens
 		return err
 	}
 
+	networkPolicy, err := a.applyNetworkPolicy(ctx, ironcoreClient, namespace, config, cluster, network)
+	if err != nil {
+		return err
+	}
+
 	log.V(2).Info("Successfully reconciled infrastructure")
 
 	// update status
-	return a.updateProviderStatus(ctx, infra, network, natGateway, prefix)
+	return a.updateProviderStatus(ctx, infra, network, natGateway, prefix, networkPolicy)
 }
 
 func (a *actuator) applyPrefix(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) (*ipamv1alpha1.Prefix, error) {
@@ -185,6 +190,49 @@ func (a *actuator) applyNetwork(ctx context.Context, ironcoreClient client.Clien
 	return network, nil
 }
 
+func (a *actuator) applyNetworkPolicy(ctx context.Context, ironcoreClient client.Client, namespace string, config *api.InfrastructureConfig, cluster *controller.Cluster, network *networkingv1alpha1.Network) (*networkingv1alpha1.NetworkPolicy, error) {
+	if config != nil && config.NetworkPolicyRef != nil {
+		networkPolicy := &networkingv1alpha1.NetworkPolicy{}
+		networkKey := client.ObjectKey{Namespace: namespace, Name: config.NetworkRef.Name}
+		if err := ironcoreClient.Get(ctx, networkKey, networkPolicy); err != nil {
+			return nil, fmt.Errorf("failed to get network policy %s: %w", networkKey, err)
+		}
+		return networkPolicy, nil
+	}
+
+	networkPolicy := &networkingv1alpha1.NetworkPolicy{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "NetworkPolicy",
+			APIVersion: "networking.ironcore.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      generateResourceNameFromCluster(cluster),
+		},
+		Spec: networkingv1alpha1.NetworkPolicySpec{
+			NetworkRef: corev1.LocalObjectReference{
+				Name: network.Name,
+			},
+			NetworkInterfaceSelector: metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					ironcore.ClusterNameLabel: cluster.ObjectMeta.Name,
+				},
+			},
+			Ingress: []networkingv1alpha1.NetworkPolicyIngressRule{},
+			Egress:  []networkingv1alpha1.NetworkPolicyEgressRule{},
+			PolicyTypes: []networkingv1alpha1.PolicyType{
+				networkingv1alpha1.PolicyTypeIngress,
+				networkingv1alpha1.PolicyTypeEgress,
+			},
+		},
+	}
+
+	if _, err := controllerutil.CreateOrPatch(ctx, ironcoreClient, networkPolicy, nil); err != nil {
+		return nil, fmt.Errorf("failed to apply network policy %s: %w", client.ObjectKeyFromObject(networkPolicy), err)
+	}
+	return networkPolicy, nil
+}
+
 func generateResourceNameFromCluster(cluster *controller.Cluster) string {
 	// TODO: use cluster.Name
 	// alternatively shoot.status.technicalID
@@ -197,6 +245,7 @@ func (a *actuator) updateProviderStatus(
 	network *networkingv1alpha1.Network,
 	natGateway *networkingv1alpha1.NATGateway,
 	prefix *ipamv1alpha1.Prefix,
+	networkPolicy *networkingv1alpha1.NetworkPolicy,
 ) error {
 	infraStatus := &apiv1alpha1.InfrastructureStatus{
 		TypeMeta: metav1.TypeMeta{
@@ -214,6 +263,10 @@ func (a *actuator) updateProviderStatus(
 		PrefixRef: v1alpha1.LocalUIDReference{
 			Name: prefix.Name,
 			UID:  prefix.UID,
+		},
+		NetworkPolicyRef: v1alpha1.LocalUIDReference{
+			Name: networkPolicy.Name,
+			UID:  networkPolicy.UID,
 		},
 	}
 	infraBase := infra.DeepCopy()

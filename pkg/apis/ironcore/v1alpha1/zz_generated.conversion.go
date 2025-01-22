@@ -13,6 +13,7 @@ import (
 	unsafe "unsafe"
 
 	ironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+	commonv1alpha1 "github.com/ironcore-dev/ironcore/api/common/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -219,6 +220,7 @@ func Convert_ironcore_ControlPlaneConfig_To_v1alpha1_ControlPlaneConfig(in *iron
 func autoConvert_v1alpha1_InfrastructureConfig_To_ironcore_InfrastructureConfig(in *InfrastructureConfig, out *ironcore.InfrastructureConfig, s conversion.Scope) error {
 	out.NetworkRef = (*v1.LocalObjectReference)(unsafe.Pointer(in.NetworkRef))
 	out.NATPortsPerNetworkInterface = (*int32)(unsafe.Pointer(in.NATPortsPerNetworkInterface))
+	out.NetworkPolicyRef = (*commonv1alpha1.LocalUIDReference)(unsafe.Pointer(in.NetworkPolicyRef))
 	return nil
 }
 
@@ -230,6 +232,7 @@ func Convert_v1alpha1_InfrastructureConfig_To_ironcore_InfrastructureConfig(in *
 func autoConvert_ironcore_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *ironcore.InfrastructureConfig, out *InfrastructureConfig, s conversion.Scope) error {
 	out.NetworkRef = (*v1.LocalObjectReference)(unsafe.Pointer(in.NetworkRef))
 	out.NATPortsPerNetworkInterface = (*int32)(unsafe.Pointer(in.NATPortsPerNetworkInterface))
+	out.NetworkPolicyRef = (*commonv1alpha1.LocalUIDReference)(unsafe.Pointer(in.NetworkPolicyRef))
 	return nil
 }
 
@@ -242,6 +245,7 @@ func autoConvert_v1alpha1_InfrastructureStatus_To_ironcore_InfrastructureStatus(
 	out.NetworkRef = in.NetworkRef
 	out.NATGatewayRef = in.NATGatewayRef
 	out.PrefixRef = in.PrefixRef
+	out.NetworkPolicyRef = in.NetworkPolicyRef
 	return nil
 }
 
@@ -254,6 +258,7 @@ func autoConvert_ironcore_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(
 	out.NetworkRef = in.NetworkRef
 	out.NATGatewayRef = in.NATGatewayRef
 	out.PrefixRef = in.PrefixRef
+	out.NetworkPolicyRef = in.NetworkPolicyRef
 	return nil
 }
 

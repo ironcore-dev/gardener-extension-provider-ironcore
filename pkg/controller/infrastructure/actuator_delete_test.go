@@ -24,7 +24,7 @@ import (
 var _ = Describe("Infrastructure Reconcile", func() {
 	ns := SetupTest()
 
-	It("should ensure that the network, natgateway and prefix is being deleted", func(ctx SpecContext) {
+	It("should ensure that the network, networkpolicy, natgateway and prefix is being deleted", func(ctx SpecContext) {
 		By("getting the cluster object")
 		cluster, err := extensionscontroller.GetCluster(ctx, k8sClient, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
@@ -63,6 +63,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 				Name:      generateResourceNameFromCluster(cluster),
 			},
 		}
+		Eventually(Get(network)).Should(Succeed())
 
 		By("expecting a nat gateway being created")
 		natGateway := &networkingv1alpha1.NATGateway{
@@ -71,6 +72,7 @@ var _ = Describe("Infrastructure Reconcile", func() {
 				Name:      generateResourceNameFromCluster(cluster),
 			},
 		}
+		Eventually(Get(natGateway)).Should(Succeed())
 
 		By("expecting a prefix being created")
 		prefix := &ipamv1alpha1.Prefix{
@@ -79,6 +81,16 @@ var _ = Describe("Infrastructure Reconcile", func() {
 				Name:      generateResourceNameFromCluster(cluster),
 			},
 		}
+		Eventually(Get(prefix)).Should(Succeed())
+
+		By("expecting a network policy being created")
+		networkPolicy := &networkingv1alpha1.NetworkPolicy{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: ns.Name,
+				Name:      generateResourceNameFromCluster(cluster),
+			},
+		}
+		Eventually(Get(networkPolicy)).Should(Succeed())
 
 		By("deleting the infrastructure resource")
 		Expect(k8sClient.Delete(ctx, infra)).Should(Succeed())
@@ -91,5 +103,8 @@ var _ = Describe("Infrastructure Reconcile", func() {
 
 		By("waiting for the prefix to be gone")
 		Eventually(Get(prefix)).Should(Satisfy(apierrors.IsNotFound))
+
+		By("waiting for the network policy to be gone")
+		Eventually(Get(networkPolicy)).Should(Satisfy(apierrors.IsNotFound))
 	})
 })
