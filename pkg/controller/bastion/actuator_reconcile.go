@@ -84,7 +84,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 		return fmt.Errorf("failed to create network policy: %w", err)
 	}
 
-	endpoints, err := getMachineEndpoints(machine)
+	endpoints, err := getMachineEndpoints(ctx, machine, ironcoreClient, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get machine endpoints: %w", err)
 	}
@@ -110,7 +110,7 @@ func (a *actuator) reconcile(ctx context.Context, log logr.Logger, bastion *exte
 // machine. It first validates that the machine is in running state, then
 // extracts the private and public IP of the machine's network interface, and
 // finally converts the IPs to their respective ingress addresses.
-func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, error) {
+func getMachineEndpoints(ctx context.Context, machine *computev1alpha1.Machine, ironcoreClient client.Client, namespace string) (*bastionEndpoints, error) {
 	if machine == nil {
 		return nil, fmt.Errorf("machine can not be nil")
 	}
@@ -125,7 +125,7 @@ func getMachineEndpoints(machine *computev1alpha1.Machine) (*bastionEndpoints, e
 		return nil, fmt.Errorf("no network interface found for machine: %s", machine.Name)
 	}
 
-	privateIP, virtualIP, err := getPrivateAndVirtualIPsFromNetworkInterfaces(machine.Status.NetworkInterfaces)
+	privateIP, virtualIP, err := getPrivateAndVirtualIPsFromNetworkInterfaces(ctx, machine.Status.NetworkInterfaces, ironcoreClient, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ips from network interfaces: %s", machine.Name)
 

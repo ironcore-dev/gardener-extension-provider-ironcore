@@ -4,6 +4,8 @@
 package bastion
 
 import (
+	"net/netip"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -127,18 +129,61 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			))),
 		))
 
-		By("patching bastion host with running state and network interfaces with private and virtual ip")
-		machineBase := bastionHost.DeepCopy()
+		By("creating a network interface for bastionHost")
+		netInterface := &networkingv1alpha1.NetworkInterface{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      bastionHostName,
+				Namespace: ns.Name,
+			},
+			Spec: networkingv1alpha1.NetworkInterfaceSpec{
+				NetworkRef: corev1.LocalObjectReference{Name: "my-network"},
+				IPs:        []networkingv1alpha1.IPSource{{Value: commonv1alpha1.MustParseNewIP("10.0.0.1")}},
+				ProviderID: "foo://bar",
+				VirtualIP: &networkingv1alpha1.VirtualIPSource{
+					Ephemeral: &networkingv1alpha1.EphemeralVirtualIPSource{
+						VirtualIPTemplate: &networkingv1alpha1.VirtualIPTemplateSpec{
+							Spec: networkingv1alpha1.VirtualIPSpec{
+								Type:     networkingv1alpha1.VirtualIPTypePublic,
+								IPFamily: corev1.IPv4Protocol,
+							},
+						},
+					},
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, netInterface)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, netInterface)
+
+		By("patching the network interface status with valid IPs, virtualIP and Available state")
+		networkInterfaceBase := netInterface.DeepCopy()
+		netInterface.Status.State = networkingv1alpha1.NetworkInterfaceStateAvailable
+		netInterface.Status.IPs = []commonv1alpha1.IP{commonv1alpha1.MustParseIP("10.0.0.1")}
+		netInterface.Status.VirtualIP = &commonv1alpha1.IP{Addr: netip.MustParseAddr("10.0.0.10")}
+		Expect(k8sClient.Status().Patch(ctx, netInterface, client.MergeFrom(networkInterfaceBase))).To(Succeed())
+
+		By("patching the bastionHost machine object to have a valid networkInterfaceRef and MachineStateRunning")
+		bastionHostBase := bastionHost.DeepCopy()
+		bastionHost.Spec.NetworkInterfaces[0].NetworkInterfaceSource = computev1alpha1.NetworkInterfaceSource{
+			NetworkInterfaceRef: &corev1.LocalObjectReference{
+				Name: netInterface.Name,
+			},
+		}
 		bastionHost.Status.State = computev1alpha1.MachineStateRunning
 		bastionHost.Status.NetworkInterfaces = []computev1alpha1.NetworkInterfaceStatus{{
 			Name: "primary",
+			NetworkInterfaceRef: corev1.LocalObjectReference{
+				Name: netInterface.Name,
+			},
 		}}
-		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(machineBase))).To(Succeed())
-		DeferCleanup(k8sClient.Delete, bastionHost)
+		Expect(k8sClient.Status().Patch(ctx, bastionHost, client.MergeFrom(bastionHostBase))).To(Succeed())
 
 		By("ensuring that bastion host is created and Running")
 		Eventually(Object(bastionHost)).Should(SatisfyAll(
 			HaveField("Status.State", computev1alpha1.MachineStateRunning),
+		))
+		By("ensuring that bastion host is updated with correct virtual/public ip")
+		Eventually(Object(bastion)).Should(SatisfyAll(
+			HaveField("Status.Ingress.IP", "10.0.0.10"),
 		))
 	})
 
