@@ -4,11 +4,15 @@
 package bastion
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
+	networkingv1alpha1 "github.com/ironcore-dev/ironcore/api/networking/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // generateBastionHostResourceName returns a unique name for the Bastion host in
@@ -48,40 +52,43 @@ func getIgnitionNameForMachine(machineName string) string {
 //
 // TODO: IPv6 addresses are ignored for now and will be
 // added in the future once Gardener extension supports IPv6.
-func getPrivateAndVirtualIPsFromNetworkInterfaces(networkInterfaces []computev1alpha1.NetworkInterfaceStatus) (string, string, error) {
+func getPrivateAndVirtualIPsFromNetworkInterfaces(ctx context.Context, networkInterfaces []computev1alpha1.NetworkInterfaceStatus, irocoreClient client.Client, namespace string) (string, string, error) {
 	var privateIP, virtualIP string
+	for _, machineStatusNetworkInterface := range networkInterfaces {
+		nicName := machineStatusNetworkInterface.NetworkInterfaceRef.Name
+		// Fetch the NetworkInterface object
+		nic := &networkingv1alpha1.NetworkInterface{}
+		if err := irocoreClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: nicName}, nic); err != nil {
+			return "", "", fmt.Errorf("failed to get NetworkInterface %s/%s: %v", namespace, nicName, err)
+		}
 
-	//for _, ni := range networkInterfaces {
-	//	if ni.IPs == nil {
-	//		return "", "", fmt.Errorf("no private ip found for network interface: %s", ni.Name)
-	//	}
-	//	for _, ip := range ni.IPs {
-	//		parsedIP := net.ParseIP(ip.String())
-	//		if parsedIP == nil {
-	//			continue // skip invalid IP
-	//		}
-	//		if parsedIP.To4() != nil {
-	//			privateIP = parsedIP.String()
-	//			break
-	//		} else {
-	//			// IPv6 case
-	//			continue
-	//		}
-	//	}
-	//	if ni.VirtualIP != nil {
-	//		parsedIP := net.ParseIP(ni.VirtualIP.String())
-	//		if parsedIP == nil {
-	//			continue // skip invalid IP
-	//		}
-	//		if parsedIP.To4() != nil {
-	//			virtualIP = parsedIP.String()
-	//			break
-	//		} else {
-	//			// IPv6 case
-	//			continue
-	//		}
-	//	}
-	//}
+		for _, ip := range nic.Status.IPs {
+			parsedIP := net.ParseIP(ip.String())
+			if parsedIP == nil {
+				continue // skip invalid IP
+			}
+			if parsedIP.To4() != nil {
+				privateIP = parsedIP.String()
+				break
+			} else {
+				// IPv6 case
+				continue
+			}
+		}
+		if nic.Status.VirtualIP != nil {
+			parsedIP := net.ParseIP(nic.Status.VirtualIP.String())
+			if parsedIP == nil {
+				continue // skip invalid IP
+			}
+			if parsedIP.To4() != nil {
+				virtualIP = parsedIP.String()
+				break
+			} else {
+				// IPv6 case
+				continue
+			}
+		}
+	}
 	if privateIP == "" {
 		return "", "", fmt.Errorf("private IPv4 address not found")
 	}
