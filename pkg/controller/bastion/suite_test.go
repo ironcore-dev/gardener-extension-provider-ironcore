@@ -256,9 +256,9 @@ func SetupTest() *corev1.Namespace {
 						},
 						Minimum: 0,
 						Name:    "pool",
+						//UserData: []byte("some-data"),
 						UserDataSecretRef: corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: userDataSecretName},
-							Key:                  userDataSecretDataKey,
 						},
 						Volume: &extensionsv1alpha1.Volume{
 							Name: &volumeName,
@@ -285,9 +285,11 @@ func SetupTest() *corev1.Namespace {
 				Name: "my-network",
 				UID:  "1234",
 			},
-			PrefixRef: commonv1alpha1.LocalUIDReference{
-				Name: "my-prefix",
-				UID:  "4321",
+			PrefixRefs: []commonv1alpha1.LocalUIDReference{
+				{
+					Name: "my-prefix",
+					UID:  "4321",
+				},
 			},
 		}
 		worker.Spec.InfrastructureProviderStatus = &apiruntime.RawExtension{Object: infraStatus}

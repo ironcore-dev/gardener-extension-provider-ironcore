@@ -7,6 +7,7 @@ ADMISSION_NAME              := admission-ironcore
 IMAGE_PREFIX                := $(REGISTRY)/extensions
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
+VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
 EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
 LD_FLAGS                    := "-w $(shell bash $(GARDENER_HACK_DIR)/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION $(EXTENSION_PREFIX))"
 LEADER_ELECTION             := false
@@ -110,7 +111,7 @@ check: $(GOIMPORTS) $(GOLANGCI_LINT) $(MOCKGEN)
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 
 .PHONY: generate
-generate: deepcopy-gen defaulter-gen conversion-gen $(CONTROLLER_GEN) $(HELM) $(MOCKGEN) $(YQ) $(VGOPATH)
+generate: $(CONTROLLER_GEN) $(HELM) $(MOCKGEN) $(YQ) $(VGOPATH)
 	@GOPATH=$(GOPATH) VGOPATH=$(VGOPATH) \
 	MOCKGEN=$(MOCKGEN) \
 	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
@@ -163,9 +164,6 @@ $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
 ## Tool Binaries
-DEEPCOPY_GEN ?= $(LOCALBIN)/deepcopy-gen
-CONVERSION_GEN ?= $(LOCALBIN)/conversion-gen
-DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
@@ -179,17 +177,3 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
-.PHONY: deepcopy-gen
-deepcopy-gen: $(DEEPCOPY_GEN) ## Download deepcopy-gen locally if necessary.
-$(DEEPCOPY_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/deepcopy-gen || GOBIN=$(LOCALBIN) go install k8s.io/code-generator/cmd/deepcopy-gen@$(CODE_GENERATOR_VERSION)
-
-.PHONY: defaulter-gen
-defaulter-gen: $(DEFAULTER_GEN) ## Download defaulter-gen locally if necessary.
-$(DEFAULTER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/defaulter-gen || GOBIN=$(LOCALBIN) go install k8s.io/code-generator/cmd/defaulter-gen@$(CODE_GENERATOR_VERSION)
-
-.PHONY: conversion-gen
-conversion-gen: $(CONVERSION_GEN) ## Download conversion-gen locally if necessary.
-$(CONVERSION_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/conversion-gen || GOBIN=$(LOCALBIN) go install k8s.io/code-generator/cmd/conversion-gen@$(CODE_GENERATOR_VERSION)
