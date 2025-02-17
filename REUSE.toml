@@ -1,0 +1,16 @@
+version = 1
+SPDX-PackageName = "gardener-extension-provider-ironcore"
+SPDX-PackageSupplier = "IronCore authors <ospo@sap.com>"
+SPDX-PackageDownloadLocation = "https://github.com/ironcore-dev/gardener-extension-provider-ironcore"
+
+[[annotations]]
+path = [".github/**", ".gitignore", ".dockerignore", ".golangci.yaml", "CODEOWNERS", "CODE_OF_CONDUCT.md", "Dockerfile", "Makefile", "go.mod", "go.sum", "VERSION", "hack/**", "example/**", "charts/**", "imagevector/images.yaml", "pkg/controller/bastion/ignition/template.yaml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023 SAP SE or an SAP affiliate company and IronCore contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["docs/**", "README.md"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023 SAP SE or an SAP affiliate company and IronCore contributors"
+SPDX-License-Identifier = "Apache-2.0"
