@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 
-	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
+	apisconfigv1alpha1 "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
 	"github.com/spf13/pflag"
 
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/config"
@@ -78,7 +78,7 @@ func (c *Config) Options() config.ControllerConfiguration {
 }
 
 // ApplyHealthCheckConfig applies the HealthCheckConfig to the config
-func (c *Config) ApplyHealthCheckConfig(config *healthcheckconfig.HealthCheckConfig) {
+func (c *Config) ApplyHealthCheckConfig(config *apisconfigv1alpha1.HealthCheckConfig) {
 	if c.Config.HealthCheckConfig != nil {
 		*config = *c.Config.HealthCheckConfig
 	}
@@ -91,7 +91,7 @@ func (c *Config) ApplyBastionConfig(config *config.BastionConfig) {
 	}
 }
 
-// ApplyBackupBucketConfig applies the BackupBucketConfig to the config
+// ApplyBackupbucketConfig applies the BackupBucketConfig to the config
 func (c *Config) ApplyBackupbucketConfig(config *config.BackupBucketConfig) {
 	if c.Config.BackupBucketConfig != nil {
 		*config = *c.Config.BackupBucketConfig

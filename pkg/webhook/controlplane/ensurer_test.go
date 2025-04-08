@@ -5,7 +5,6 @@ package controlplane
 
 import (
 	"context"
-	"strconv"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -16,7 +15,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
+	"github.com/gardener/gardener/pkg/component/nodemanagement/machinecontrollermanager"
 	imagevectorutils "github.com/gardener/gardener/pkg/utils/imagevector"
 	testutils "github.com/gardener/gardener/pkg/utils/test"
 	. "github.com/onsi/ginkgo/v2"
@@ -25,9 +24,10 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"k8s.io/utils/ptr"
+
+	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
 )
 
 const (
@@ -250,55 +250,14 @@ var _ = Describe("Ensurer", func() {
 			It("should inject the sidecar container", func() {
 				Expect(deployment.Spec.Template.Spec.Containers).To(BeEmpty())
 				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(Succeed())
-				Expect(deployment.Spec.Template.Spec.Containers).To(ConsistOf(corev1.Container{
-					Name:            "machine-controller-manager-provider-ironcore",
-					Image:           "foo:bar",
-					ImagePullPolicy: corev1.PullIfNotPresent,
-					Args: []string{
-						"--control-kubeconfig=inClusterConfig",
-						"--machine-creation-timeout=20m",
-						"--machine-drain-timeout=2h",
-						"--machine-health-timeout=10m",
-						"--machine-safety-apiserver-statuscheck-timeout=30s",
-						"--machine-safety-apiserver-statuscheck-period=1m",
-						"--machine-safety-orphan-vms-period=30m",
-						"--namespace=" + namespace,
-						"--port=" + strconv.Itoa(portProviderMetrics),
-						"--target-kubeconfig=" + gardenerutils.PathGenericKubeconfig,
-						"--v=3",
-						"--ironcore-kubeconfig=/etc/ironcore/kubeconfig",
-					},
-					LivenessProbe: &corev1.Probe{
-						ProbeHandler: corev1.ProbeHandler{
-							HTTPGet: &corev1.HTTPGetAction{
-								Path:   "/healthz",
-								Port:   intstr.FromInt32(portProviderMetrics),
-								Scheme: corev1.URISchemeHTTP,
-							},
-						},
-						InitialDelaySeconds: 30,
-						TimeoutSeconds:      5,
-						PeriodSeconds:       10,
-						SuccessThreshold:    1,
-						FailureThreshold:    3,
-					},
-					Ports: []corev1.ContainerPort{{
-						Name:          portNameProviderMetrics,
-						ContainerPort: portProviderMetrics,
-						Protocol:      corev1.ProtocolTCP,
-					}},
-					VolumeMounts: []corev1.VolumeMount{{
-						Name:      "kubeconfig",
-						MountPath: gardenerutils.VolumeMountPathGenericKubeconfig,
-						ReadOnly:  true,
-					},
-						{
-							Name:      "cloudprovider",
-							MountPath: "/etc/ironcore",
-							ReadOnly:  true,
-						},
-					},
-				}))
+				expectedContainer := machinecontrollermanager.ProviderSidecarContainer(deployment.Namespace, ironcore.ProviderName, "foo:bar")
+				expectedContainer.Args = append(expectedContainer.Args, "--ironcore-kubeconfig=/etc/ironcore/kubeconfig")
+				expectedContainer.VolumeMounts = append(expectedContainer.VolumeMounts, corev1.VolumeMount{
+					Name:      "cloudprovider",
+					MountPath: "/etc/ironcore",
+					ReadOnly:  true,
+				})
+				Expect(deployment.Spec.Template.Spec.Containers).To(ConsistOf(expectedContainer))
 				Expect(deployment.Spec.Template.Spec.Volumes).To(ContainElement(corev1.Volume{
 					Name: "cloudprovider",
 					VolumeSource: corev1.VolumeSource{
