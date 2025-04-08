@@ -30,7 +30,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/name: "{{ .Release.Name }}"
         # default metrics endpoint in controller-runtime
-        prometheus.io/port: "{{ .Values.metricsPort }}"
+        prometheus.io/port: "{{ tpl .Values.metricsPort . }}"
         {{- end }}
       labels:
         networking.gardener.cloud/to-runtime-apiserver: allowed
@@ -61,13 +61,11 @@ spec:
         - --worker-max-concurrent-reconciles={{ .Values.controllers.worker.concurrentSyncs }}
         - --webhook-config-namespace={{ .Release.Namespace }}
         - --webhook-config-service-port={{ .Values.webhookConfig.servicePort }}
-        - --webhook-config-server-port={{ .Values.webhookConfig.serverPort }}
+        - --webhook-config-server-port={{ tpl .Values.webhookConfig.serverPort . }}
         - --disable-controllers={{ .Values.disableControllers | join "," }}
         - --disable-webhooks={{ .Values.disableWebhooks | join "," }}
-        {{- if .Values.metricsPort }}
-        - --metrics-bind-address=:{{ .Values.metricsPort }}
-        {{- end }}
-        - --health-bind-address=:{{ .Values.healthPort }}
+        - --metrics-bind-address=:{{ tpl .Values.metricsPort . }}
+        - --health-bind-address=:{{ tpl .Values.healthPort . }}
         - --gardener-version={{ .Values.gardener.version }}
         env:
         - name: LEADER_ELECTION_NAMESPACE
@@ -81,18 +79,18 @@ spec:
         livenessProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.healthPort }}
+            port: {{ tpl .Values.healthPort . }}
             scheme: HTTP
           initialDelaySeconds: 10
         readinessProbe:
           httpGet:
             path: /readyz
-            port: {{ .Values.healthPort }}
+            port: {{ tpl .Values.healthPort . }}
             scheme: HTTP
           initialDelaySeconds: 5
         ports:
         - name: webhook-server
-          containerPort: {{ .Values.webhookConfig.serverPort }}
+          containerPort: {{ tpl .Values.webhookConfig.serverPort . }}
           protocol: TCP
 {{- if .Values.resources }}
         resources:
