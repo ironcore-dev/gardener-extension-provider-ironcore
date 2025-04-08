@@ -6,4 +6,4 @@
 
 //go:generate ../../../hack/update-codegen.sh
 
-package ironcore // import "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
+package ironcore // Package ironcore import "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"

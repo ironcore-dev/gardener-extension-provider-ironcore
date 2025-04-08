@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
+	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
 	genericcontrolplaneactuator "github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/general"
@@ -33,7 +33,7 @@ var (
 			SyncPeriod: metav1.Duration{Duration: defaultSyncPeriod},
 			ShootRESTOptions: &healthcheckconfig.RESTOptions{
 				QPS:   ptr.To[float32](100),
-				Burst: ptr.To[int](130),
+				Burst: ptr.To(130),
 			},
 		},
 	}
@@ -43,8 +43,7 @@ var (
 
 // RegisterHealthChecks registers health checks for each extension resource
 func RegisterHealthChecks(ctx context.Context, mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
-	if err := healthcheck.DefaultRegistration(ctx,
-		ironcore.Type,
+	if err := healthcheck.DefaultRegistration(ironcore.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.ControlPlaneResource),
 		func() client.ObjectList { return &extensionsv1alpha1.ControlPlaneList{} },
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.ControlPlane{} },
@@ -90,8 +89,7 @@ func RegisterHealthChecks(ctx context.Context, mgr manager.Manager, opts healthc
 		workerConditionTypesToRemove = workerConditionTypesToRemove.Delete(gardencorev1beta1.ShootControlPlaneHealthy)
 	}
 
-	return healthcheck.DefaultRegistration(ctx,
-		ironcore.Type,
+	return healthcheck.DefaultRegistration(ironcore.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
 		func() client.ObjectList { return &extensionsv1alpha1.WorkerList{} },
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.Worker{} },
