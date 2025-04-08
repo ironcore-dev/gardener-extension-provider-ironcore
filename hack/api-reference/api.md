@@ -191,6 +191,19 @@ int32
 Has to be a power of 2. If empty, 2048 is the default.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>networkPolicyRef</code></br>
+<em>
+<a href="https://github.com/ironcore-dev/ironcore/blob/main/docs/api-reference/common.md#localuidreference">
+github.com/ironcore-dev/ironcore/api/common/v1alpha1.LocalUIDReference
+</a>
+</em>
+</td>
+<td>
+<p>NetworkPolicy is reference to the NetworkPolicy to use for the Shoot creation.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="ironcore.provider.extensions.gardener.cloud/v1alpha1.CloudControllerManagerConfig">CloudControllerManagerConfig
@@ -274,6 +287,19 @@ github.com/ironcore-dev/ironcore/api/common/v1alpha1.LocalUIDReference
 </td>
 <td>
 <p>PrefixRef is the reference to the Prefix used</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>networkPolicyRef</code></br>
+<em>
+<a href="https://github.com/ironcore-dev/ironcore/blob/main/docs/api-reference/common.md#localuidreference">
+github.com/ironcore-dev/ironcore/api/common/v1alpha1.LocalUIDReference
+</a>
+</em>
+</td>
+<td>
+<p>NetworkPolicy is reference to the NetworkPolicy defined</p>
 </td>
 </tr>
 </tbody>
