@@ -229,8 +229,8 @@ github.com/ironcore-dev/controller-utils v0.9.8 h1:A7cd/n368xBh83cu7AEHaXYXnW37I
 github.com/ironcore-dev/controller-utils v0.9.8/go.mod h1:fBA4gnfrneJzuEtL+jJj2A+YE8KmgQ4ot3A/eNRd5P0=
 github.com/ironcore-dev/ironcore v0.2.3 h1:me2LuScaoekxSRtV7KhCqGZ/jOsU7fCuqt6LBxcx+ts=
 github.com/ironcore-dev/ironcore v0.2.3/go.mod h1:u39dlr8d3RfPCK4FLBLvFfmbDdh8Tu7a3R06nXkIJug=
-github.com/ironcore-dev/vgopath v0.1.7 h1:4QGfotAmfYnCUGMKiR+WQjB5VrjrZB88M2bec3xpF0k=
-github.com/ironcore-dev/vgopath v0.1.7/go.mod h1:tAY0zaSKrRsWHXd4rXZO/L5anW5Dp7fOcXAvp6bsGQk=
+github.com/ironcore-dev/vgopath v0.1.8 h1:1YBl1I0lPVCR2cz3R6G/6fQ8t261iiSUXmy1xypBYgM=
+github.com/ironcore-dev/vgopath v0.1.8/go.mod h1:yf4M1I+TYxvKPBKaximWBUrUBOgTa/+f7s3LL4UVCRs=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=
