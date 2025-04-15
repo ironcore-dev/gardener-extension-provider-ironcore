@@ -48,7 +48,7 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 			WebhookServerPort:       443,
 			MetricsBindAddress:      ":8080",
 			HealthBindAddress:       ":8081",
-			WebhookCertDir:          "/tmp/admission-aws-cert",
+			WebhookCertDir:          "/tmp/admission-ironcore-cert",
 		}
 		// options for the webhook server
 		webhookServerOptions = &webhookcmd.ServerOptions{
@@ -73,8 +73,13 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: fmt.Sprintf("admission-%s", providerironcore.Type),
 
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			verflag.PrintAndExitIfRequested()
+
+			if gardenKubeconfig := os.Getenv("GARDEN_KUBECONFIG"); gardenKubeconfig != "" {
+				log.Info("Getting rest config for garden from GARDEN_KUBECONFIG", "path", gardenKubeconfig)
+				restOpts.Kubeconfig = gardenKubeconfig
+			}
 
 			if err := aggOption.Complete(); err != nil {
 				return fmt.Errorf("error completing options: %v", err)
@@ -111,15 +116,15 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 				}
 			}
 
-			mgr, err := manager.New(restOpts.Completed().Config, mgrOpts.Completed().Options())
+			mgr, err := manager.New(restOpts.Completed().Config, managerOptions)
 			if err != nil {
-				return fmt.Errorf("could not instantiate manager: %v", err)
+				return fmt.Errorf("could not instantiate manager: %w", err)
 			}
 
 			install.Install(mgr.GetScheme())
 
 			if err := ironcoreinstall.AddToScheme(mgr.GetScheme()); err != nil {
-				return fmt.Errorf("could not update manager scheme: %v", err)
+				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 
 			var sourceCluster cluster.Cluster
