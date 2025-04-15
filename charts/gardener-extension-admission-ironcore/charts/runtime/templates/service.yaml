@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {{ include "name" . }}
   namespace: {{ .Release.Namespace }}
-  {{- if .Values.global.service.topologyAwareRouting.enabled }}
+  {{- if .Values.service.topologyAwareRouting.enabled }}
   annotations:
     service.kubernetes.io/topology-aware-hints: "auto"
   {{- end }}
@@ -16,4 +16,4 @@ spec:
   ports:
   - port: 443
     protocol: TCP
-    targetPort: {{ .Values.global.webhookConfig.serverPort }}
+    targetPort: {{ .Values.webhookConfig.serverPort }}
