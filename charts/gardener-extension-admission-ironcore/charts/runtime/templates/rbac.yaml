@@ -17,6 +17,7 @@ rules:
       - watch
       - update
       - patch
+      - delete
   - apiGroups:
       - coordination.k8s.io
     resources:
@@ -58,4 +59,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ include "name" . }}
-    namespace: garden
+    namespace: {{ .Release.Namespace }}
