@@ -14,18 +14,18 @@ require (
 	github.com/gardener/machine-controller-manager v0.56.1
 	github.com/go-logr/logr v1.4.2
 	github.com/imdario/mergo v0.3.16
-	github.com/ironcore-dev/controller-utils v0.9.8
+	github.com/ironcore-dev/controller-utils v0.9.9
 	github.com/ironcore-dev/ironcore v0.2.3
 	github.com/ironcore-dev/vgopath v0.1.8
 	github.com/onsi/ginkgo/v2 v2.23.3
-	github.com/onsi/gomega v1.36.2
+	github.com/onsi/gomega v1.36.3
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	go.uber.org/mock v0.5.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/tools v0.31.0
 	k8s.io/api v0.32.3
-	k8s.io/apiextensions-apiserver v0.32.2
+	k8s.io/apiextensions-apiserver v0.32.3
 	k8s.io/apimachinery v0.32.3
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.3.0
 	k8s.io/client-go v0.32.3
@@ -33,7 +33,7 @@ require (
 	k8s.io/component-base v0.32.3
 	k8s.io/kubelet v0.32.2
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
-	sigs.k8s.io/controller-runtime v0.20.3
+	sigs.k8s.io/controller-runtime v0.20.4
 	sigs.k8s.io/controller-tools v0.17.3
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -132,7 +132,7 @@ require (
 	golang.org/x/time v0.10.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
-	google.golang.org/protobuf v1.36.4 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
