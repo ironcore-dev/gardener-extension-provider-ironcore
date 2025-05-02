@@ -5,6 +5,8 @@
 **/dev
 /bin
 /hack/tools/bin
+/artifacts
+images.txt
 
 cover.out
 *.coverprofile
