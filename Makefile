@@ -11,6 +11,8 @@ EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
 LD_FLAGS                    := "-w $(shell bash $(GARDENER_HACK_DIR)/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION $(EXTENSION_PREFIX))"
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
+export REPO ?= ghcr.io/ironcore-dev
+export TAG ?= $(EFFECTIVE_VERSION)
 
 WEBHOOK_CONFIG_PORT	:= 8443
 WEBHOOK_CONFIG_MODE	:= url
@@ -32,6 +34,12 @@ endif
 
 TOOLS_DIR := $(HACK_DIR)/tools
 include $(GARDENER_HACK_DIR)/tools.mk
+
+KO := $(TOOLS_BIN_DIR)/ko
+# renovate: datasource=github-releases depName=ko-build/ko
+KO_VERSION ?= v0.17.1
+$(KO): $(call tool_version_file,$(KO),$(KO_VERSION))
+	GOBIN=$(abspath $(TOOLS_BIN_DIR)) go install github.com/google/ko@$(KO_VERSION)
 
 #########################################
 # Rules for local development scenarios #
@@ -77,6 +85,28 @@ docker-login:
 docker-images:
 	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
 	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(ADMISSION_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(ADMISSION_NAME) .
+
+#################################################################
+# Rules related to binary build, Docker image build and release #
+#################################################################
+
+export PUSH ?= false
+
+.PHONY: images
+images: $(KO)
+	KO_DOCKER_REPO=$(REPO) $(KO) build --push=$(PUSH) \
+		--image-label org.opencontainers.image.source="https://github.com/ironcore-dev/gardener-extension-provider-ironcore" \
+		--sbom none -t $(TAG) --base-import-paths \
+		--platform linux/amd64,linux/arm64 \
+		./cmd/gardener-extension-provider-ironcore ./cmd/gardener-extension-admission-ironcore \
+		| tee images.txt
+
+.PHONY: artifacts-only
+artifacts-only: $(HELM) $(YQ)
+	hack/push-artifacts.sh
+
+.PHONY: artifacts
+artifacts: images artifacts-only
 
 #####################################################################
 # Rules for verification, formatting, linting, testing and cleaning #
