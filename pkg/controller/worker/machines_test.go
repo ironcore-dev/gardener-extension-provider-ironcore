@@ -39,9 +39,11 @@ var _ = Describe("Machines", func() {
 				Name: "my-network",
 				UID:  "1234",
 			},
-			PrefixRef: commonv1alpha1.LocalUIDReference{
-				Name: "my-prefix",
-				UID:  "3766",
+			PrefixRefs: []commonv1alpha1.LocalUIDReference{
+				{
+					Name: "my-prefix",
+					UID:  "3766",
+				},
 			},
 		}
 		w.Spec.InfrastructureProviderStatus = &runtime.RawExtension{Raw: encodeObject(infraStatus)}
@@ -71,6 +73,11 @@ var _ = Describe("Machines", func() {
 			},
 		}
 
+		var prefixNames []string
+
+		for _, prefix := range infraStatus.PrefixRefs {
+			prefixNames = append(prefixNames, prefix.Name)
+		}
 		machineClassProviderSpec := map[string]interface{}{
 			"image": "registry/my-os",
 			"rootDisk": map[string]interface{}{
@@ -78,7 +85,7 @@ var _ = Describe("Machines", func() {
 				"volumeClassName": pool.Volume.Type,
 			},
 			"networkName": infraStatus.NetworkRef.Name,
-			"prefixName":  infraStatus.PrefixRef.Name,
+			"prefixNames": prefixNames,
 			"labels": map[string]interface{}{
 				ironcore.ClusterNameLabel: testCluster.ObjectMeta.Name,
 			},

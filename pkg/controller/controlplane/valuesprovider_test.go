@@ -84,9 +84,11 @@ var _ = Describe("Valueprovider Reconcile", func() {
 								Name: "my-network",
 								UID:  "1234",
 							},
-							PrefixRef: v1alpha1.LocalUIDReference{
-								Name: "my-prefix",
-								UID:  "6789",
+							PrefixRefs: []v1alpha1.LocalUIDReference{
+								{
+									Name: "my-prefix",
+									UID:  "6789",
+								},
 							},
 						}),
 					},
