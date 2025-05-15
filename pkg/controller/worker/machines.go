@@ -66,14 +66,25 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 			)
 			zoneIdx := int32(zoneIndex)
 
+			updateConfiguration := machinecontrollerv1alpha1.UpdateConfiguration{
+				MaxSurge:       ptr.To(worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxSurge, zoneLen, pool.Maximum)),
+				MaxUnavailable: ptr.To(worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxUnavailable, zoneLen, pool.Minimum)),
+			}
+
+			machineDeploymentStrategy := machinecontrollerv1alpha1.MachineDeploymentStrategy{
+				Type: machinecontrollerv1alpha1.RollingUpdateMachineDeploymentStrategyType,
+				RollingUpdate: &machinecontrollerv1alpha1.RollingUpdateMachineDeployment{
+					UpdateConfiguration: updateConfiguration,
+				},
+			}
+
 			machineDeployments = append(machineDeployments, worker.MachineDeployment{
 				Name:                 deploymentName,
 				ClassName:            className,
 				SecretName:           className,
 				Minimum:              worker.DistributeOverZones(zoneIdx, pool.Minimum, zoneLen),
 				Maximum:              worker.DistributeOverZones(zoneIdx, pool.Maximum, zoneLen),
-				MaxSurge:             worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxSurge, zoneLen, pool.Maximum),
-				MaxUnavailable:       worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxUnavailable, zoneLen, pool.Minimum),
+				Strategy:             machineDeploymentStrategy,
 				Labels:               pool.Labels,
 				Annotations:          pool.Annotations,
 				Taints:               pool.Taints,

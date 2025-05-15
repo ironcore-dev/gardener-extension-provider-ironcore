@@ -14,7 +14,6 @@ import (
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	gutil "github.com/gardener/gardener/pkg/utils/gardener"
@@ -156,7 +155,6 @@ var (
 					{Type: &corev1.ServiceAccount{}, Name: ironcore.CSIDriverName},
 					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIDriverName},
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIDriverName},
-					{Type: extensionscontroller.GetVerticalPodAutoscalerObject(), Name: ironcore.CSINodeName},
 					// csi-provisioner
 					{Type: &rbacv1.ClusterRole{}, Name: ironcore.UsernamePrefix + ironcore.CSIProvisionerName},
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: ironcore.UsernamePrefix + ironcore.CSIProvisionerName},
@@ -458,8 +456,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(cluster *extensionscon
 		return nil, fmt.Errorf("cluster %s does not contain a shoot object", cluster.ObjectMeta.Name)
 	}
 	csiNodeDriverValues := map[string]interface{}{
-		"enabled":    true,
-		"vpaEnabled": gardencorev1beta1helper.ShootWantsVerticalPodAutoscaler(cluster.Shoot),
+		"enabled": true,
 	}
 
 	return map[string]interface{}{
