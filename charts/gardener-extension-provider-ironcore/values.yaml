@@ -96,6 +96,7 @@ gardener:
     featureGates: {}
   seed:
     provider: ironcore
+# autonomousShootCluster: false
 
 usablePorts:
 - 8080  # metrics
