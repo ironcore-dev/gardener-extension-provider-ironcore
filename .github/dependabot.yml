@@ -5,8 +5,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "ironcore-dev/integration"
     ignore:
       - dependency-name: "k8s.io/api"
       - dependency-name: "k8s.io/apiextensions-apiserver"
@@ -23,11 +21,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "ironcore-dev/integration"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "ironcore-dev/integration"
