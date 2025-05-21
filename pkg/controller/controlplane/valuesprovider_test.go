@@ -347,9 +347,6 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					Spec: gardencorev1beta1.ShootSpec{
 						Kubernetes: gardencorev1beta1.Kubernetes{
 							Version: "1.26.0",
-							VerticalPodAutoscaler: &gardencorev1beta1.VerticalPodAutoscaler{
-								Enabled: true,
-							},
 						},
 					},
 				},
@@ -361,8 +358,7 @@ var _ = Describe("Valueprovider Reconcile", func() {
 					"enabled": true,
 				},
 				"csi-driver-node": map[string]interface{}{
-					"enabled":    true,
-					"vpaEnabled": true,
+					"enabled": true,
 				},
 			}))
 		})
