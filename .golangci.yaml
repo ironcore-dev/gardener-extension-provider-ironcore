@@ -1,22 +1,36 @@
-run:
-  timeout: 5m
-
+version: "2"
 linters:
   enable:
-    - revive
-    - ineffassign
-    - misspell
-    - goimports
     - ginkgolinter
     - importas
-
+    - misspell
+    - revive
+  settings:
+    revive:
+      severity: error
+      rules:
+        - name: exported
+        - name: if-return
+          disabled: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 severity:
-  default-severity: error
-
-linters-settings:
-  revive:
-    severity: error
-    rules:
-      - name: exported
-      - name: if-return
-        disabled: true
+  default: error
+formatters:
+  enable:
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
