@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gardener/gardener/extensions/pkg/controller"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
@@ -20,7 +19,7 @@ import (
 )
 
 // Delete implements infrastructure.Actuator.
-func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
+func (a *actuator) Delete(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	log.V(2).Info("Deleting infrastructure")
 
 	// get ironcore credentials from infrastructure config
@@ -53,7 +52,7 @@ func (a *actuator) ForceDelete(ctx context.Context, log logr.Logger, infra *exte
 	return a.Delete(ctx, log, infra, cluster)
 }
 
-func (a *actuator) deletePrefix(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) error {
+func (a *actuator) deletePrefix(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *extensionscontroller.Cluster) error {
 	prefix := &ipamv1alpha1.Prefix{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -63,7 +62,7 @@ func (a *actuator) deletePrefix(ctx context.Context, ironcoreClient client.Clien
 	return ironcoreClient.Delete(ctx, prefix)
 }
 
-func (a *actuator) deleteNATGateway(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) error {
+func (a *actuator) deleteNATGateway(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *extensionscontroller.Cluster) error {
 	natGateway := &networkingv1alpha1.NATGateway{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -73,7 +72,7 @@ func (a *actuator) deleteNATGateway(ctx context.Context, ironcoreClient client.C
 	return ironcoreClient.Delete(ctx, natGateway)
 }
 
-func (a *actuator) deleteNetwork(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) error {
+func (a *actuator) deleteNetwork(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *extensionscontroller.Cluster) error {
 	network := &networkingv1alpha1.Network{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -83,7 +82,7 @@ func (a *actuator) deleteNetwork(ctx context.Context, ironcoreClient client.Clie
 	return ironcoreClient.Delete(ctx, network)
 }
 
-func (a *actuator) deleteNetworkPolicy(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *controller.Cluster) error {
+func (a *actuator) deleteNetworkPolicy(ctx context.Context, ironcoreClient client.Client, namespace string, cluster *extensionscontroller.Cluster) error {
 	networkPolicy := &networkingv1alpha1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,

@@ -12,7 +12,6 @@ import (
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	machinecontrollerv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	commonv1alpha1 "github.com/ironcore-dev/ironcore/api/common/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -147,10 +146,10 @@ var _ = Describe("Machines", func() {
 				SecretName: className1,
 				Minimum:    worker.DistributeOverZones(0, pool.Minimum, 2),
 				Maximum:    worker.DistributeOverZones(0, pool.Maximum, 2),
-				Strategy: machinev1alpha1.MachineDeploymentStrategy{
-					Type: machinev1alpha1.RollingUpdateMachineDeploymentStrategyType,
-					RollingUpdate: &machinev1alpha1.RollingUpdateMachineDeployment{
-						UpdateConfiguration: machinev1alpha1.UpdateConfiguration{
+				Strategy: machinecontrollerv1alpha1.MachineDeploymentStrategy{
+					Type: machinecontrollerv1alpha1.RollingUpdateMachineDeploymentStrategyType,
+					RollingUpdate: &machinecontrollerv1alpha1.RollingUpdateMachineDeployment{
+						UpdateConfiguration: machinecontrollerv1alpha1.UpdateConfiguration{
 							MaxSurge:       ptr.To(worker.DistributePositiveIntOrPercent(0, pool.MaxSurge, 2, pool.Maximum)),
 							MaxUnavailable: ptr.To(worker.DistributePositiveIntOrPercent(0, pool.MaxUnavailable, 2, pool.Minimum)),
 						},
@@ -167,10 +166,10 @@ var _ = Describe("Machines", func() {
 				SecretName: className2,
 				Minimum:    worker.DistributeOverZones(1, pool.Minimum, 2),
 				Maximum:    worker.DistributeOverZones(1, pool.Maximum, 2),
-				Strategy: machinev1alpha1.MachineDeploymentStrategy{
-					Type: machinev1alpha1.RollingUpdateMachineDeploymentStrategyType,
-					RollingUpdate: &machinev1alpha1.RollingUpdateMachineDeployment{
-						UpdateConfiguration: machinev1alpha1.UpdateConfiguration{
+				Strategy: machinecontrollerv1alpha1.MachineDeploymentStrategy{
+					Type: machinecontrollerv1alpha1.RollingUpdateMachineDeploymentStrategyType,
+					RollingUpdate: &machinecontrollerv1alpha1.RollingUpdateMachineDeployment{
+						UpdateConfiguration: machinecontrollerv1alpha1.UpdateConfiguration{
 							MaxSurge:       ptr.To(worker.DistributePositiveIntOrPercent(1, pool.MaxSurge, 2, pool.Maximum)),
 							MaxUnavailable: ptr.To(worker.DistributePositiveIntOrPercent(1, pool.MaxUnavailable, 2, pool.Minimum)),
 						},
