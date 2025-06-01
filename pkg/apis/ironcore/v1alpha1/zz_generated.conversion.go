@@ -244,7 +244,7 @@ func Convert_ironcore_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *
 func autoConvert_v1alpha1_InfrastructureStatus_To_ironcore_InfrastructureStatus(in *InfrastructureStatus, out *ironcore.InfrastructureStatus, s conversion.Scope) error {
 	out.NetworkRef = in.NetworkRef
 	out.NATGatewayRef = in.NATGatewayRef
-	out.PrefixRef = in.PrefixRef
+	out.PrefixRefs = *(*[]commonv1alpha1.LocalUIDReference)(unsafe.Pointer(&in.PrefixRefs))
 	out.NetworkPolicyRef = in.NetworkPolicyRef
 	return nil
 }
@@ -257,7 +257,7 @@ func Convert_v1alpha1_InfrastructureStatus_To_ironcore_InfrastructureStatus(in *
 func autoConvert_ironcore_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *ironcore.InfrastructureStatus, out *InfrastructureStatus, s conversion.Scope) error {
 	out.NetworkRef = in.NetworkRef
 	out.NATGatewayRef = in.NATGatewayRef
-	out.PrefixRef = in.PrefixRef
+	out.PrefixRefs = *(*[]commonv1alpha1.LocalUIDReference)(unsafe.Pointer(&in.PrefixRefs))
 	out.NetworkPolicyRef = in.NetworkPolicyRef
 	return nil
 }
