@@ -17,6 +17,7 @@ updates:
       - dependency-name: "k8s.io/kubelet"
       - dependency-name: "k8s.io/code-generator"
       - dependency-name: "sigs.k8s.io/controller-runtime"
+      - dependency-name: "sigs.k8s.io/controller-tools"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
