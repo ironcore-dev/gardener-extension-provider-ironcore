@@ -215,10 +215,14 @@ func (vp *valuesProvider) GetConfigChartValues(
 		return nil, fmt.Errorf("failed to decode infrastructure status: %w", err)
 	}
 	// Collect config chart values
+	var prefixNames []string
+	for _, prefix := range infrastructureStatus.PrefixRefs {
+		prefixNames = append(prefixNames, prefix.Name)
+	}
 	return map[string]interface{}{
-		ironcore.NetworkFieldName: infrastructureStatus.NetworkRef.Name,
-		ironcore.PrefixFieldName:  infrastructureStatus.PrefixRef.Name,
-		ironcore.ClusterFieldName: cluster.ObjectMeta.Name,
+		ironcore.NetworkFieldName:  infrastructureStatus.NetworkRef.Name,
+		ironcore.PrefixesFieldName: prefixNames,
+		ironcore.ClusterFieldName:  cluster.ObjectMeta.Name,
 	}, nil
 }
 
