@@ -34,6 +34,7 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Path:     "/webhooks/validate",
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
 			NewShootValidator(mgr):         {{Obj: &core.Shoot{}}},
+			NewCloudProfileValidator(mgr):  {{Obj: &core.CloudProfile{}}},
 			NewSecretBindingValidator(mgr): {{Obj: &core.SecretBinding{}}},
 		},
 		Target: extensionswebhook.TargetSeed,
@@ -53,6 +54,10 @@ func NewSecretsWebhook(mgr manager.Manager) (*extensionswebhook.Webhook, error) 
 		Path:     "/webhooks/validate/secrets",
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
 			NewSecretValidator(): {{Obj: &corev1.Secret{}}},
+		},
+		Target: extensionswebhook.TargetSeed,
+		ObjectSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{constants.LabelExtensionProviderTypePrefix + ironcore.Type: "true"},
 		},
 	})
 }
