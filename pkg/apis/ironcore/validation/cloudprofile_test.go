@@ -110,8 +110,9 @@ var _ = Describe("CloudProfileConfig validation", func() {
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
 				Expect(errorList).To(ConsistOf(
 					PointTo(MatchFields(IgnoreExtras, Fields{
-						"Type":  Equal(field.ErrorTypeRequired),
-						"Field": Equal("machineImages"),
+						"Type":   Equal(field.ErrorTypeRequired),
+						"Field":  Equal("spec.machineImages[1]"),
+						"Detail": Equal("must provide a provider image mapping for image \"suse\""),
 					})),
 				))
 			})
@@ -119,21 +120,25 @@ var _ = Describe("CloudProfileConfig validation", func() {
 			It("should forbid unsupported machine image version configuration", func() {
 				cloudProfileConfig.MachineImages[0].Versions[0].Image = ""
 				cloudProfileConfig.MachineImages[0].Versions[0].Architecture = ptr.To[string]("foo")
-				machineImages[0].Versions = append(machineImages[0].Versions, core.MachineImageVersion{ExpirableVersion: core.ExpirableVersion{Version: "2.0.0"}})
+				machineImages[0].Versions = append(machineImages[0].Versions, core.MachineImageVersion{ExpirableVersion: core.ExpirableVersion{Version: "2.0.0"}, Architectures: []string{"amd64"}})
+
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig, machineImages, nilPath)
 
 				Expect(errorList).To(ConsistOf(
 					PointTo(MatchFields(IgnoreExtras, Fields{
-						"Type":  Equal(field.ErrorTypeRequired),
-						"Field": Equal("machineImages[0].versions"),
+						"Type":   Equal(field.ErrorTypeRequired),
+						"Field":  Equal("machineImages[0].versions[0].image"),
+						"Detail": Equal("must provide an image"),
 					})),
 					PointTo(MatchFields(IgnoreExtras, Fields{
-						"Type":  Equal(field.ErrorTypeRequired),
-						"Field": Equal("machineImages[0].versions[0].image"),
+						"Type":     Equal(field.ErrorTypeNotSupported),
+						"Field":    Equal("machineImages[0].versions[0].architecture"),
+						"BadValue": Equal("foo"),
 					})),
 					PointTo(MatchFields(IgnoreExtras, Fields{
-						"Type":  Equal(field.ErrorTypeNotSupported),
-						"Field": Equal("machineImages[0].versions[0].architecture"),
+						"Type":   Equal(field.ErrorTypeRequired),
+						"Field":  Equal("spec.machineImages[0].versions[1]"),
+						"Detail": Equal("must provide an image mapping for version \"2.0.0\" and architecture: amd64"),
 					})),
 				))
 			})
