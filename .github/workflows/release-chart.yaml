@@ -7,9 +7,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'charts/gardener-extension-provider-ironcore/**'
-      - 'charts/gardener-extension-admission-ironcore/**'
     tags:
       - 'v*.*.*'
   pull_request:
