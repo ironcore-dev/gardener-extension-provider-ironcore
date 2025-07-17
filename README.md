@@ -54,3 +54,9 @@ Please find further resources about out project here:
 * [Extensibility API documentation](https://github.com/gardener/gardener/tree/master/docs/extensions)
 * [Gardener Extensions Golang library](https://godoc.org/github.com/gardener/gardener/extensions/pkg)
 * [Gardener API Reference](https://gardener.cloud/api-reference/)
+
+## Licensing
+
+Copyright 2025 SAP SE or an SAP affiliate company and IronCore contributors. Please see our [LICENSE](LICENSE) for
+copyright and license information. Detailed information including third-party components and their licensing/copyright
+information is available [via the REUSE tool](https://api.reuse.software/info/github.com/ironcore-dev/gardener-extension-provider-ironcore).
