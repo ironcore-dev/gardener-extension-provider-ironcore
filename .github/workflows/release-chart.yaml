@@ -63,9 +63,11 @@ jobs:
       - name: Package Helm charts
         run: |
           helm package charts/gardener-extension-provider-ironcore --version ${{ steps.chart_version.outputs.version }}
-          helm package charts/gardener-extension-admission-ironcore --version ${{ steps.chart_version.outputs.version }}
+          helm package charts/gardener-extension-admission-ironcore/charts/application --version ${{ steps.chart_version.outputs.version }}
+          helm package charts/gardener-extension-admission-ironcore/charts/runtime --version ${{ steps.chart_version.outputs.version }}
 
       - name: Push Helm charts to GHCR
         run: |
           helm push gardener-extension-provider-ironcore-${{ steps.chart_version.outputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
-          helm push gardener-extension-admission-ironcore-${{ steps.chart_version.outputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          helm push gardener-extension-admission-ironcore-runtime-${{ steps.chart_version.outputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          helm push gardener-extension-admission-ironcore-application-${{ steps.chart_version.outputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
