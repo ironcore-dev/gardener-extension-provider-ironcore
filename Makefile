@@ -180,12 +180,6 @@ docs: $(GEN_CRD_API_REFERENCE_DOCS) ## Run go generate to generate API reference
 	GODEBUG="gotypesalias=0" $(GEN_CRD_API_REFERENCE_DOCS) -api-dir ./pkg/apis/ironcore/v1alpha1 -config ./hack/api-reference/api.json -template-dir ./hack/api-reference/template -out-file ./hack/api-reference/api.md
 	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir ./pkg/apis/config/v1alpha1 -config ./hack/api-reference/config.json -template-dir ./hack/api-reference/template -out-file ./hack/api-reference/config.md
 
-.PHONY: verify
-verify: check format test
-
-.PHONY: verify-extended
-verify-extended: check-generate check format test-cov test-clean
-
 ##@ Tools
 
 ## Location to install dependencies to
