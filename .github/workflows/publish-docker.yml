@@ -30,6 +30,9 @@ jobs:
             target: gardener-extension-provider-ironcore
           - name: gardener-extension-admission-ironcore
             target: gardener-extension-admission-ironcore
+    permissions:
+      contents: read
+      packages: write
     # Condition: Run on push to main, published release, OR PR with 'ok-to-image' label
     if: |
       github.event_name == 'push' || 
