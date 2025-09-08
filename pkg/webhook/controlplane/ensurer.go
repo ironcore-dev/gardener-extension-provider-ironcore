@@ -5,6 +5,7 @@ package controlplane
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/coreos/go-systemd/v22/unit"
@@ -39,7 +40,7 @@ type ensurer struct {
 var ImageVector = imagevector.ImageVector()
 
 // EnsureMachineControllerManagerDeployment ensures that the machine-controller-manager deployment conforms to the provider requirements.
-func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ extensionscontextwebhook.GardenContext, newObj, _ *appsv1.Deployment) error {
+func (e *ensurer) EnsureMachineControllerManagerDeployment(ctx context.Context, gctx extensionscontextwebhook.GardenContext, newObj, _ *appsv1.Deployment) error {
 	image, err := ImageVector.FindImage(ironcore.MachineControllerManagerProviderIroncoreImageName)
 	if err != nil {
 		return err
@@ -48,9 +49,14 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 	template := &newObj.Spec.Template
 	ps := &template.Spec
 
+	cluster, err := gctx.GetCluster(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster: %w", err)
+	}
+
 	ps.Containers = extensionswebhook.EnsureContainerWithName(
 		newObj.Spec.Template.Spec.Containers,
-		machinecontrollermanager.ProviderSidecarContainer(newObj.Namespace, ironcore.ProviderName, image.String()),
+		machinecontrollermanager.ProviderSidecarContainer(cluster.Shoot, newObj.Namespace, ironcore.ProviderName, image.String()),
 	)
 
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "machine-controller-manager-provider-ironcore"); c != nil {
