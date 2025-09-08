@@ -263,9 +263,12 @@ func generateMachine(namespace string, bastionConfig *controllerconfig.BastionCo
 									VirtualIP: &networkingv1alpha1.VirtualIPSource{
 										Ephemeral: &networkingv1alpha1.EphemeralVirtualIPSource{
 											VirtualIPTemplate: &networkingv1alpha1.VirtualIPTemplateSpec{
-												Spec: networkingv1alpha1.VirtualIPSpec{
-													Type:     networkingv1alpha1.VirtualIPTypePublic,
-													IPFamily: corev1.IPv4Protocol,
+												Spec: networkingv1alpha1.EphemeralVirtualIPSpec{
+													VirtualIPSpec: networkingv1alpha1.VirtualIPSpec{
+														Type:     networkingv1alpha1.VirtualIPTypePublic,
+														IPFamily: corev1.IPv4Protocol,
+													},
+													ReclaimPolicy: networkingv1alpha1.ReclaimPolicyTypeDelete,
 												},
 											},
 										},

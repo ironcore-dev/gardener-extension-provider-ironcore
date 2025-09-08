@@ -15,12 +15,14 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/ironcore-dev/controller-utils/buildutils"
 	"github.com/ironcore-dev/controller-utils/modutils"
+	corev1alpha1 "github.com/ironcore-dev/ironcore/api/core/v1alpha1"
 	storagev1alpha1 "github.com/ironcore-dev/ironcore/api/storage/v1alpha1"
 	utilsenvtest "github.com/ironcore-dev/ironcore/utils/envtest"
 	"github.com/ironcore-dev/ironcore/utils/envtest/apiserver"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -167,6 +169,19 @@ func SetupTest() (*manager.Manager, *corev1.Namespace) {
 			},
 		}
 		Expect(k8sClient.Create(ctx, secret)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, secret)
+		By("creating a test bucket class")
+		bucketClass := &storagev1alpha1.BucketClass{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-bucket-class",
+			},
+			Capabilities: map[corev1alpha1.ResourceName]resource.Quantity{
+				corev1alpha1.ResourceIOPS: resource.MustParse("100"),
+				corev1alpha1.ResourceTPS:  resource.MustParse("100"),
+			},
+		}
+		Expect(k8sClient.Create(ctx, bucketClass)).To(Succeed())
+		DeferCleanup(k8sClient.Delete, bucketClass)
 
 		Expect(AddToManagerWithOptions(ctx, mgr, AddOptions{
 			IgnoreOperationAnnotation: true,
