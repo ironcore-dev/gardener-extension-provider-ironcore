@@ -51,15 +51,17 @@ var _ = Describe("Ensurer", func() {
 
 		dummyContext = gcontext.NewGardenContext(nil, nil)
 
+		shoot = &gardencorev1beta1.Shoot{
+			Spec: gardencorev1beta1.ShootSpec{
+				Kubernetes: gardencorev1beta1.Kubernetes{
+					Version: "1.26.0",
+				},
+			},
+		}
+
 		eContextK8s = gcontext.NewInternalGardenContext(
 			&extensionscontroller.Cluster{
-				Shoot: &gardencorev1beta1.Shoot{
-					Spec: gardencorev1beta1.ShootSpec{
-						Kubernetes: gardencorev1beta1.Kubernetes{
-							Version: "1.26.0",
-						},
-					},
-				},
+				Shoot: shoot,
 			},
 		)
 	)
@@ -249,8 +251,8 @@ var _ = Describe("Ensurer", func() {
 
 			It("should inject the sidecar container", func() {
 				Expect(deployment.Spec.Template.Spec.Containers).To(BeEmpty())
-				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, nil, deployment, nil)).To(Succeed())
-				expectedContainer := machinecontrollermanager.ProviderSidecarContainer(deployment.Namespace, ironcore.ProviderName, "foo:bar")
+				Expect(ensurer.EnsureMachineControllerManagerDeployment(ctx, eContextK8s, deployment, nil)).To(Succeed())
+				expectedContainer := machinecontrollermanager.ProviderSidecarContainer(shoot, deployment.Namespace, ironcore.ProviderName, "foo:bar")
 				expectedContainer.Args = append(expectedContainer.Args, "--ironcore-kubeconfig=/etc/ironcore/kubeconfig")
 				expectedContainer.VolumeMounts = append(expectedContainer.VolumeMounts, corev1.VolumeMount{
 					Name:      "cloudprovider",

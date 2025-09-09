@@ -56,7 +56,7 @@ var _ = Describe("Machines", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		additionalData := []string{strconv.FormatBool(volumeEncrypted), datVolumeName, volumeSize, volumeType, strconv.FormatBool(volumeEncrypted)}
-		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, additionalData, nil)
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, additionalData, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("ensuring that the machine class for each pool has been deployed")
@@ -123,7 +123,7 @@ var _ = Describe("Machines", func() {
 	It("should generate the machine deployments", func(ctx SpecContext) {
 		By("creating a worker delegate")
 		additionalData := []string{strconv.FormatBool(volumeEncrypted), datVolumeName, volumeSize, volumeType, strconv.FormatBool(volumeEncrypted)}
-		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, additionalData, nil)
+		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, additionalData, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 		var (
 			deploymentName1 = fmt.Sprintf("%s-%s-z%d", w.Namespace, pool.Name, 1)
