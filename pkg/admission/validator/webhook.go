@@ -7,6 +7,7 @@ import (
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	"github.com/gardener/gardener/pkg/apis/security"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -37,6 +38,7 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 			NewCloudProfileValidator(mgr):           {{Obj: &core.CloudProfile{}}},
 			NewNamespacedCloudProfileValidator(mgr): {{Obj: &core.NamespacedCloudProfile{}}},
 			NewSecretBindingValidator(mgr):          {{Obj: &core.SecretBinding{}}},
+			NewCredentialsBindingValidator(mgr):     {{Obj: &security.CredentialsBinding{}}},
 		},
 		Target: extensionswebhook.TargetSeed,
 		ObjectSelector: &metav1.LabelSelector{
