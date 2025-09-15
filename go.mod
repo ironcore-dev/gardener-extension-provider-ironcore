@@ -11,7 +11,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid/api v0.32.0
 	github.com/gardener/gardener v1.122.3
-	github.com/gardener/machine-controller-manager v0.58.0
+	github.com/gardener/machine-controller-manager v0.60.0
 	github.com/go-logr/logr v1.4.3
 	github.com/imdario/mergo v0.3.16
 	github.com/ironcore-dev/controller-utils v0.10.0

@@ -132,8 +132,8 @@ github.com/gardener/etcd-druid/api v0.32.0 h1:B3MEBe9q3+Q0jjFb/BhMigde05mYkVjWzV
 github.com/gardener/etcd-druid/api v0.32.0/go.mod h1:Qpl1PDJ+bKa6OPWk4o7WBzvjPqZc/CxIXbiTkdRhCrg=
 github.com/gardener/gardener v1.122.3 h1:JOhpooDXyouS4tR5dvyydLiM5xWKCDJGVIC06V6DU1M=
 github.com/gardener/gardener v1.122.3/go.mod h1:oIESvqvsZOOC3Ucp1dn9lLKrcGumi0yqNG+looikiyw=
-github.com/gardener/machine-controller-manager v0.58.0 h1:JLMpuD+omliu/RwK0mA9Ce+MLObJq421Du1qmaAHmAU=
-github.com/gardener/machine-controller-manager v0.58.0/go.mod h1:TCU/KoudCMt2eV0Jnrq2D1TwgsrBCuhIVgV3j1el6Og=
+github.com/gardener/machine-controller-manager v0.60.0 h1:aaSE85Yu0hcHYsP5/x1rxWa5o2zhmsmXlKQ+xefHY/Q=
+github.com/gardener/machine-controller-manager v0.60.0/go.mod h1:8eE1qLztrWIbOM71mHSQGaC6Q+pl5lvOyN08qP39D7o=
 github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-jose/go-jose/v4 v4.1.0 h1:cYSYxd3pw5zd2FSXk2vGdn9igQU2PS8MuxrCOCl0FdY=
