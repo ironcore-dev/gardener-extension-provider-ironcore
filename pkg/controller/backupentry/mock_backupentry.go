@@ -14,10 +14,10 @@
 package backupentry
 
 import (
+	context "context"
 	reflect "reflect"
 
-	aws "github.com/aws/aws-sdk-go/aws"
-	s3 "github.com/aws/aws-sdk-go/service/s3"
+	s3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -46,7 +46,7 @@ func (m *Mocks3ObjectLister) EXPECT() *Mocks3ObjectListerMockRecorder {
 }
 
 // ListObjectsPages mocks base method.
-func (m *Mocks3ObjectLister) ListObjectsPages(ctx aws.Context, s3Client *s3.S3, input *s3.ListObjectsInput, bucketName string) error {
+func (m *Mocks3ObjectLister) ListObjectsPages(ctx context.Context, s3Client *s3.Client, input *s3.ListObjectsV2Input, bucketName string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListObjectsPages", ctx, s3Client, input, bucketName)
 	ret0, _ := ret[0].(error)

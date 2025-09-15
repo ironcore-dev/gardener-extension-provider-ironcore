@@ -42,10 +42,10 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, backupEntry *ext
 	}
 
 	// get s3 client from s3 client secret
-	s3Client, err := GetS3ClientFromS3ClientSecret(s3ClientSecret)
+	s3Client, err := GetS3ClientFromS3ClientSecret(ctx, s3ClientSecret)
 	if err != nil {
 		return fmt.Errorf("failed to get s3 client from s3 client secret: %w", err)
 	}
 
-	return DeleteObjectsWithPrefix(ctx, s3Client, backupEntry.Spec.Region, backupEntry.Spec.BucketName, fmt.Sprintf("%s/", backupEntry.Name))
+	return DeleteObjectsWithPrefix(ctx, s3Client, backupEntry.Spec.BucketName, fmt.Sprintf("%s/", backupEntry.Name))
 }

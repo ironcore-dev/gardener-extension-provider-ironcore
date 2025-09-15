@@ -5,13 +5,14 @@ package backupentry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
@@ -20,53 +21,48 @@ import (
 //go:generate $MOCKGEN -copyright_file ../../../hack/license-header.txt -package backupentry -destination=mock_backupentry.go -source backupentry.go S3ClientGetter,S3ObjectLister
 
 type s3ObjectLister interface {
-	ListObjectsPages(ctx aws.Context, s3Client *s3.S3, input *s3.ListObjectsInput, bucketName string) error
+	ListObjectsPages(ctx context.Context, s3Client *s3.Client, input *s3.ListObjectsV2Input, bucketName string) error
 }
 
 type s3ObjectListerImpl struct{}
 
 var objectLister s3ObjectLister = s3ObjectListerImpl{}
 
-func (o s3ObjectListerImpl) ListObjectsPages(ctx aws.Context, s3Client *s3.S3, input *s3.ListObjectsInput, bucketName string) error {
-	var delErr error
-	if err := s3Client.ListObjectsPagesWithContext(ctx, input, func(page *s3.ListObjectsOutput, lastPage bool) bool {
-		objectIDs := make([]*s3.ObjectIdentifier, 0)
-		for _, key := range page.Contents {
-			obj := &s3.ObjectIdentifier{
-				Key: key.Key,
-			}
-			objectIDs = append(objectIDs, obj)
+func (o s3ObjectListerImpl) ListObjectsPages(ctx context.Context, s3Client *s3.Client, input *s3.ListObjectsV2Input, bucketName string) error {
+	paginator := s3.NewListObjectsV2Paginator(s3Client, input)
+	for paginator.HasMorePages() {
+		objectIDs := make([]s3types.ObjectIdentifier, 0)
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			return err
 		}
-
+		for _, object := range output.Contents {
+			identifier := s3types.ObjectIdentifier{Key: object.Key}
+			objectIDs = append(objectIDs, identifier)
+		}
 		if len(objectIDs) != 0 {
-			if _, delErr = s3Client.DeleteObjectsWithContext(ctx, &s3.DeleteObjectsInput{
+			if _, err = s3Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
 				Bucket: aws.String(bucketName),
-				Delete: &s3.Delete{
+				Delete: &s3types.Delete{
 					Objects: objectIDs,
 					Quiet:   aws.Bool(true),
 				},
-			}); delErr != nil {
-				return false
+			}); err != nil {
+				var nsk *s3types.NoSuchKey
+				if errors.As(err, &nsk) {
+					return nil
+				}
+				return err
 			}
 		}
-		return !lastPage
-	}); err != nil {
-		return fmt.Errorf("error listing objects pages from bucket %s: %w", bucketName, err)
-	}
-
-	if delErr != nil {
-		if aerr, ok := delErr.(awserr.Error); ok && aerr.Code() == s3.ErrCodeNoSuchKey {
-			return nil
-		}
-		return delErr
 	}
 	return nil
 }
 
 // DeleteObjectsWithPrefix deletes the s3 objects with the specific <prefix>
 // from <bucket>. If it does not exist, no error is returned.
-func DeleteObjectsWithPrefix(ctx context.Context, s3Client *s3.S3, region, bucketName, prefix string) error {
-	in := &s3.ListObjectsInput{
+func DeleteObjectsWithPrefix(ctx context.Context, s3Client *s3.Client, bucketName, prefix string) error {
+	in := &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
 		Prefix: aws.String(prefix),
 	}
@@ -80,7 +76,7 @@ func DeleteObjectsWithPrefix(ctx context.Context, s3Client *s3.S3, region, bucke
 
 // GetS3ClientFromS3ClientSecret creates s3Client from bucket access key ID
 // and secret access key.
-func GetS3ClientFromS3ClientSecret(secret *corev1.Secret) (*s3.S3, error) {
+func GetS3ClientFromS3ClientSecret(ctx context.Context, secret *corev1.Secret) (*s3.Client, error) {
 	if secret.Data == nil {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}
@@ -100,18 +96,16 @@ func GetS3ClientFromS3ClientSecret(secret *corev1.Secret) (*s3.S3, error) {
 		return nil, fmt.Errorf("missing %q field in secret", ironcore.Endpoint)
 	}
 
+	awsCredentials := credentials.NewStaticCredentialsProvider(string(accessKeyID), string(secretAccessKey), "")
 	endpointStr := string(endpoint)
-	awsConfig := &aws.Config{
-		Credentials: credentials.NewStaticCredentials(string(accessKeyID), string(secretAccessKey), ""),
-		Endpoint:    &endpointStr,
-	}
 
-	s, err := session.NewSession(awsConfig)
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(awsCredentials), config.WithBaseEndpoint(endpointStr))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create session: %w", err)
+		return nil, fmt.Errorf("failed to create AWS config: %w", err)
 	}
-	config := &aws.Config{Region: aws.String("region")} //TODO: hardcoded the region for now, consider making it configurable if necessary
-	s3Client := s3.New(s, config)
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.Region = "region" //TODO: hardcoded the region for now, consider making it configurable if necessary
+	})
 
 	return s3Client, nil
 }
