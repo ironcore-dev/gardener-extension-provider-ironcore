@@ -20,7 +20,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.25.3
 	github.com/onsi/gomega v1.38.2
 	github.com/spf13/cobra v1.10.1
-	github.com/spf13/pflag v1.0.9
+	github.com/spf13/pflag v1.0.10
 	go.uber.org/mock v0.5.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/tools v0.36.0
