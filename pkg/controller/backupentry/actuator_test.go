@@ -6,8 +6,8 @@ package backupentry
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gardener/gardener/extensions/pkg/controller/backupentry/genericactuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
@@ -107,7 +107,7 @@ var _ = Describe("BackupEntry Delete", func() {
 		}
 		Expect(k8sClient.Create(ctx, backupEntry)).To(Succeed())
 
-		in := &s3.ListObjectsInput{
+		in := &s3.ListObjectsV2Input{
 			Bucket: aws.String(bucketName),
 			Prefix: aws.String(fmt.Sprintf("%s/", backupEntry.Name)),
 		}
