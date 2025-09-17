@@ -5,24 +5,29 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      go-dependencies:
+        patterns:
+          - "*"
     ignore:
-      - dependency-name: "k8s.io/api"
-      - dependency-name: "k8s.io/apiextensions-apiserver"
-      - dependency-name: "k8s.io/apimachinery"
-      - dependency-name: "k8s.io/apiserver"
-      - dependency-name: "k8s.io/client-go"
-      - dependency-name: "k8s.io/component-base"
-      - dependency-name: "k8s.io/kube-aggregator"
-      - dependency-name: "k8s.io/kubectl"
-      - dependency-name: "k8s.io/kubelet"
-      - dependency-name: "k8s.io/code-generator"
-      - dependency-name: "sigs.k8s.io/controller-runtime"
-      - dependency-name: "sigs.k8s.io/controller-tools"
+      - dependency-name: "k8s.io/*"
+      - dependency-name: "sigs.k8s.io/*"
+      - dependency-name: "github.com/ironcore-dev/ironcore"
+      - dependency-name: "github.com/ironcore-dev/controller-utils"
+      - dependency-name: "github.com/gardener/*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      gh-actions-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
