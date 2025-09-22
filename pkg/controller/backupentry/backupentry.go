@@ -13,8 +13,6 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
-//go:generate $MOCKGEN -copyright_file ../../../hack/license-header.txt -package backupentry -destination=mock_backupentry.go -source backupentry.go S3ClientGetter,S3ObjectLister
-
 type s3ObjectLister interface {
 	ListObjectsPages(ctx context.Context, s3Client S3Client, input *s3.ListObjectsV2Input, bucketName string) error
 }
