@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/gardener/gardener/extensions/pkg/controller/backupentry/genericactuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
@@ -24,10 +25,10 @@ var _ = Describe("BackupEntry Delete", func() {
 	mgr, ns := SetupTest()
 
 	var (
-		ctrl               *gomock.Controller
-		a                  genericactuator.BackupEntryDelegate
-		log                logr.Logger
-		mockS3ObjectLister *Mocks3ObjectLister
+		ctrl         *gomock.Controller
+		a            genericactuator.BackupEntryDelegate
+		log          logr.Logger
+		mockS3Client *MockS3Client
 	)
 
 	BeforeEach(func(ctx SpecContext) {
@@ -35,9 +36,11 @@ var _ = Describe("BackupEntry Delete", func() {
 		Expect(a).NotTo(BeNil())
 
 		ctrl = gomock.NewController(GinkgoT())
-		mockS3ObjectLister = NewMocks3ObjectLister(ctrl)
+		mockS3Client = NewMockS3Client(ctrl)
 
-		objectLister = mockS3ObjectLister
+		NewS3ClientFromConfig = func(cfg aws.Config, optFns ...func(*s3.Options)) S3Client {
+			return mockS3Client
+		}
 	})
 
 	It("should delete Backupentry", func(ctx SpecContext) {
@@ -107,11 +110,30 @@ var _ = Describe("BackupEntry Delete", func() {
 		}
 		Expect(k8sClient.Create(ctx, backupEntry)).To(Succeed())
 
-		in := &s3.ListObjectsV2Input{
+		listIn := &s3.ListObjectsV2Input{
 			Bucket: aws.String(bucketName),
 			Prefix: aws.String(fmt.Sprintf("%s/", backupEntry.Name)),
 		}
-		mockS3ObjectLister.EXPECT().ListObjectsPages(ctx, gomock.Any(), in, backupEntry.Spec.BucketName).Return(nil)
+		listOut := &s3.ListObjectsV2Output{
+			Contents: []types.Object{
+				{
+					Key: aws.String(fmt.Sprintf("%s/test-obj", backupEntry.Name)),
+				},
+			},
+		}
+		deleteIn := &s3.DeleteObjectsInput{
+			Bucket: aws.String(bucketName),
+			Delete: &types.Delete{
+				Objects: []types.ObjectIdentifier{
+					{
+						Key: aws.String(fmt.Sprintf("%s/test-obj", backupEntry.Name)),
+					},
+				},
+				Quiet: aws.Bool(true),
+			},
+		}
+		mockS3Client.EXPECT().ListObjectsV2(ctx, listIn, gomock.Any()).Return(listOut, nil)
+		mockS3Client.EXPECT().DeleteObjects(ctx, deleteIn).Return(&s3.DeleteObjectsOutput{}, nil)
 
 		By("deleting the BackupEntry")
 		Expect(a.Delete(ctx, log, backupEntry)).Should(Succeed())
