@@ -43,13 +43,13 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
             # Use SHA for main branch
-            CHART_VERSION="0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
+            CHART_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
           elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            # Use tag version (strip 'v' prefix)
-            CHART_VERSION="${GITHUB_REF#refs/tags/v}"
+            # Use tag version
+            CHART_VERSION="${GITHUB_REF_NAME}"
           else
             # Use PR SHA for dry run
-            CHART_VERSION="0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
+            CHART_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
           fi
           echo "version=$CHART_VERSION" >> $GITHUB_OUTPUT
 
