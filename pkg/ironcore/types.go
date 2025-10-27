@@ -50,8 +50,8 @@ const (
 	TokenFieldName = "token"
 	// NetworkFieldName is the name of network field
 	NetworkFieldName = "networkName"
-	// PrefixFieldName is the name of the prefix field
-	PrefixFieldName = "prefixName"
+	// PrefixesFieldName is the name of the prefix field
+	PrefixesFieldName = "prefixNames"
 	// ClusterFieldName is the name of the cluster field
 	ClusterFieldName = "clusterName"
 	// LabelsFieldName is the name of the labels field

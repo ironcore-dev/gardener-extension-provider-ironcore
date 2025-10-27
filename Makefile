@@ -7,6 +7,7 @@ ADMISSION_NAME              := admission-ironcore
 IMAGE_PREFIX                := $(REGISTRY)/extensions
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
+VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
 EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
 LD_FLAGS                    := "-w $(shell bash $(GARDENER_HACK_DIR)/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION $(EXTENSION_PREFIX))"
 LEADER_ELECTION             := false
@@ -136,7 +137,7 @@ check: $(GOIMPORTS) $(GOLANGCI_LINT) $(MOCKGEN)
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 
 .PHONY: generate
-generate: deepcopy-gen defaulter-gen conversion-gen $(CONTROLLER_GEN) $(HELM) $(MOCKGEN) $(YQ) $(VGOPATH)
+generate: $(CONTROLLER_GEN) $(HELM) $(MOCKGEN) $(YQ) $(VGOPATH)
 	@GOPATH=$(GOPATH) VGOPATH=$(VGOPATH) \
 	MOCKGEN=$(MOCKGEN) \
 	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
@@ -184,9 +185,6 @@ $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
 ## Tool Binaries
-DEEPCOPY_GEN ?= $(LOCALBIN)/deepcopy-gen
-CONVERSION_GEN ?= $(LOCALBIN)/conversion-gen
-DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
@@ -201,33 +199,3 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest,$(ENVTEST_VERSION))
 
-.PHONY: deepcopy-gen
-deepcopy-gen: $(DEEPCOPY_GEN) ## Download deepcopy-gen locally if necessary.
-$(DEEPCOPY_GEN): $(LOCALBIN)
-	$(call go-install-tool,$(DEEPCOPY_GEN),k8s.io/code-generator/cmd/deepcopy-gen,$(CODE_GENERATOR_VERSION))
-
-.PHONY: defaulter-gen
-defaulter-gen: $(DEFAULTER_GEN) ## Download defaulter-gen locally if necessary.
-$(DEFAULTER_GEN): $(LOCALBIN)
-	$(call go-install-tool,$(DEFAULTER_GEN),k8s.io/code-generator/cmd/defaulter-gen,$(CODE_GENERATOR_VERSION))
-
-.PHONY: conversion-gen
-conversion-gen: $(CONVERSION_GEN) ## Download conversion-gen locally if necessary.
-$(CONVERSION_GEN): $(LOCALBIN)
-	$(call go-install-tool,$(CONVERSION_GEN),k8s.io/code-generator/cmd/conversion-gen,${CODE_GENERATOR_VERSION})
-
-# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
-# $1 - target path with name of binary
-# $2 - package url which can be installed
-# $3 - specific version of package
-define go-install-tool
-@[ -f "$(1)-$(3)" ] && [ "$$(readlink -- "$(1)" 2>/dev/null)" = "$(1)-$(3)" ] || { \
-set -e; \
-package=$(2)@$(3) ;\
-echo "Downloading $${package}" ;\
-rm -f $(1) ;\
-GOBIN=$(LOCALBIN) go install $${package} ;\
-mv $(1) $(1)-$(3) ;\
-} ;\
-ln -sf $$(realpath $(1)-$(3)) $(1)
-endef
