@@ -89,6 +89,7 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 				Annotations:          pool.Annotations,
 				Taints:               pool.Taints,
 				MachineConfiguration: genericworkeractuator.ReadMachineConfiguration(pool),
+				Priority:             ptr.To(int32(1)),
 			})
 		}
 	}
