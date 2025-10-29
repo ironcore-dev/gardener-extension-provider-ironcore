@@ -1,0 +1,59 @@
+name: Release OCM Component
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  ocm:
+    name: Release OCM Component
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: open-component-model/ocm-setup-action@30210abb7373f34003cd50cdab77e23497afa6a7
+
+      - name: Retrieve image versions from imagevector
+        run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
+
+      - name: Determine OCM component version and destination repository
+        run: |
+          # Use dev version and repo by default
+          gitsha=$(echo ${{ github.sha }} | cut -c1-7)
+          OCM_VERSION="v0.0.0+${gitsha}"
+          CHART_VERSION="v0.0.0_${gitsha}"
+          IMAGE_VERSION="sha-${gitsha}"
+          OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm-dev"
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Use tag version and production repo
+            OCM_VERSION="${GITHUB_REF_NAME}"
+            CHART_VERSION="${GITHUB_REF_NAME}"
+            IMAGE_VERSION="${GITHUB_REF_NAME}"
+            OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm"
+          fi
+          echo "VERSION=$OCM_VERSION" >> $GITHUB_ENV
+          echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
+          echo "OCM_REPO=$OCM_REPO" >> $GITHUB_ENV
+
+      - name: Add OCM component version to transport archive
+        run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml --addenv
+
+      - name: Transfer OCM component transport archive to GitHub Container Registry
+        run: ocm transfer ctf ocm/ctf ${OCM_REPO}
