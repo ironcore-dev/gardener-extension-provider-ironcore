@@ -1,0 +1,33 @@
+name: Release OCM Component
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  ocm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: open-component-model/ocm-setup-action@30210abb7373f34003cd50cdab77e23497afa6a7
+
+      - name: Retrieve image versions from imagevector
+        run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
+
+      - name: Add OCM component version to transport archive
+        run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml VERSION=${{ github.ref_name}} --addenv
+
+      - name: Tranfer OCM component transport archive to GitHub Container Registry
+        run: ocm transfer ctf ocm/ctf ghcr.io/${{ github.repository_owner}}/ocm-dev

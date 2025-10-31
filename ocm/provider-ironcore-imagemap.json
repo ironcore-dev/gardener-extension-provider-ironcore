@@ -1,0 +1,14 @@
+{
+  "helmchartResource": {
+    "name": "provider-ironcore"
+  },
+  "imageMapping": [
+    {
+      "resource": {
+        "name": "gardener-extension-provider-ironcore"
+      },
+      "repository": "image.repository",
+      "tag": "image.tag"
+    }
+  ]
+}

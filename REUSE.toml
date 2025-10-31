@@ -22,6 +22,7 @@ path = [
     "imagevector/images.yaml",
     "pkg/controller/bastion/ignition/template.yaml",
     "REUSE.toml",
+    "ocm/**",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2023 SAP SE or an SAP affiliate company and IronCore contributors"
