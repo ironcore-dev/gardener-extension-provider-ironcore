@@ -1,4 +1,4 @@
-name: Release OCM Component
+name: Release
 
 on:
   push:
