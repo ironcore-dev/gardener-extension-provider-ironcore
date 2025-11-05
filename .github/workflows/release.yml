@@ -93,6 +93,59 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           target: ${{ matrix.image }}
 
+  helm:
+    name: Release Helm Charts
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ok-to-charts'))
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Determine chart version
+        id: chart_version
+        run: |
+          # Use SHA for main branch and PRs
+          CHART_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Use tag version
+            CHART_VERSION="${GITHUB_REF_NAME}"
+          fi
+          echo "version=$CHART_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package Helm charts
+        run: |
+          helm package charts/gardener-extension-provider-ironcore --version ${CHART_VERSION}
+          helm package charts/gardener-extension-admission-ironcore/charts/application --version ${CHART_VERSION}
+          helm package charts/gardener-extension-admission-ironcore/charts/runtime --version ${CHART_VERSION}
+        env:
+          CHART_VERSION: ${{ steps.chart_version.outputs.version }}
+
+      - name: Push Helm charts to GHCR
+        if: github.event_name != 'pull_request'
+        run: |
+          helm push gardener-extension-provider-ironcore-${CHART_VERSION}.tgz oci://ghcr.io/${REPO_OWNER}/charts
+          helm push gardener-extension-admission-ironcore-runtime-${CHART_VERSION}.tgz oci://ghcr.io/${REPO_OWNER}/charts
+          helm push gardener-extension-admission-ironcore-application-${CHART_VERSION}.tgz oci://ghcr.io/${REPO_OWNER}/charts
+        env:
+          CHART_VERSION: ${{ steps.chart_version.outputs.version }}
+          REPO_OWNER: ${{ github.repository_owner }}
+
   ocm:
     name: Release OCM Component
     runs-on: ubuntu-latest
@@ -101,6 +154,7 @@ jobs:
 
     needs:
       - docker
+      - helm
 
     permissions:
       contents: read
