@@ -4,7 +4,7 @@ components:
   - name: github.com/ironcore-dev/gardener-extension-provider-ironcore
     version: "${VERSION}"
     provider:
-      name: ironcore
+      name: SAP SE
     resources:
       - name: provider-ironcore
         type: helmChart
@@ -19,10 +19,11 @@ components:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/gardener-extension-provider-ironcore:${IMAGE_VERSION}
       - name: provider-ironcore-imagemap
-        type: localBlob
+        type: helmchart-imagemap
         input:
           type: file
           path: provider-ironcore-imagemap.json
+          mediaType: application/json
 
       - name: admission-ironcore-application
         type: helmChart
@@ -43,10 +44,11 @@ components:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/gardener-extension-admission-ironcore:${IMAGE_VERSION}
       - name: admission-ironcore-runtime-imagemap
-        type: localBlob
+        type: helmchart-imagemap
         input:
           type: file
           path: admission-ironcore-runtime-imagemap.json
+          mediaType: application/json
 
       - name: cloud-controller-manager
         type: ociImage
