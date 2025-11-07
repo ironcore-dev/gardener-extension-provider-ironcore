@@ -1,0 +1,202 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+    types: [labeled, unlabeled, opened, synchronize, reopened]
+
+jobs:
+  docker:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' || 
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ok-to-image'))
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        image:
+          - gardener-extension-provider-ironcore
+          - gardener-extension-admission-ironcore
+
+    env:
+      platforms: linux/amd64,linux/arm64
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=tag
+            type=ref,event=pr
+            type=sha
+          flavor: |
+            latest=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: ${{ env.platforms }}
+
+      # workaround for self-hosted runner
+      # https://github.com/mumoshu/actions-runner-controller-ci/commit/e91c8c0f6ca82aa7618010c6d2f417aa46c4a4bf
+      - name: Set up Docker Context for Buildx
+        id: buildx-context
+        run: |
+          docker context create builders
+
+      - name: Set up Docker Buildx
+        timeout-minutes: 5
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          endpoint: builders # self-hosted
+
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        timeout-minutes: 40
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ env.platforms }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          target: ${{ matrix.image }}
+
+  helm:
+    name: Release Helm Charts
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ok-to-charts'))
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Determine chart version
+        id: chart_version
+        run: |
+          # Use SHA for main branch and PRs
+          CHART_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Use tag version
+            CHART_VERSION="${GITHUB_REF_NAME}"
+          fi
+          echo "version=$CHART_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package Helm charts
+        run: |
+          helm package charts/gardener-extension-provider-ironcore --version ${CHART_VERSION}
+          helm package charts/gardener-extension-admission-ironcore/charts/application --version ${CHART_VERSION}
+          helm package charts/gardener-extension-admission-ironcore/charts/runtime --version ${CHART_VERSION}
+        env:
+          CHART_VERSION: ${{ steps.chart_version.outputs.version }}
+
+      - name: Push Helm charts to GHCR
+        if: github.event_name != 'pull_request'
+        run: |
+          helm push gardener-extension-provider-ironcore-${CHART_VERSION}.tgz oci://ghcr.io/${REPO_OWNER}/charts
+          helm push gardener-extension-admission-ironcore-runtime-${CHART_VERSION}.tgz oci://ghcr.io/${REPO_OWNER}/charts
+          helm push gardener-extension-admission-ironcore-application-${CHART_VERSION}.tgz oci://ghcr.io/${REPO_OWNER}/charts
+        env:
+          CHART_VERSION: ${{ steps.chart_version.outputs.version }}
+          REPO_OWNER: ${{ github.repository_owner }}
+
+  ocm:
+    name: Release OCM Component
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push'
+
+    needs:
+      - docker
+      - helm
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: open-component-model/ocm-setup-action@30210abb7373f34003cd50cdab77e23497afa6a7
+
+      - name: Retrieve image versions from imagevector
+        run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
+
+      - name: Determine OCM component version and destination repository
+        run: |
+          # Use dev version and repo by default
+          gitsha=$(echo ${{ github.sha }} | cut -c1-7)
+          OCM_VERSION="v0.0.0+${gitsha}"
+          CHART_VERSION="v0.0.0_${gitsha}"
+          IMAGE_VERSION="sha-${gitsha}"
+          OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm-dev"
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Use tag version and production repo
+            OCM_VERSION="${GITHUB_REF_NAME}"
+            CHART_VERSION="${GITHUB_REF_NAME}"
+            IMAGE_VERSION="${GITHUB_REF_NAME}"
+            OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm"
+          fi
+          echo "VERSION=$OCM_VERSION" >> $GITHUB_ENV
+          echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
+          echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
+          echo "OCM_REPO=$OCM_REPO" >> $GITHUB_ENV
+
+      - name: Add OCM component version to transport archive
+        run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml --addenv
+
+      - name: Transfer OCM component transport archive to GitHub Container Registry
+        run: ocm transfer ctf ocm/ctf ${OCM_REPO}

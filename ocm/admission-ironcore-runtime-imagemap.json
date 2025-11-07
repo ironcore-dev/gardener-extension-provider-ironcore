@@ -1,0 +1,14 @@
+{
+  "helmchartResource": {
+    "name": "admission-ironcore-runtime"
+  },
+  "imageMapping": [
+    {
+      "resource": {
+        "name": "gardener-extension-admission-ironcore"
+      },
+      "repository": "image.repository",
+      "tag": "image.tag"
+    }
+  ]
+}
