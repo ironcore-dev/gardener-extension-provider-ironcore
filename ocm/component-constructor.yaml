@@ -22,6 +22,8 @@ components:
       - name: provider-ironcore
         type: helmChart
         version: "${VERSION}"
+        extraIdentity:
+          type: helmChart
         access:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/charts/gardener-extension-provider-ironcore:${CHART_VERSION}
@@ -33,6 +35,8 @@ components:
           imageReference: ghcr.io/ironcore-dev/gardener-extension-provider-ironcore:${IMAGE_VERSION}
       - name: provider-ironcore-imagemap
         type: helmchart-imagemap
+        extraIdentity:
+          type: helmchart-imagemap
         input:
           type: file
           path: provider-ironcore-imagemap.json
@@ -41,12 +45,16 @@ components:
       - name: admission-ironcore-application
         type: helmChart
         version: "${VERSION}"
+        extraIdentity:
+          type: helmChart
         access:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/charts/gardener-extension-admission-ironcore-application:${CHART_VERSION}
       - name: admission-ironcore-runtime
         type: helmChart
         version: "${VERSION}"
+        extraIdentity:
+          type: helmChart
         access:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/charts/gardener-extension-admission-ironcore-runtime:${CHART_VERSION}
@@ -58,6 +66,8 @@ components:
           imageReference: ghcr.io/ironcore-dev/gardener-extension-admission-ironcore:${IMAGE_VERSION}
       - name: admission-ironcore-runtime-imagemap
         type: helmchart-imagemap
+        extraIdentity:
+          type: helmchart-imagemap
         input:
           type: file
           path: admission-ironcore-runtime-imagemap.json
