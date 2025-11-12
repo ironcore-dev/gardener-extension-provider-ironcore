@@ -197,6 +197,9 @@ jobs:
 
       - name: Add OCM component version to transport archive
         run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml --addenv
+        env:
+          SOURCE_REF: ${{ github.ref }}
+          SOURCE_COMMIT_SHA: ${{ github.sha }}
 
       - name: Transfer OCM component transport archive to GitHub Container Registry
         run: ocm transfer ctf ocm/ctf ${OCM_REPO}

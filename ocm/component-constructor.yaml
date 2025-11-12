@@ -5,6 +5,19 @@ components:
     version: "${VERSION}"
     provider:
       name: SAP SE
+    sources:
+      - name: main-source
+        access:
+          type: github
+          repoUrl: github.com/ironcore-dev/gardener-extension-provider-ironcore
+          ref: ${SOURCE_REF}
+          commit: ${SOURCE_COMMIT_SHA}
+        version: ${VERSION}
+        type: git
+        labels:
+          - name: cloud.gardener/cicd/source
+            value:
+              repository-classification: main
     resources:
       - name: provider-ironcore
         type: helmChart
