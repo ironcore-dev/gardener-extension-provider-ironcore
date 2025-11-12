@@ -79,45 +79,69 @@ components:
         access:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/cloud-provider-ironcore:${CLOUD_CONTROLLER_MANAGER_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: ghcr.io/ironcore-dev/cloud-provider-ironcore:${CLOUD_CONTROLLER_MANAGER_VERSION}
       - name: machine-controller-manager-provider-ironcore
         version: "${MACHINE_CONTROLLER_MANAGER_PROVIDER_IRONCORE_VERSION}"
         type: ociImage
         access:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/machine-controller-manager-provider-ironcore:${MACHINE_CONTROLLER_MANAGER_PROVIDER_IRONCORE_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: ghcr.io/ironcore-dev/machine-controller-manager-provider-ironcore:${MACHINE_CONTROLLER_MANAGER_PROVIDER_IRONCORE_VERSION}
       - name: csi-driver
         type: ociImage
         version: "${CSI_DRIVER_VERSION}"
         access:
           type: ociArtifact
           imageReference: ghcr.io/ironcore-dev/ironcore-csi-driver:${CSI_DRIVER_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: ghcr.io/ironcore-dev/ironcore-csi-driver:${CSI_DRIVER_VERSION}
       - name: csi-provisioner
         type: ociImage
         version: "${CSI_PROVISIONER_VERSION}"
         access:
           type: ociArtifact
           imageReference: registry.k8s.io/sig-storage/csi-provisioner:${CSI_PROVISIONER_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: registry.k8s.io/sig-storage/csi-provisioner:${CSI_PROVISIONER_VERSION}
       - name: csi-attacher
         type: ociImage
         version: "${CSI_ATTACHER_VERSION}"
         access:
           type: ociArtifact
           imageReference: registry.k8s.io/sig-storage/csi-attacher:${CSI_ATTACHER_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: registry.k8s.io/sig-storage/csi-attacher:${CSI_ATTACHER_VERSION}
       - name: csi-resizer
         type: ociImage
         version: "${CSI_RESIZER_VERSION}"
         access:
           type: ociArtifact
           imageReference: registry.k8s.io/sig-storage/csi-resizer:${CSI_RESIZER_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: registry.k8s.io/sig-storage/csi-resizer:${CSI_RESIZER_VERSION}
       - name: csi-node-driver-registrar
         type: ociImage
         version: "${CSI_NODE_DRIVER_REGISTRAR_VERSION}"
         access:
           type: ociArtifact
           imageReference: registry.k8s.io/sig-storage/csi-node-driver-registrar:${CSI_NODE_DRIVER_REGISTRAR_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: registry.k8s.io/sig-storage/csi-node-driver-registrar:${CSI_NODE_DRIVER_REGISTRAR_VERSION}
       - name: csi-liveness-probe
         type: ociImage
         version: "${CSI_LIVENESS_PROBE_VERSION}"
         access:
           type: ociArtifact
           imageReference: registry.k8s.io/sig-storage/livenessprobe:${CSI_LIVENESS_PROBE_VERSION}
+        labels:
+          - name: cloud.gardener.cnudie/migration/original_ref
+            value: registry.k8s.io/sig-storage/livenessprobe:${CSI_LIVENESS_PROBE_VERSION}
