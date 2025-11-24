@@ -37,7 +37,7 @@ jobs:
       platforms: linux/amd64,linux/arm64
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: docker/metadata-action@v5
         id: meta
@@ -105,7 +105,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: azure/setup-helm@v4
         with:
@@ -161,7 +161,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: docker/login-action@v3
         with:
@@ -169,7 +169,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: open-component-model/ocm-setup-action@30210abb7373f34003cd50cdab77e23497afa6a7
+      - uses: open-component-model/ocm-setup-action@dc55c578319ac873df05d156269426e1f098e3f4
 
       - name: Retrieve image versions from imagevector
         run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
