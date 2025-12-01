@@ -55,6 +55,8 @@ var (
 
 // global Gardener resources used by delegates
 var (
+	technicalID = "shoot--test--cluster"
+
 	shootVersionMajorMinor = "1.2"
 	shootVersion           = shootVersionMajorMinor + ".3"
 
@@ -236,6 +238,9 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 					Kubernetes: gardencorev1beta1.Kubernetes{
 						Version: shootVersion,
 					},
+				},
+				Status: gardencorev1beta1.ShootStatus{
+					TechnicalID: technicalID,
 				},
 			},
 		}

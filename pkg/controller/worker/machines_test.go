@@ -61,7 +61,7 @@ var _ = Describe("Machines", func() {
 
 		By("ensuring that the machine class for each pool has been deployed")
 		var (
-			deploymentName = fmt.Sprintf("%s-%s-z%d", ns.Name, pool.Name, 1)
+			deploymentName = fmt.Sprintf("%s-%s-z%d", technicalID, pool.Name, 1)
 			className      = fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
 		)
 
@@ -81,7 +81,7 @@ var _ = Describe("Machines", func() {
 			"networkName": infraStatus.NetworkRef.Name,
 			"prefixName":  infraStatus.PrefixRef.Name,
 			"labels": map[string]interface{}{
-				ironcore.ClusterNameLabel: testCluster.ObjectMeta.Name,
+				ironcore.ClusterNameLabel: technicalID,
 			},
 		}
 
@@ -126,8 +126,8 @@ var _ = Describe("Machines", func() {
 		workerPoolHash, err := worker.WorkerPoolHash(pool, testCluster, additionalData, nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 		var (
-			deploymentName1 = fmt.Sprintf("%s-%s-z%d", w.Namespace, pool.Name, 1)
-			deploymentName2 = fmt.Sprintf("%s-%s-z%d", w.Namespace, pool.Name, 2)
+			deploymentName1 = fmt.Sprintf("%s-%s-z%d", technicalID, pool.Name, 1)
+			deploymentName2 = fmt.Sprintf("%s-%s-z%d", technicalID, pool.Name, 2)
 			className1      = fmt.Sprintf("%s-%s", deploymentName1, workerPoolHash)
 			className2      = fmt.Sprintf("%s-%s", deploymentName2, workerPoolHash)
 		)
