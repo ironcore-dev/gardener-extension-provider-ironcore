@@ -220,7 +220,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation, &backupbucketcontroller.DefaultAddOptions.ExtensionClass)
 			reconcileOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.IgnoreOperationAnnotation, &backupentrycontroller.DefaultAddOptions.ExtensionClass)
 			workercontroller.DefaultAddOptions.GardenCluster = gardenCluster
-			workercontroller.DefaultAddOptions.AutonomousShootCluster = generalOpts.Completed().SelfHostedShootCluster
+			workercontroller.DefaultAddOptions.SelfHostedShootCluster = generalOpts.Completed().SelfHostedShootCluster
 
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil, generalOpts.Completed().SelfHostedShootCluster); err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)
