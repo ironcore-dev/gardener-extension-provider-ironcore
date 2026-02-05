@@ -37,7 +37,6 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 			NewShootValidator(mgr):                  {{Obj: &core.Shoot{}}},
 			NewCloudProfileValidator(mgr):           {{Obj: &core.CloudProfile{}}},
 			NewNamespacedCloudProfileValidator(mgr): {{Obj: &core.NamespacedCloudProfile{}}},
-			NewSecretBindingValidator(mgr):          {{Obj: &core.SecretBinding{}}},
 			NewCredentialsBindingValidator(mgr):     {{Obj: &security.CredentialsBinding{}}},
 			NewSeedValidator():                      {{Obj: &core.Seed{}}},
 			NewBackupBucketValidator():              {{Obj: &core.BackupBucket{}}},

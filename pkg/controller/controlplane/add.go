@@ -35,31 +35,18 @@ type AddOptions struct {
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
-	genericActuator, err := genericactuator.NewActuator(mgr,
-		ironcore.ProviderName,
-		secretConfigsFunc,
-		shootAccessSecretsFunc,
-		nil,
-		nil,
-		configChart,
-		controlPlaneChart,
-		controlPlaneShootChart,
-		nil,
-		storageClassChart,
-		nil,
-		NewValuesProvider(mgr),
-		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-		imagevector.ImageVector(),
-		ironcore.CloudProviderConfigName,
-		nil,
-		opts.WebhookServerNamespace)
+	actuator, err := genericactuator.NewActuator(mgr, ironcore.ProviderName,
+		secretConfigsFunc, shootAccessSecretsFunc,
+		configChart, controlPlaneChart, controlPlaneShootChart, nil, storageClassChart,
+		NewValuesProvider(mgr), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
+		imagevector.ImageVector(), ironcore.CloudProviderConfigName, nil, opts.WebhookServerNamespace)
 
 	if err != nil {
 		return err
 	}
 
 	return controlplane.Add(mgr, controlplane.AddArgs{
-		Actuator:          genericActuator,
+		Actuator:          actuator,
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              ironcore.Type,
