@@ -34,6 +34,7 @@ var _ = Describe("SecretBinding validator", func() {
 			ctrl      *gomock.Controller
 			apiReader *mockclient.MockReader
 
+			//nolint:staticcheck,deprecation // SA1019 ignore deprecated core.SecretBinding usage
 			secretBinding = &core.SecretBinding{
 				SecretRef: corev1.SecretReference{
 					Name:      name,
@@ -66,6 +67,7 @@ var _ = Describe("SecretBinding validator", func() {
 		})
 
 		It("should return err when oldObj is not a SecretBinding", func() {
+			//nolint:staticcheck,deprecation // SA1019 ignore deprecated core.SecretBinding usage
 			err := secretBindingValidator.Validate(context.TODO(), &core.SecretBinding{}, &corev1.Secret{})
 			Expect(err).To(MatchError("wrong object type *v1.Secret for old object"))
 		})

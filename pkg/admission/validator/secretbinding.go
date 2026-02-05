@@ -30,12 +30,14 @@ func NewSecretBindingValidator(mgr manager.Manager) extensionswebhook.Validator 
 
 // Validate checks whether the given SecretBinding refers to a Secret with a valid ironcore service account.
 func (sb *secretBinding) Validate(ctx context.Context, newObj, oldObj client.Object) error {
+	//nolint:staticcheck,deprecation // SA1019 ignore deprecated core.SecretBinding usage
 	secretBinding, ok := newObj.(*core.SecretBinding)
 	if !ok {
 		return fmt.Errorf("wrong object type %T", newObj)
 	}
 
 	if oldObj != nil {
+		//nolint:staticcheck,deprecation // SA1019 ignore deprecated core.SecretBinding usage
 		oldSecretBinding, ok := oldObj.(*core.SecretBinding)
 		if !ok {
 			return fmt.Errorf("wrong object type %T for old object", oldObj)
