@@ -411,7 +411,7 @@ func getCCMChartValues(
 
 func isOverlayEnabled(networking *gardencorev1beta1.Networking) (bool, error) {
 	if networking == nil || networking.ProviderConfig == nil {
-		return false, nil
+		return true, nil
 	}
 
 	obj, err := runtime.Decode(unstructured.UnstructuredJSONScheme, networking.ProviderConfig.Raw)
@@ -429,7 +429,7 @@ func isOverlayEnabled(networking *gardencorev1beta1.Networking) (bool, error) {
 		return false, err
 	}
 	if !ok {
-		return false, nil
+		return true, nil
 	}
 
 	return enabled, nil
