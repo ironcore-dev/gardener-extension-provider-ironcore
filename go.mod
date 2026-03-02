@@ -6,11 +6,11 @@ require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
-	github.com/aws/aws-sdk-go-v2 v1.41.1
-	github.com/aws/aws-sdk-go-v2/config v1.32.9
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.9
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.0
-	github.com/coreos/butane v0.26.0
+	github.com/aws/aws-sdk-go-v2 v1.41.2
+	github.com/aws/aws-sdk-go-v2/config v1.32.10
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.10
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.2
+	github.com/coreos/butane v0.27.0
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/gardener/etcd-druid/api v0.34.0
 	github.com/gardener/gardener v1.134.3
@@ -53,21 +53,21 @@ require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.4 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.17 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.17 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.17 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.5 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.18 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.18 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.18 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.4 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.17 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.17 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.17 // indirect
-	github.com/aws/aws-sdk-go-v2/service/signin v1.0.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.30.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.14 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.41.6 // indirect
-	github.com/aws/smithy-go v1.24.0 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.18 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.18 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.18 // indirect
+	github.com/aws/aws-sdk-go-v2/service/signin v1.0.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.30.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.15 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.41.7 // indirect
+	github.com/aws/smithy-go v1.24.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/brunoga/deep v1.2.5 // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/clarketm/json v1.17.1 // indirect
 	github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
-	github.com/coreos/ignition/v2 v2.25.0 // indirect
+	github.com/coreos/ignition/v2 v2.26.0 // indirect
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -210,8 +210,8 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20251111163417-95abcf5c77ba // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251124214823-79d6a2a48846 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
