@@ -5,6 +5,7 @@ package controlplane
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -26,7 +27,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
@@ -414,25 +414,21 @@ func isOverlayEnabled(networking *gardencorev1beta1.Networking) (bool, error) {
 		return true, nil
 	}
 
-	obj, err := runtime.Decode(unstructured.UnstructuredJSONScheme, networking.ProviderConfig.Raw)
-	if err != nil {
-		return false, err
+	detectOverlay := &struct {
+		Overlay *struct {
+			Enabled bool `json:"enabled"`
+		} `json:"overlay,omitempty"`
+	}{}
+	if err := json.Unmarshal(networking.ProviderConfig.Raw, detectOverlay); err != nil {
+		return false, fmt.Errorf("failed to unmarshal network provider config: %w", err)
 	}
 
-	u, ok := obj.(*unstructured.Unstructured)
-	if !ok {
-		return false, fmt.Errorf("object %T is not an unstructured.Unstructured", obj)
+	overlay := detectOverlay.Overlay
+	if overlay == nil {
+		return false, nil
 	}
 
-	enabled, ok, err := unstructured.NestedBool(u.UnstructuredContent(), "overlay", "enabled")
-	if err != nil {
-		return false, err
-	}
-	if !ok {
-		return true, nil
-	}
-
-	return enabled, nil
+	return overlay.Enabled, nil
 }
 
 // getCSIControllerChartValues collects and returns the CSIController chart values.

@@ -416,7 +416,6 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			providerCloudProfileJson, err := json.Marshal(providerCloudProfile)
 			Expect(err).NotTo(HaveOccurred())
 			networkProviderConfig := &unstructured.Unstructured{Object: map[string]any{
-				"kind":       "FooNetworkConfig",
 				"apiVersion": "v1alpha1",
 				"overlay": map[string]any{
 					"enabled": false,
