@@ -11,6 +11,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	computev1alpha1 "github.com/ironcore-dev/ironcore/api/compute/v1alpha1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/ironcore"
@@ -36,6 +37,10 @@ func (a *actuator) Delete(ctx context.Context, log logr.Logger, bastion *extensi
 		},
 	}
 	if err := ironcoreClient.Delete(ctx, bastionHost); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.V(2).Info("Bastion host not found, skipping deletion")
+			return nil
+		}
 		return fmt.Errorf("failed to delete bastion host: %v", err)
 	}
 
