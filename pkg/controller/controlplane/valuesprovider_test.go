@@ -4,6 +4,7 @@
 package controlplane
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -128,7 +129,10 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			for {
 				obj := &unstructured.Unstructured{}
 				if err := decoder.Decode(obj); err != nil {
-					break
+					if err == io.EOF {
+						break
+					}
+					Expect(err).NotTo(HaveOccurred())
 				}
 				if obj.GetKind() == "ConfigMap" && obj.GetName() == internal.CloudProviderConfigMapName {
 					raw, err := json.Marshal(obj.Object)
