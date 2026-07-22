@@ -4,12 +4,16 @@
 package controlplane
 
 import (
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 	"github.com/ironcore-dev/ironcore/api/common/v1alpha1"
@@ -94,14 +98,51 @@ var _ = Describe("Valueprovider Reconcile", func() {
 			}
 			Expect(k8sClient.Create(ctx, cp)).To(Succeed())
 
-			By("ensuring that the provider ConfigMap has been created")
-			config := &corev1.ConfigMap{
+			By("ensuring that the provider configuration ManagedResource has been created")
+			mr := &resourcesv1alpha1.ManagedResource{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: ns.Name,
-					Name:      internal.CloudProviderConfigMapName,
+					Name:      genericactuator.ControlPlaneSeedConfigurationChartResourceName,
 				},
 			}
-			Eventually(Get(config)).Should(Succeed())
+			Eventually(Get(mr)).Should(Succeed())
+			Expect(mr.Spec.SecretRefs).NotTo(BeEmpty())
+
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: ns.Name,
+					Name:      mr.Spec.SecretRefs[0].Name,
+				},
+			}
+			Eventually(Get(secret)).Should(Succeed())
+			Expect(secret.Data).NotTo(BeEmpty())
+
+			var rendered strings.Builder
+			for _, data := range secret.Data {
+				rendered.Write(data)
+				rendered.WriteString("\n---\n")
+			}
+
+			config := &corev1.ConfigMap{}
+			found := false
+			decoder := yaml.NewYAMLOrJSONDecoder(strings.NewReader(rendered.String()), 4096)
+			for {
+				obj := &unstructured.Unstructured{}
+				if err := decoder.Decode(obj); err != nil {
+					if err == io.EOF {
+						break
+					}
+					Expect(err).NotTo(HaveOccurred())
+				}
+				if obj.GetKind() == "ConfigMap" && obj.GetName() == internal.CloudProviderConfigMapName {
+					raw, err := json.Marshal(obj.Object)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(json.Unmarshal(raw, config)).To(Succeed())
+					found = true
+					break
+				}
+			}
+			Expect(found).To(BeTrue(), "cloud-provider-config ConfigMap not found in ManagedResource secret")
 			Expect(config.Data).To(HaveKey("cloudprovider.conf"))
 			cloudProviderConfig := map[string]interface{}{}
 			Expect(yaml.Unmarshal([]byte(config.Data["cloudprovider.conf"]), &cloudProviderConfig)).NotTo(HaveOccurred())

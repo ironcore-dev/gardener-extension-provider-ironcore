@@ -15,4 +15,5 @@ resources:
   - 20-crd-extensions.gardener.cloud_backupentries.yaml
   - 20-crd-extensions.gardener.cloud_controlplanes.yaml
   - 20-crd-extensions.gardener.cloud_networks.yaml
+  - 20-crd-extensions.gardener.cloud_selfhostedshootexposures.yaml
   - 20-crd-vpa.yaml

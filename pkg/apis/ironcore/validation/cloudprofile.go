@@ -5,6 +5,7 @@ package validation
 
 import (
 	"fmt"
+	"slices"
 
 	gardenercore "github.com/gardener/gardener/pkg/apis/core"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -13,7 +14,6 @@ import (
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/ptr"
-	"k8s.io/utils/strings/slices"
 
 	apisironcore "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 )

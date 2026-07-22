@@ -29,8 +29,8 @@ type AddOptions struct {
 	IgnoreOperationAnnotation bool
 	// BastionConfig contains config for the Bastion config.
 	BastionConfig controllerconfig.BastionConfig
-	// ExtensionClass defines the extension class this extension is responsible for.
-	ExtensionClass extensionsv1alpha1.ExtensionClass
+	// ExtensionClasses are the configured extension classes for this extension deployment.
+	ExtensionClasses []extensionsv1alpha1.ExtensionClass
 }
 
 // AddToManagerWithOptions adds a controller with the given AddOptions to the given manager.
@@ -42,7 +42,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 		ControllerOptions: opts.Controller,
 		Predicates:        bastion.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              ironcore.Type,
-		ExtensionClass:    opts.ExtensionClass,
+		ExtensionClasses:  opts.ExtensionClasses,
 	})
 }
 
