@@ -78,7 +78,7 @@ var _ = Describe("Bastion Host Reconcile", func() {
 			HaveField("Spec.Volumes", ContainElement(SatisfyAll(
 				HaveField("Name", "root"),
 				HaveField("VolumeSource.Ephemeral.VolumeTemplate.Spec.VolumeClassRef.Name", "my-volume-class"),
-				HaveField("VolumeSource.Ephemeral.VolumeTemplate.Spec.Image", "my-image"),
+				HaveField("VolumeSource.Ephemeral.VolumeTemplate.Spec.DataSource.OSImage.Image", "my-image"),
 				HaveField("VolumeSource.Ephemeral.VolumeTemplate.Spec.Resources", Equal(corev1alpha1.ResourceList{
 					corev1alpha1.ResourceStorage: resource.MustParse("10Gi"),
 				})),

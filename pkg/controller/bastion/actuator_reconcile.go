@@ -222,7 +222,11 @@ func generateMachine(namespace string, bastionConfig *controllerconfig.BastionCo
 									Resources: corev1alpha1.ResourceList{
 										corev1alpha1.ResourceStorage: resource.MustParse("10Gi"),
 									},
-									Image: bastionConfig.Image,
+									DataSource: storagev1alpha1.VolumeDataSource{
+										OSImage: &storagev1alpha1.OSDataSource{
+											Image: bastionConfig.Image,
+										},
+									},
 								},
 							},
 						},
