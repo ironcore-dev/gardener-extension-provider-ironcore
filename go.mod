@@ -19,7 +19,7 @@ require (
 	github.com/go-logr/logr v1.4.3
 	github.com/imdario/mergo v0.3.16
 	github.com/ironcore-dev/controller-utils v0.12.0
-	github.com/ironcore-dev/ironcore v0.4.3
+	github.com/ironcore-dev/ironcore v0.4.4-0.20260713135223-851e1ddf89a6
 	github.com/ironcore-dev/vgopath v0.1.11
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
