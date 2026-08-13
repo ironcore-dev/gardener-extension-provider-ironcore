@@ -137,7 +137,7 @@ check: $(GOIMPORTS) $(GOLANGCI_LINT) $(MOCKGEN)
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 
 .PHONY: generate
-generate: deepcopy-gen defaulter-gen conversion-gen $(CONTROLLER_GEN) $(HELM) $(MOCKGEN) $(YQ)
+generate: deepcopy-gen defaulter-gen conversion-gen $(CONTROLLER_GEN) $(CRD_REF_DOCS) $(HELM) $(MOCKGEN) $(YQ)
 	@MOCKGEN=$(MOCKGEN) \
 	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
 	DEFAULTER_GEN=$(DEFAULTER_GEN) \
@@ -170,12 +170,6 @@ verify: check format test
 .PHONY: verify-extended
 verify-extended: check-generate check format test-cov test-clean
 
-.PHONY: docs
-docs: $(GEN_CRD_API_REFERENCE_DOCS) ## Run go generate to generate API reference documentation.
-	# Remove gotypealias to avoid issues with the generated code
-	GODEBUG="gotypesalias=0" $(GEN_CRD_API_REFERENCE_DOCS) -api-dir ./pkg/apis/ironcore/v1alpha1 -config ./hack/api-reference/api.json -template-dir ./hack/api-reference/template -out-file ./hack/api-reference/api.md
-	$(GEN_CRD_API_REFERENCE_DOCS) -api-dir ./pkg/apis/config/v1alpha1 -config ./hack/api-reference/config.json -template-dir ./hack/api-reference/template -out-file ./hack/api-reference/config.md
-
 ##@ Tools
 
 ## Location to install dependencies to
@@ -190,7 +184,7 @@ DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-CODE_GENERATOR_VERSION ?= v0.34.3
+CODE_GENERATOR_VERSION ?= v0.36.3
 #ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
 ENVTEST_VERSION ?= $(shell go list -m -f "{{ .Version }}" sigs.k8s.io/controller-runtime | awk -F'[v.]' '{printf "release-%d.%d", $$2, $$3}')
 #ENVTEST_K8S_VERSION is the version of Kubernetes to use for setting up ENVTEST binaries (i.e. 1.31)

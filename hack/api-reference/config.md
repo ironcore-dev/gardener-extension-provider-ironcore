@@ -1,22 +1,27 @@
 <p>Packages:</p>
 <ul>
 <li>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud%2fv1alpha1">	ironcore.provider.extensions.config.gardener.cloud/v1alpha1</a>
+<a href="#ironcore.provider.extensions.config.gardener.cloud%2fv1alpha1">ironcore.provider.extensions.config.gardener.cloud/v1alpha1</a>
 </li>
 </ul>
-<h2 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1">	ironcore.provider.extensions.config.gardener.cloud/v1alpha1</h2>
+
+<h2 id="ironcore.provider.extensions.config.gardener.cloud/v1alpha1">ironcore.provider.extensions.config.gardener.cloud/v1alpha1</h2>
 <p>
-<p>Package v1alpha1 contains the ironcore provider configuration API resources.</p>
+
 </p>
-Resource Types:
-<ul><li>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>
-</li></ul>
-<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration
+
+<h3 id="backupbucketconfig">BackupBucketConfig
 </h3>
+
+
 <p>
-<p>ControllerConfiguration defines the configuration for the ironcore provider.</p>
+(<em>Appears on:</em><a href="#controllerconfiguration">ControllerConfiguration</a>)
 </p>
+
+<p>
+BackupBucketConfig is config for Backup Bucket
+</p>
+
 <table>
 <thead>
 <tr>
@@ -25,125 +30,7 @@ Resource Types:
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>
-<code>apiVersion</code></br>
-string</td>
-<td>
-<code>
-ironcore.provider.extensions.config.gardener.cloud/v1alpha1
-</code>
-</td>
-</tr>
-<tr>
-<td>
-<code>kind</code></br>
-string
-</td>
-<td><code>ControllerConfiguration</code></td>
-</tr>
-<tr>
-<td>
-<code>clientConnection</code></br>
-<em>
-<a href="https://godoc.org/k8s.io/component-base/config/v1alpha1#ClientConnectionConfiguration">
-Kubernetes v1alpha1.ClientConnectionConfiguration
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>ClientConnection specifies the kubeconfig file and client connection
-settings for the proxy server to use when communicating with the apiserver.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>etcd</code></br>
-<em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">
-ETCD
-</a>
-</em>
-</td>
-<td>
-<p>ETCD is the etcd configuration.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>healthCheckConfig</code></br>
-<em>
-<a href="https://github.com/gardener/gardener/extensions/pkg/apis/config">
-github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1.HealthCheckConfig
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>HealthCheckConfig is the config for the health check controller</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>featureGates</code></br>
-<em>
-map[string]bool
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>FeatureGates is a map of feature names to bools that enable
-or disable alpha/experimental features.
-Default: nil</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>bastionConfig</code></br>
-<em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">
-BastionConfig
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>BastionConfig is the config for the Bastion</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>backupBucketConfig</code></br>
-<em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">
-BackupBucketConfig
-</a>
-</em>
-</td>
-<td>
-<p>BackupBucketConfig is config for Backup Bucket</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BackupBucketConfig">BackupBucketConfig
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
-</p>
-<p>
-<p>BackupBucketConfig is config for Backup Bucket</p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
+
 <tr>
 <td>
 <code>bucketClassName</code></br>
@@ -155,17 +42,23 @@ string
 <p>BucketClassName is the name of the ironcore BucketClass to use for the BackupBucket</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.BastionConfig">BastionConfig
+
+
+<h3 id="bastionconfig">BastionConfig
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
+(<em>Appears on:</em><a href="#controllerconfiguration">ControllerConfiguration</a>)
 </p>
+
 <p>
-<p>BastionConfig is the config for the Bastion</p>
+BastionConfig is the config for the Bastion
 </p>
+
 <table>
 <thead>
 <tr>
@@ -174,6 +67,7 @@ string
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>image</code></br>
@@ -207,17 +101,19 @@ string
 <p>VolumeClassName is the name of the ironcore VolumeClass to use for the Bastion host root disk volume</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD
+
+
+<h3 id="controllerconfiguration">ControllerConfiguration
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ControllerConfiguration">ControllerConfiguration</a>)
+ControllerConfiguration defines the configuration for the ironcore provider.
 </p>
-<p>
-<p>ETCD is an etcd configuration.</p>
-</p>
+
 <table>
 <thead>
 <tr>
@@ -226,13 +122,108 @@ string
 </tr>
 </thead>
 <tbody>
+
+<tr>
+<td>
+<code>clientConnection</code></br>
+<em>
+<a href="#clientconnectionconfiguration">ClientConnectionConfiguration</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ClientConnection specifies the kubeconfig file and client connection<br />settings for the proxy server to use when communicating with the apiserver.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>etcd</code></br>
+<em>
+<a href="#etcd">ETCD</a>
+</em>
+</td>
+<td>
+<p>ETCD is the etcd configuration.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>healthCheckConfig</code></br>
+<em>
+<a href="#healthcheckconfig">HealthCheckConfig</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>HealthCheckConfig is the config for the health check controller</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>featureGates</code></br>
+<em>
+object (keys:string, values:boolean)
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>FeatureGates is a map of feature names to bools that enable<br />or disable alpha/experimental features.<br />Default: nil</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>bastionConfig</code></br>
+<em>
+<a href="#bastionconfig">BastionConfig</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BastionConfig is the config for the Bastion</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>backupBucketConfig</code></br>
+<em>
+<a href="#backupbucketconfig">BackupBucketConfig</a>
+</em>
+</td>
+<td>
+<p>BackupBucketConfig is config for Backup Bucket</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+<h3 id="etcd">ETCD
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#controllerconfiguration">ControllerConfiguration</a>)
+</p>
+
+<p>
+ETCD is an etcd configuration.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
 <tr>
 <td>
 <code>storage</code></br>
 <em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDStorage">
-ETCDStorage
-</a>
+<a href="#etcdstorage">ETCDStorage</a>
 </em>
 </td>
 <td>
@@ -243,26 +234,30 @@ ETCDStorage
 <td>
 <code>backup</code></br>
 <em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDBackup">
-ETCDBackup
-</a>
+<a href="#etcdbackup">ETCDBackup</a>
 </em>
 </td>
 <td>
 <p>ETCDBackup is the etcd backup configuration.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDBackup">ETCDBackup
+
+
+<h3 id="etcdbackup">ETCDBackup
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD</a>)
+(<em>Appears on:</em><a href="#etcd">ETCD</a>)
 </p>
+
 <p>
-<p>ETCDBackup is an etcd backup configuration.</p>
+ETCDBackup is an etcd backup configuration.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -271,6 +266,7 @@ ETCDBackup
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>schedule</code></br>
@@ -283,17 +279,23 @@ string
 <p>Schedule is the etcd backup schedule.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="	ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCDStorage">ETCDStorage
+
+
+<h3 id="etcdstorage">ETCDStorage
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#%09ironcore.provider.extensions.config.gardener.cloud/v1alpha1.ETCD">ETCD</a>)
+(<em>Appears on:</em><a href="#etcd">ETCD</a>)
 </p>
+
 <p>
-<p>ETCDStorage is an etcd storage configuration.</p>
+ETCDStorage is an etcd storage configuration.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -302,6 +304,7 @@ string
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>className</code></br>
@@ -318,9 +321,7 @@ string
 <td>
 <code>capacity</code></br>
 <em>
-<a href="https://godoc.org/k8s.io/apimachinery/pkg/api/resource#Quantity">
-k8s.io/apimachinery/pkg/api/resource.Quantity
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#quantity-resource-api">Quantity</a>
 </em>
 </td>
 <td>
@@ -328,9 +329,8 @@ k8s.io/apimachinery/pkg/api/resource.Quantity
 <p>Capacity is the storage capacity used in etcd-main volume claims.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<hr/>
-<p><em>
-Generated with <a href="https://github.com/ahmetb/gen-crd-api-reference-docs">gen-crd-api-reference-docs</a>
-</em></p>
+
+

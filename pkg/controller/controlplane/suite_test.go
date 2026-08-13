@@ -87,7 +87,7 @@ var _ = BeforeSuite(func() {
 		// Note that you must have the required binaries setup under the bin directory to perform
 		// the tests directly. When we run make test it will be setup and used automatically.
 		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s",
-			fmt.Sprintf("1.34.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
+			fmt.Sprintf("1.36.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
 	}
 
 	testEnvExt = &utilsenvtest.EnvironmentExtensions{
@@ -182,7 +182,7 @@ func SetupTest() (*corev1.Namespace, *valuesProvider, *extensionsv1alpha1.Cluste
 			},
 			Spec: extensionsv1alpha1.ClusterSpec{
 				CloudProfile: apiruntime.RawExtension{Raw: []byte("{}")},
-				Seed:         apiruntime.RawExtension{Raw: []byte("{}")},
+				Seed:         &apiruntime.RawExtension{Raw: []byte("{}")},
 				Shoot:        apiruntime.RawExtension{Raw: shootJson},
 			},
 		}
