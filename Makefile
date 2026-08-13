@@ -1,4 +1,5 @@
 ENSURE_GARDENER_MOD         := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
+ENSURE_GARDENER_TOOLS_MOD   := $(shell go get github.com/gardener/gardener/hack/tools@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener/hack/tools))
 GARDENER_HACK_DIR    		:= $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
 EXTENSION_PREFIX            := gardener-extension
 NAME                        := provider-ironcore
@@ -136,9 +137,8 @@ check: $(GOIMPORTS) $(GOLANGCI_LINT) $(MOCKGEN)
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 
 .PHONY: generate
-generate: deepcopy-gen defaulter-gen conversion-gen $(CONTROLLER_GEN) $(HELM) $(MOCKGEN) $(YQ) $(VGOPATH)
-	@GOPATH=$(GOPATH) VGOPATH=$(VGOPATH) \
-	MOCKGEN=$(MOCKGEN) \
+generate: deepcopy-gen defaulter-gen conversion-gen $(CONTROLLER_GEN) $(HELM) $(MOCKGEN) $(YQ)
+	@MOCKGEN=$(MOCKGEN) \
 	DEEPCOPY_GEN=$(DEEPCOPY_GEN) \
 	DEFAULTER_GEN=$(DEFAULTER_GEN) \
 	CONVERSION_GEN=$(CONVERSION_GEN) \

@@ -202,8 +202,9 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 					Encrypted: &volumeEncrypted,
 				},
 			},
-			Zones:        []string{"zone1", "zone2"},
-			Architecture: ptr.To[string]("amd64"),
+			Zones:               []string{"zone1", "zone2"},
+			Architecture:        ptr.To[string]("amd64"),
+			NodeAgentSecretName: ptr.To("node-agent-secret"),
 			NodeTemplate: &gardenerextensionv1alpha1.NodeTemplate{
 				Capacity: map[corev1.ResourceName]resource.Quantity{
 					corev1.ResourceCPU: resource.MustParse("100m"),

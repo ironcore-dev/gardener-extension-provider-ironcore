@@ -208,7 +208,7 @@ func (w *workerDelegate) generateMachineClassAndSecrets(ctx context.Context) ([]
 
 func (w *workerDelegate) generateHashForWorkerPool(pool v1alpha1.WorkerPool) (string, error) {
 	// Generate the worker pool hash.
-	return worker.WorkerPoolHash(pool, w.cluster, computeAdditionalHashDataV1(pool), nil, nil)
+	return worker.WorkerPoolHash(pool, w.cluster, computeAdditionalHashDataV1(pool), nil)
 }
 
 func computeAdditionalHashDataV1(pool v1alpha1.WorkerPool) []string {
