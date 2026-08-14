@@ -11,12 +11,6 @@ processor:
 render:
   kubernetesVersion: "1.36"
   knownTypes:
-    - name: Duration
-      package: k8s.io/apimachinery/pkg/apis/meta/v1
-      link: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Duration
-    - name: RawExtension
-      package: k8s.io/apimachinery/pkg/runtime
-      link: https://pkg.go.dev/k8s.io/apimachinery/pkg/runtime#RawExtension
-    - name: IntOrString
-      package: k8s.io/apimachinery/pkg/util/intstr
-      link: https://pkg.go.dev/k8s.io/apimachinery/pkg/util/intstr#IntOrString
+    - name: LocalUIDReference
+      package: github.com/ironcore-dev/ironcore/api/common/v1alpha1
+      link: https://pkg.go.dev/github.com/ironcore-dev/ironcore/api/common/v1alpha1#LocalUIDReference

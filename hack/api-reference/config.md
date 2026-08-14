@@ -127,7 +127,7 @@ ControllerConfiguration defines the configuration for the ironcore provider.
 <td>
 <code>clientConnection</code></br>
 <em>
-<a href="#clientconnectionconfiguration">ClientConnectionConfiguration</a>
+<a href="https://pkg.go.dev/k8s.io/component-base/config/v1alpha1#ClientConnectionConfiguration">ClientConnectionConfiguration</a>
 </em>
 </td>
 <td>
@@ -150,7 +150,7 @@ ControllerConfiguration defines the configuration for the ironcore provider.
 <td>
 <code>healthCheckConfig</code></br>
 <em>
-<a href="#healthcheckconfig">HealthCheckConfig</a>
+<a href="https://pkg.go.dev/github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1#HealthCheckConfig">HealthCheckConfig</a>
 </em>
 </td>
 <td>

@@ -182,7 +182,7 @@ integer
 <td>
 <code>networkPolicyRef</code></br>
 <em>
-<a href="#localuidreference">LocalUIDReference</a>
+<a href="https://pkg.go.dev/github.com/ironcore-dev/ironcore/api/common/v1alpha1#LocalUIDReference">LocalUIDReference</a>
 </em>
 </td>
 <td>
@@ -215,7 +215,7 @@ InfrastructureStatus contains information about created infrastructure resources
 <td>
 <code>networkRef</code></br>
 <em>
-<a href="#localuidreference">LocalUIDReference</a>
+<a href="https://pkg.go.dev/github.com/ironcore-dev/ironcore/api/common/v1alpha1#LocalUIDReference">LocalUIDReference</a>
 </em>
 </td>
 <td>
@@ -226,7 +226,7 @@ InfrastructureStatus contains information about created infrastructure resources
 <td>
 <code>natGatewayRef</code></br>
 <em>
-<a href="#localuidreference">LocalUIDReference</a>
+<a href="https://pkg.go.dev/github.com/ironcore-dev/ironcore/api/common/v1alpha1#LocalUIDReference">LocalUIDReference</a>
 </em>
 </td>
 <td>
@@ -237,7 +237,7 @@ InfrastructureStatus contains information about created infrastructure resources
 <td>
 <code>prefixRef</code></br>
 <em>
-<a href="#localuidreference">LocalUIDReference</a>
+<a href="https://pkg.go.dev/github.com/ironcore-dev/ironcore/api/common/v1alpha1#LocalUIDReference">LocalUIDReference</a>
 </em>
 </td>
 <td>
@@ -248,7 +248,7 @@ InfrastructureStatus contains information about created infrastructure resources
 <td>
 <code>networkPolicyRef</code></br>
 <em>
-<a href="#localuidreference">LocalUIDReference</a>
+<a href="https://pkg.go.dev/github.com/ironcore-dev/ironcore/api/common/v1alpha1#LocalUIDReference">LocalUIDReference</a>
 </em>
 </td>
 <td>
@@ -490,7 +490,7 @@ integer array
 </em>
 </td>
 <td>
-<p>CertificateAuthorityData is the CA data of the region server.</p>
+<p>CertificateAuthorityData is the base64-encoded CA data of the region server.</p>
 </td>
 </tr>
 

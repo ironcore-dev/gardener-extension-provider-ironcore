@@ -85,7 +85,7 @@ var _ = Describe("CredentialsBinding validator", func() {
 				},
 			}
 			err := newValidator(secret).Validate(ctx, credentialsBinding, nil)
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError("missing field: token in cloud provider secret"))
 		})
 
 		It("should succeed when the corresponding Secret is valid", func() {
