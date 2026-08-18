@@ -215,14 +215,22 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			bastionCtrlOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.Controller)
 			backupBucketCtrlOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.Controller)
 			backupEntryCtrlOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.Controller)
-			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation, &bastioncontroller.DefaultAddOptions.ExtensionClasses)
-			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation, &infrastructurecontroller.DefaultAddOptions.ExtensionClasses)
-			reconcileOpts.Completed().Apply(&ironcorecontrolplane.DefaultAddOptions.IgnoreOperationAnnotation, &ironcorecontrolplane.DefaultAddOptions.ExtensionClasses)
-			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation, &workercontroller.DefaultAddOptions.ExtensionClasses)
-			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation, &backupbucketcontroller.DefaultAddOptions.ExtensionClasses)
-			reconcileOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.IgnoreOperationAnnotation, &backupentrycontroller.DefaultAddOptions.ExtensionClasses)
+			reconcileOpts.Completed().Apply(&bastioncontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&infrastructurecontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&ironcorecontrolplane.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&workercontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&backupbucketcontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&backupentrycontroller.DefaultAddOptions.IgnoreOperationAnnotation)
+
+			generalConfig := generalOpts.Completed()
+			bastioncontroller.DefaultAddOptions.ExtensionClasses = generalConfig.ExtensionClasses
+			infrastructurecontroller.DefaultAddOptions.ExtensionClasses = generalConfig.ExtensionClasses
+			ironcorecontrolplane.DefaultAddOptions.ExtensionClasses = generalConfig.ExtensionClasses
+			workercontroller.DefaultAddOptions.ExtensionClasses = generalConfig.ExtensionClasses
+			backupbucketcontroller.DefaultAddOptions.ExtensionClasses = generalConfig.ExtensionClasses
+			backupentrycontroller.DefaultAddOptions.ExtensionClasses = generalConfig.ExtensionClasses
 			workercontroller.DefaultAddOptions.GardenCluster = gardenCluster
-			workercontroller.DefaultAddOptions.SelfHostedShootCluster = generalOpts.Completed().SelfHostedShootCluster
+			workercontroller.DefaultAddOptions.SelfHostedShootCluster = generalConfig.SelfHostedShootCluster
 
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil); err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)

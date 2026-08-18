@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2022 SAP SE or an SAP affiliate company and IronCore contributors
+# SPDX-License-Identifier: Apache-2.0
+
+processor:
+  ignoreFields:
+    - "TypeMeta"
+  ignoreTypes:
+    - "ParseError$"
+    - "List$"
+
+render:
+  kubernetesVersion: "1.36"
+  knownTypes:
+    - name: Quantity
+      package: k8s.io/apimachinery/pkg/api/resource
+      link: https://pkg.go.dev/k8s.io/apimachinery/pkg/api/resource#Quantity
+    - name: ClientConnectionConfiguration
+      package: k8s.io/component-base/config/v1alpha1
+      link: https://pkg.go.dev/k8s.io/component-base/config/v1alpha1#ClientConnectionConfiguration
+    - name: HealthCheckConfig
+      package: github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1
+      link: https://pkg.go.dev/github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1#HealthCheckConfig

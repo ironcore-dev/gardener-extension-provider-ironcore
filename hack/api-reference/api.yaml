@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2022 SAP SE or an SAP affiliate company and IronCore contributors
+# SPDX-License-Identifier: Apache-2.0
+
+processor:
+  ignoreFields:
+    - "TypeMeta"
+  ignoreTypes:
+    - "ParseError$"
+    - "List$"
+
+render:
+  kubernetesVersion: "1.36"
+  knownTypes:
+    - name: LocalUIDReference
+      package: github.com/ironcore-dev/ironcore/api/common/v1alpha1
+      link: https://pkg.go.dev/github.com/ironcore-dev/ironcore/api/common/v1alpha1#LocalUIDReference

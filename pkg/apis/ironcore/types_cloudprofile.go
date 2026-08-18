@@ -53,7 +53,7 @@ type RegionConfig struct {
 	Name string
 	// Server is the server endpoint of this region.
 	Server string
-	// CertificateAuthorityData is the CA data of the region server.
+	// CertificateAuthorityData is the base64-encoded CA data of the region server.
 	CertificateAuthorityData []byte
 }
 

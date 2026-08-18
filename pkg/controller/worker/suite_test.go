@@ -101,7 +101,7 @@ var _ = BeforeSuite(func() {
 		// Note that you must have the required binaries setup under the bin directory to perform
 		// the tests directly. When we run make test it will be setup and used automatically.
 		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s",
-			fmt.Sprintf("1.34.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
+			fmt.Sprintf("1.36.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
 	}
 	testEnvExt = &envtestutils.EnvironmentExtensions{
 		APIServiceDirectoryPaths: []string{
@@ -202,8 +202,9 @@ func SetupTest() (*corev1.Namespace, *gardener.ChartApplier) {
 					Encrypted: &volumeEncrypted,
 				},
 			},
-			Zones:        []string{"zone1", "zone2"},
-			Architecture: ptr.To[string]("amd64"),
+			Zones:               []string{"zone1", "zone2"},
+			Architecture:        ptr.To[string]("amd64"),
+			NodeAgentSecretName: ptr.To("node-agent-secret"),
 			NodeTemplate: &gardenerextensionv1alpha1.NodeTemplate{
 				Capacity: map[corev1.ResourceName]resource.Quantity{
 					corev1.ResourceCPU: resource.MustParse("100m"),
