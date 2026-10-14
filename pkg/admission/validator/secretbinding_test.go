@@ -48,7 +48,7 @@ var _ = Describe("SecretBinding validator", func() {
 
 		newValidator := func(objects ...client.Object) extensionswebhook.Validator {
 			apiReader := fakeclient.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
-			mgr := &test.FakeManager{APIReader: apiReader}
+			mgr := &fakeMgr{FakeManager: &test.FakeManager{APIReader: apiReader}}
 			return validator.NewSecretBindingValidator(mgr)
 		}
 

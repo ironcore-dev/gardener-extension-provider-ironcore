@@ -321,7 +321,7 @@ string
 <td>
 <code>capacity</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#quantity-resource-api">Quantity</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.37/#quantity-resource-api">Quantity</a>
 </em>
 </td>
 <td>

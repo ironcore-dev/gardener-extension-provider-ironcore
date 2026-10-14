@@ -9,7 +9,7 @@ processor:
     - "List$"
 
 render:
-  kubernetesVersion: "1.36"
+  kubernetesVersion: "1.37"
   knownTypes:
     - name: Quantity
       package: k8s.io/apimachinery/pkg/api/resource

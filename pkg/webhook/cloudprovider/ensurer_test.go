@@ -19,9 +19,18 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/recorder"
 
 	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 )
+
+type fakeMgr struct {
+	*test.FakeManager
+}
+
+func (f *fakeMgr) GetEventRecorder(string) recorder.EventRecorder {
+	return nil
+}
 
 const namespace = "test"
 
@@ -34,7 +43,7 @@ var _ = Describe("Ensurer", func() {
 	var (
 		ctx    = context.TODO()
 		scheme *runtime.Scheme
-		mgr    *test.FakeManager
+		mgr    *fakeMgr
 
 		cloudProfileConfig = &api.CloudProfileConfig{
 			TypeMeta:      metav1.TypeMeta{},
@@ -71,9 +80,11 @@ var _ = Describe("Ensurer", func() {
 
 	BeforeEach(func() {
 		scheme = &runtime.Scheme{}
-		mgr = &test.FakeManager{
-			Client: fakeclient.NewClientBuilder().WithScheme(scheme).Build(),
-			Scheme: scheme,
+		mgr = &fakeMgr{
+			FakeManager: &test.FakeManager{
+				Client: fakeclient.NewClientBuilder().WithScheme(scheme).Build(),
+				Scheme: scheme,
+			},
 		}
 	})
 
