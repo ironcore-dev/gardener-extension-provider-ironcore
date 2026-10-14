@@ -154,7 +154,7 @@ format: $(GOIMPORTS) $(GOIMPORTSREVISER)
 
 .PHONY: test
 test: envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" EXPERIMENTAL_DISABLE_KUBERNETES_VERSION_CHECK=true go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-cov
 test-cov:
