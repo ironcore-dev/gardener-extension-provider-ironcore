@@ -154,7 +154,7 @@ format: $(GOIMPORTS) $(GOIMPORTSREVISER)
 
 .PHONY: test
 test: envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" EXPERIMENTAL_DISABLE_KUBERNETES_VERSION_CHECK=true go test ./... -coverprofile cover.out
 
 .PHONY: test-cov
 test-cov:
@@ -184,7 +184,7 @@ DEFAULTER_GEN ?= $(LOCALBIN)/defaulter-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-CODE_GENERATOR_VERSION ?= v0.36.3
+CODE_GENERATOR_VERSION ?= v0.37.0
 #ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
 ENVTEST_VERSION ?= $(shell go list -m -f "{{ .Version }}" sigs.k8s.io/controller-runtime | awk -F'[v.]' '{printf "release-%d.%d", $$2, $$3}')
 #ENVTEST_K8S_VERSION is the version of Kubernetes to use for setting up ENVTEST binaries (i.e. 1.31)

@@ -22,11 +22,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/recorder"
 
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/admission/mutator"
 	api "github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore"
 	"github.com/ironcore-dev/gardener-extension-provider-ironcore/pkg/apis/ironcore/install"
 )
+
+type fakeMgr struct {
+	*test.FakeManager
+}
+
+func (f *fakeMgr) GetEventRecorder(string) recorder.EventRecorder {
+	return nil
+}
 
 var _ = Describe("NamespacedCloudProfile Mutator", func() {
 	var (
@@ -45,9 +54,11 @@ var _ = Describe("NamespacedCloudProfile Mutator", func() {
 		utilruntime.Must(install.AddToScheme(scheme))
 		utilruntime.Must(v1beta1.AddToScheme(scheme))
 		fakeClient = fakeclient.NewClientBuilder().WithScheme(scheme).Build()
-		fakeManager = &test.FakeManager{
-			Client: fakeClient,
-			Scheme: scheme,
+		fakeManager = &fakeMgr{
+			FakeManager: &test.FakeManager{
+				Client: fakeClient,
+				Scheme: scheme,
+			},
 		}
 		namespace = "garden-dev"
 		decoder = serializer.NewCodecFactory(fakeManager.GetScheme(), serializer.EnableStrict).UniversalDecoder()

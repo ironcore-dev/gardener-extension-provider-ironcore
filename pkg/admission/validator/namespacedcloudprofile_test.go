@@ -44,9 +44,11 @@ var _ = Describe("NamespacedCloudProfile Validator", func() {
 		utilruntime.Must(install.AddToScheme(scheme))
 		utilruntime.Must(v1beta1.AddToScheme(scheme))
 		fakeClient = fakeclient.NewClientBuilder().WithScheme(scheme).Build()
-		fakeManager = &test.FakeManager{
-			Client: fakeClient,
-			Scheme: scheme,
+		fakeManager = &fakeMgr{
+			FakeManager: &test.FakeManager{
+				Client: fakeClient,
+				Scheme: scheme,
+			},
 		}
 		namespace = "garden-dev"
 

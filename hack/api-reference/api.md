@@ -160,7 +160,7 @@ InfrastructureConfig infrastructure configuration resource
 <td>
 <code>networkRef</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#localobjectreference-v1-core">LocalObjectReference</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.37/#localobjectreference-v1-core">LocalObjectReference</a>
 </em>
 </td>
 <td>

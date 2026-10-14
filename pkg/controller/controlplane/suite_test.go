@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -69,6 +70,8 @@ func TestAPIs(t *testing.T) {
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
+	Expect(os.Setenv("EXPERIMENTAL_DISABLE_KUBERNETES_VERSION_CHECK", "true")).To(Succeed())
+
 	var err error
 
 	By("bootstrapping test environment")
@@ -87,7 +90,7 @@ var _ = BeforeSuite(func() {
 		// Note that you must have the required binaries setup under the bin directory to perform
 		// the tests directly. When we run make test it will be setup and used automatically.
 		BinaryAssetsDirectory: filepath.Join("..", "..", "bin", "k8s",
-			fmt.Sprintf("1.36.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
+			fmt.Sprintf("1.37.0-%s-%s", runtime.GOOS, runtime.GOARCH)),
 	}
 
 	testEnvExt = &utilsenvtest.EnvironmentExtensions{
