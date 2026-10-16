@@ -142,6 +142,7 @@ var _ = Describe("Machines", func() {
 		Expect(machineDeployments).To(Equal(worker.MachineDeployments{
 			worker.MachineDeployment{
 				Name:       deploymentName1,
+				PoolName:   pool.Name,
 				ClassName:  className1,
 				SecretName: className1,
 				Minimum:    worker.DistributeOverZones(0, pool.Minimum, 2),
@@ -163,6 +164,7 @@ var _ = Describe("Machines", func() {
 			},
 			worker.MachineDeployment{
 				Name:       deploymentName2,
+				PoolName:   pool.Name,
 				ClassName:  className2,
 				SecretName: className2,
 				Minimum:    worker.DistributeOverZones(1, pool.Minimum, 2),

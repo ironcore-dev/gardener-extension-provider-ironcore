@@ -80,6 +80,7 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 
 			machineDeployments = append(machineDeployments, worker.MachineDeployment{
 				Name:                 deploymentName,
+				PoolName:             pool.Name,
 				ClassName:            className,
 				SecretName:           className,
 				Minimum:              worker.DistributeOverZones(zoneIdx, pool.Minimum, zoneLen),
