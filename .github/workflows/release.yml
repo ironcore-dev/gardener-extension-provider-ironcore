@@ -160,9 +160,6 @@ jobs:
       contents: read
       packages: write
 
-    env:
-      OCM_CONFIG: ${{ github.workspace }}/ocm/ocmconfig.yaml
-
     steps:
       - uses: actions/checkout@v7
 
@@ -200,11 +197,8 @@ jobs:
           echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
           echo "OCM_REPO=$OCM_REPO" >> $GITHUB_ENV
 
-      - name: Add OCM component version to transport archive
-        run: ocm add component-version --repository ctf::ocm/ctf --constructor ocm/component-constructor.yaml
+      - name: Add OCM component version to GitHub Container Registry
+        run: ocm add component-version --repository ${OCM_REPO} --constructor ocm/component-constructor.yaml
         env:
           SOURCE_REF: ${{ github.ref }}
           SOURCE_COMMIT_SHA: ${{ github.sha }}
-
-      - name: Transfer OCM component transport archive to GitHub Container Registry
-        run: ocm transfer component-version ctf::ocm/ctf ${OCM_REPO}
