@@ -160,6 +160,9 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      OCM_CONFIG: ${{ github.workspace }}/ocm/ocmconfig.yaml
+
     steps:
       - uses: actions/checkout@v7
 
@@ -169,7 +172,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: open-component-model/ocm-setup-action@5755dc5c01c939f7dbba3bb07f9fb9b019a7a2a0
+      - uses: open-component-model/ocm-setup-action@585a852942b7fb3a1171c02eeb2d24e8deace9e6 # v2.0.0
+        with:
+          version: 0.23.0
 
       - name: Retrieve image versions from imagevector
         run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
@@ -196,10 +201,10 @@ jobs:
           echo "OCM_REPO=$OCM_REPO" >> $GITHUB_ENV
 
       - name: Add OCM component version to transport archive
-        run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml --addenv
+        run: ocm add component-version --repository ctf::ocm/ctf --constructor ocm/component-constructor.yaml
         env:
           SOURCE_REF: ${{ github.ref }}
           SOURCE_COMMIT_SHA: ${{ github.sha }}
 
       - name: Transfer OCM component transport archive to GitHub Container Registry
-        run: ocm transfer ctf ocm/ctf ${OCM_REPO}
+        run: ocm transfer component-version ctf::ocm/ctf ${OCM_REPO}

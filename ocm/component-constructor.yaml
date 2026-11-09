@@ -1,5 +1,5 @@
-# yaml-language-server: $schema= https://ocm.software/schemas/configuration-schema.yaml
-# ocm get resources ghcr.io/ironcore-dev/ocm//github.com/ironcore-dev/gardener-extension-provider-ironcore --latest -r -o treewide
+# yaml-language-server: $schema=https://ocm.software/0.23/schemas/bindings/go/constructor/schema-2020-12.json
+# ocm get cv ghcr.io/ironcore-dev/ocm//github.com/ironcore-dev/gardener-extension-provider-ironcore --latest -o yaml
 components:
   - name: github.com/ironcore-dev/gardener-extension-provider-ironcore
     version: "${VERSION}"
@@ -38,7 +38,7 @@ components:
         extraIdentity:
           type: helmchart-imagemap
         input:
-          type: file
+          type: File/v1
           path: provider-ironcore-imagemap.json
           mediaType: application/json
 
@@ -69,7 +69,7 @@ components:
         extraIdentity:
           type: helmchart-imagemap
         input:
-          type: file
+          type: File/v1
           path: admission-ironcore-runtime-imagemap.json
           mediaType: application/json
 
