@@ -1,44 +1,44 @@
-# yaml-language-server: $schema= https://ocm.software/schemas/configuration-schema.yaml
-# ocm get resources ghcr.io/ironcore-dev/ocm//github.com/ironcore-dev/gardener-extension-provider-ironcore --latest -r -o treewide
+# yaml-language-server: $schema=https://ocm.software/0.23/schemas/bindings/go/constructor/schema-2020-12.json
+# ocm get cv ghcr.io/ironcore-dev/ocm//github.com/ironcore-dev/gardener-extension-provider-ironcore --latest -o yaml
 components:
   - name: github.com/ironcore-dev/gardener-extension-provider-ironcore
     version: "${VERSION}"
     provider:
       name: SAP SE
-    sources:
+    resources:
       - name: main-source
+        type: git
+        version: "${VERSION}"
+        relation: external
         access:
-          type: github
-          repoUrl: github.com/ironcore-dev/gardener-extension-provider-ironcore
+          type: Git/v1
+          repository: https://github.com/ironcore-dev/gardener-extension-provider-ironcore
           ref: ${SOURCE_REF}
           commit: ${SOURCE_COMMIT_SHA}
-        version: ${VERSION}
-        type: git
         labels:
           - name: cloud.gardener/cicd/source
             value:
               repository-classification: main
-    resources:
       - name: provider-ironcore
         type: helmChart
         version: "${VERSION}"
         extraIdentity:
           type: helmChart
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/charts/gardener-extension-provider-ironcore:${CHART_VERSION}
       - name: gardener-extension-provider-ironcore
         type: ociImage
         version: "${VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/gardener-extension-provider-ironcore:${IMAGE_VERSION}
       - name: provider-ironcore-imagemap
         type: helmchart-imagemap
         extraIdentity:
           type: helmchart-imagemap
         input:
-          type: file
+          type: File/v1
           path: provider-ironcore-imagemap.json
           mediaType: application/json
 
@@ -48,7 +48,7 @@ components:
         extraIdentity:
           type: helmChart
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/charts/gardener-extension-admission-ironcore-application:${CHART_VERSION}
       - name: admission-ironcore-runtime
         type: helmChart
@@ -56,20 +56,20 @@ components:
         extraIdentity:
           type: helmChart
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/charts/gardener-extension-admission-ironcore-runtime:${CHART_VERSION}
       - name: gardener-extension-admission-ironcore
         type: ociImage
         version: "${VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/gardener-extension-admission-ironcore:${IMAGE_VERSION}
       - name: admission-ironcore-runtime-imagemap
         type: helmchart-imagemap
         extraIdentity:
           type: helmchart-imagemap
         input:
-          type: file
+          type: File/v1
           path: admission-ironcore-runtime-imagemap.json
           mediaType: application/json
 
@@ -77,7 +77,7 @@ components:
         type: ociImage
         version: "${CLOUD_CONTROLLER_MANAGER_VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/cloud-provider-ironcore:${CLOUD_CONTROLLER_MANAGER_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
@@ -86,7 +86,7 @@ components:
         version: "${MACHINE_CONTROLLER_MANAGER_PROVIDER_IRONCORE_VERSION}"
         type: ociImage
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/machine-controller-manager-provider-ironcore:${MACHINE_CONTROLLER_MANAGER_PROVIDER_IRONCORE_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
@@ -95,7 +95,7 @@ components:
         type: ociImage
         version: "${CSI_DRIVER_VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: ghcr.io/ironcore-dev/ironcore-csi-driver:${CSI_DRIVER_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
@@ -104,7 +104,7 @@ components:
         type: ociImage
         version: "${CSI_PROVISIONER_VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: registry.k8s.io/sig-storage/csi-provisioner:${CSI_PROVISIONER_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
@@ -113,7 +113,7 @@ components:
         type: ociImage
         version: "${CSI_ATTACHER_VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: registry.k8s.io/sig-storage/csi-attacher:${CSI_ATTACHER_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
@@ -122,7 +122,7 @@ components:
         type: ociImage
         version: "${CSI_RESIZER_VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: registry.k8s.io/sig-storage/csi-resizer:${CSI_RESIZER_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
@@ -131,7 +131,7 @@ components:
         type: ociImage
         version: "${CSI_NODE_DRIVER_REGISTRAR_VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: registry.k8s.io/sig-storage/csi-node-driver-registrar:${CSI_NODE_DRIVER_REGISTRAR_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
@@ -140,7 +140,7 @@ components:
         type: ociImage
         version: "${CSI_LIVENESS_PROBE_VERSION}"
         access:
-          type: ociArtifact
+          type: OCIImage/v1
           imageReference: registry.k8s.io/sig-storage/livenessprobe:${CSI_LIVENESS_PROBE_VERSION}
         labels:
           - name: cloud.gardener.cnudie/migration/original_ref
